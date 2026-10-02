@@ -771,6 +771,69 @@
         </div>
     </div>
 
+    <!-- ================================================================
+         MODAL — EDITAR PONTO / DEED
+         ================================================================ -->
+    <div id="modalEditarPonto" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:420px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">
+                    ✏️ Editar Ponto / Deed
+                </div>
+                <button class="sw-modal-close" onclick="fecharModal('modalEditarPonto')">✕</button>
+            </div>
+
+            <input type="hidden" id="inputEditPontoId">
+
+            <div class="sw-coord-pill-badge">
+                <span>📍 Coordenadas Wurm</span>
+                <strong id="modalEditCoordStrong" style="color:var(--jk-accent);">X 0 • Y 0</strong>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Tipo de Ponto</label>
+                <select class="sw-form-select" id="selectEditKind" onchange="alternarCamposEdicao(this.value)">
+                    <option value="village">🏘️ Deed / Vila</option>
+                    <option value="beacon">🔴 Beacon</option>
+                    <option value="lodestone">🪨 Lodestone</option>
+                    <option value="cave">🕳️ Caverna</option>
+                    <option value="resource_node">⛏️ Recursos Minerais</option>
+                    <option value="idol">✨ Idol</option>
+                    <option value="supply_point">📦 Ponto de Suprimento</option>
+                    <option value="landmark">📌 Marco Geral</option>
+                </select>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Facção</label>
+                <select class="sw-form-select" id="selectEditFaccao">
+                    <option value="jackal">🔴 Jackal</option>
+                    <option value="freedom">🟢 Freedom</option>
+                    <option value="neutral">⚪ Neutro</option>
+                    <option value="unknown">❓ Desconhecido</option>
+                </select>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Nome / Título</label>
+                <input type="text" class="sw-form-input" id="inputEditNomePonto" placeholder="Nome do ponto ou da Deed...">
+            </div>
+
+            <div class="sw-form-group" id="rowEditMayor" style="display:none;">
+                <label class="sw-form-label">👑 Prefeito / Responsável (Mayor)</label>
+                <input type="text" class="sw-form-input" id="inputEditMayor" placeholder="Ex: Kuropr, ShadowHunter...">
+            </div>
+
+            <div class="sw-modal-actions" style="display:flex; justify-content:space-between; gap:10px;">
+                <button class="sw-btn-modal-cancel" style="border-color:rgba(255,68,68,0.4); color:var(--jk-jackal);" onclick="excluirPontoDoModal()">🗑️ Excluir</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="sw-btn-modal-cancel" onclick="fecharModal('modalEditarPonto')">Cancelar</button>
+                    <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarEdicaoPonto()">✓ Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1016,6 +1079,7 @@
 
     let beaconsData = [];
     let outrosPontos = [];
+    let todosPontosCache = [];
 
     function criarPinBeacon(beacon) {
         const lat = mapSize - beacon.y;
@@ -1165,10 +1229,25 @@
                 })
             });
 
+            const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
+                              (currentUser && p.created_by === currentUser.id);
+
+            const safePointName = sanitize(p.name || p.kind).replace(/'/g, "\\'");
+            const actionBtns = canManage ? `
+                <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #30363d; padding-top:6px;">
+                    <button onclick="event.stopPropagation(); abrirModalEditarPonto('${p.id}')" style="flex:1; background:rgba(245,166,35,0.12); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        ✏️ Editar
+                    </button>
+                    <button onclick="event.stopPropagation(); excluirPonto('${p.id}', '${safePointName}')" style="flex:1; background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:var(--jk-jackal); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        🗑️ Excluir
+                    </button>
+                </div>
+            ` : '';
+
             let popupContent = '';
             if (isVillage) {
                 popupContent = `
-                    <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
+                    <div style="font-family:'Inter',sans-serif; min-width:190px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
                             <span>🏘️</span> <span>${sanitize(p.name || 'Deed Sem Nome')}</span>
                         </div>
@@ -1179,17 +1258,19 @@
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px;">
                             📍 <strong>X: ${x} • Y: ${y}</strong> &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
                         </div>
+                        ${actionBtns}
                     </div>
                 `;
             } else {
                 popupContent = `
-                    <div style="font-family:'Inter',sans-serif; min-width:160px; padding:2px;">
+                    <div style="font-family:'Inter',sans-serif; min-width:170px; padding:2px;">
                         <div style="font-size:12.5px; font-weight:700; color:#fff; margin-bottom:4px;">
                             ${conf.icon} ${sanitize(p.name || p.kind.toUpperCase())}
                         </div>
                         <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px;">
                             📍 X: ${x} • Y: ${y} &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
                         </div>
+                        ${actionBtns}
                     </div>
                 `;
             }
@@ -1692,6 +1773,108 @@
     }
 
     // ==============================================================
+    // EDIÇÃO E EXCLUSÃO DE PONTOS / DEEDS
+    // ==============================================================
+    function abrirModalEditarPonto(id) {
+        const ponto = todosPontosCache.find(p => String(p.id) === String(id));
+        if (!ponto) {
+            alert('Ponto não encontrado.');
+            return;
+        }
+
+        document.getElementById('inputEditPontoId').value = ponto.id;
+        document.getElementById('modalEditCoordStrong').textContent = `X: ${ponto.x} • Y: ${ponto.y}`;
+        document.getElementById('selectEditKind').value = ponto.kind || 'village';
+        document.getElementById('selectEditFaccao').value = ponto.faction || 'neutral';
+        document.getElementById('inputEditNomePonto').value = ponto.name || '';
+
+        const isVillage = (ponto.kind === 'village');
+        const rowEditMayor = document.getElementById('rowEditMayor');
+        if (rowEditMayor) {
+            rowEditMayor.style.display = isVillage ? 'block' : 'none';
+            document.getElementById('inputEditMayor').value = ponto.attrs?.mayor || '';
+        }
+
+        document.getElementById('modalEditarPonto').classList.add('open');
+    }
+
+    function alternarCamposEdicao(kind) {
+        const rowEditMayor = document.getElementById('rowEditMayor');
+        if (rowEditMayor) {
+            rowEditMayor.style.display = (kind === 'village') ? 'block' : 'none';
+        }
+    }
+
+    async function salvarEdicaoPonto() {
+        if (!supabaseClient) {
+            alert('Supabase não conectado.');
+            return;
+        }
+
+        const id = document.getElementById('inputEditPontoId').value;
+        const ponto = todosPontosCache.find(p => String(p.id) === String(id));
+        const nome = document.getElementById('inputEditNomePonto').value.trim();
+        const faccao = document.getElementById('selectEditFaccao').value;
+        const kind = document.getElementById('selectEditKind').value;
+        const mayor = document.getElementById('inputEditMayor')?.value.trim();
+
+        if (!nome) {
+            alert('Por favor informe um nome ou título.');
+            return;
+        }
+
+        const attrs = Object.assign({}, ponto?.attrs || {});
+        if (kind === 'village') {
+            if (mayor) attrs.mayor = mayor;
+            else delete attrs.mayor;
+        }
+
+        try {
+            const { error } = await supabaseClient.from('points').update({
+                name: nome,
+                kind: kind,
+                faction: faccao,
+                attrs: attrs,
+                updated_at: new Date().toISOString()
+            }).eq('id', id);
+
+            if (error) throw error;
+
+            fecharModal('modalEditarPonto');
+            await carregarPontosDoBanco();
+            alert(`✓ "${nome}" atualizado com sucesso!`);
+        } catch (err) {
+            alert('Erro ao atualizar ponto: ' + err.message);
+        }
+    }
+
+    async function excluirPonto(id, nome) {
+        if (!supabaseClient) {
+            alert('Supabase não conectado.');
+            return;
+        }
+
+        if (!confirm(`Deseja realmente excluir permanentemente "${nome || 'este ponto'}"?`)) return;
+
+        try {
+            const { error } = await supabaseClient.from('points').delete().eq('id', id);
+            if (error) throw error;
+
+            await carregarPontosDoBanco();
+            alert(`✓ Ponto removido com sucesso.`);
+        } catch (err) {
+            alert('Erro ao excluir ponto: ' + err.message);
+        }
+    }
+
+    async function excluirPontoDoModal() {
+        const id = document.getElementById('inputEditPontoId').value;
+        const nome = document.getElementById('inputEditNomePonto').value.trim();
+        fecharModal('modalEditarPonto');
+        await excluirPonto(id, nome);
+    }
+
+    // ==============================================================
     // INTERNACIONALIZAÇÃO (i18n) PT / EN
     // ==============================================================
     const I18N = {
@@ -1906,6 +2089,7 @@
             const { data, error } = await supabaseClient.from('points').select('*');
             if (error) throw error;
             if (data) {
+                todosPontosCache = data;
                 beaconsData = data.filter(p => p.kind === 'beacon').map(p => ({
                     id: p.id,
                     x: Number(p.x),
