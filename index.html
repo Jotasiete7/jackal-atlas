@@ -1763,20 +1763,18 @@
     // ==============================================================
     // SESSÃO SUPABASE & SINCRONIZAÇÃO EM TEMPO REAL
     // ==============================================================
-    async function checarSessao() {
-        if (!supabaseClient) return;
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-            currentUser = session.user;
-            document.getElementById('authLoggedOut').style.display = 'none';
-            document.getElementById('authLoggedIn').style.display = 'block';
+    async function aplicarUsuarioNaInterface(user) {
+        currentUser = user;
+        document.getElementById('authLoggedOut').style.display = 'none';
+        document.getElementById('authLoggedIn').style.display = 'block';
 
-            const name = currentUser.user_metadata.custom_claims?.global_name || currentUser.user_metadata.full_name || 'Batedor';
-            document.getElementById('userNick').textContent = name;
-            if (currentUser.user_metadata.avatar_url) {
-                document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url;
-            }
+        const name = currentUser.user_metadata?.custom_claims?.global_name || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Batedor';
+        document.getElementById('userNick').textContent = name;
+        if (currentUser.user_metadata?.avatar_url) {
+            document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url;
+        }
 
+        try {
             const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
             if (profile) {
                 currentProfile = profile;
@@ -1789,7 +1787,36 @@
                     document.getElementById('adminLinkBox').style.display = 'block';
                 }
             }
+        } catch (err) {
+            console.warn('Erro ao carregar perfil do usuário:', err);
         }
+    }
+
+    async function checarSessao() {
+        if (!supabaseClient) return;
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (session && session.user) {
+                await aplicarUsuarioNaInterface(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                document.getElementById('authLoggedOut').style.display = 'block';
+                document.getElementById('authLoggedIn').style.display = 'none';
+                currentUser = null;
+                currentProfile = null;
+            }
+        });
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+            await aplicarUsuarioNaInterface(session.user);
+        }
+    }
+
+    async function logoutUsuario() {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
+        }
+        window.location.reload();
     }
 
     // ==============================================================

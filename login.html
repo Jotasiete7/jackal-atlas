@@ -256,24 +256,61 @@
                 return;
             }
 
+            // Escutar eventos de autenticação (captura login do Discord e troca de código PKCE)
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth event:', event);
+                if (session && session.user) {
+                    await renderUser(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    document.getElementById('unauthenticated-block').style.display = 'block';
+                    document.getElementById('pending-block').style.display = 'none';
+                    document.getElementById('approved-block').style.display = 'none';
+                }
+            });
+
+            // Verificar se já existe sessão salva
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && session.user) {
-                renderUser(session.user);
+                await renderUser(session.user);
             }
         }
 
         async function renderUser(user) {
             document.getElementById('unauthenticated-block').style.display = 'none';
 
-            const avatarUrl = user.user_metadata.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-            const name = user.user_metadata.custom_claims?.global_name || user.user_metadata.full_name || user.user_metadata.name || 'Guerreiro';
+            const avatarUrl = user.user_metadata?.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            const name = user.user_metadata?.custom_claims?.global_name || user.user_metadata?.full_name || user.user_metadata?.name || 'Guerreiro';
 
-            // Buscar perfil
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .maybeSingle();
+            // Buscar perfil no banco
+            let profile = null;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (error) {
+                    console.warn('Consulta de perfil retornou aviso:', error);
+                } else {
+                    profile = data;
+                }
+            } catch (err) {
+                console.warn('Erro ao consultar perfil:', err);
+            }
+
+            // Se ainda não achou perfil (gatilho Postgres executando em background), tenta novamente após 800ms
+            if (!profile) {
+                await new Promise(r => setTimeout(r, 800));
+                try {
+                    const { data } = await supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    if (data) profile = data;
+                } catch (e) {}
+            }
 
             const role = profile ? profile.role : 'pending';
 
@@ -281,11 +318,13 @@
                 document.getElementById('avatar-pending').src = avatarUrl;
                 document.getElementById('name-pending').innerText = name;
                 document.getElementById('pending-block').style.display = 'block';
+                document.getElementById('approved-block').style.display = 'none';
             } else {
                 document.getElementById('avatar-approved').src = avatarUrl;
                 document.getElementById('name-approved').innerText = (profile && profile.nick) ? `${name} (${profile.nick})` : name;
                 document.getElementById('role-approved').innerText = `Cargo: ${role.toUpperCase()}`;
                 document.getElementById('approved-block').style.display = 'block';
+                document.getElementById('pending-block').style.display = 'none';
 
                 // Redirecionamento automático se já for membro aprovado
                 setTimeout(() => {
@@ -299,12 +338,17 @@
                 alert('Aviso: Configure o arquivo config.js com as chaves do seu Supabase para realizar o login real com Discord.');
                 return;
             }
-            await supabaseClient.auth.signInWithOAuth({
+            const redirectUrl = window.location.origin + window.location.pathname;
+            const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'discord',
                 options: {
-                    redirectTo: window.location.origin + window.location.pathname
+                    redirectTo: redirectUrl
                 }
             });
+            if (error) {
+                console.error('Falha ao autenticar com Discord:', error);
+                alert('Erro ao conectar com Discord: ' + error.message);
+            }
         }
 
         async function signOut() {
