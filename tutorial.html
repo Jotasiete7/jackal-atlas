@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial & Manual de Operações • Jackal Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0a0b10;
+            --bg-card: #12141c;
+            --bg-subtle: #181b26;
+            --border: #232738;
+            --border-highlight: #343a50;
+            --accent: #f5a623;
+            --accent-glow: rgba(245, 166, 35, 0.2);
+            --jackal: #ff4444;
+            --freedom: #00e676;
+            --neutral: #94a3b8;
+            --text-main: #f0f6fc;
+            --text-sub: #cbd5e1;
+            --text-muted: #8b949e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background: linear-gradient(180deg, rgba(245, 166, 35, 0.08) 0%, rgba(18, 20, 28, 0.6) 100%);
+            border: 1px solid var(--border-highlight);
+            border-radius: 14px;
+            padding: 36px 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #ff4444, #f5a623, #00e676);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .badge-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 230, 118, 0.12);
+            color: var(--freedom);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .badge-live::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: var(--freedom);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--freedom);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 22px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 16px 0 8px 0;
+        }
+
+        p {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+        }
+
+        li { margin-bottom: 6px; }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.08);
+            color: #f5a623;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .shortcut-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12.5px;
+        }
+
+        .shortcut-table th, .shortcut-table td {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .shortcut-table th {
+            background: var(--bg-subtle);
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .shortcut-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tip-box {
+            background: rgba(245, 166, 35, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            color: var(--text-sub);
+            margin: 14px 0;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🌙 Jackal Atlas — Manual & Tutorial</h1>
+            <div class="subtitle">Guia oficial de campo para batedores, oficiais e comando de A Guilda • Wurm Online Jackal Round 2</div>
+            <a href="https://jackal-atlas.pages.dev" target="_blank" class="badge-live">Servidor Online: jackal-atlas.pages.dev</a>
+        </div>
+
+        <!-- 1. INTRODUÇÃO -->
+        <div class="card">
+            <h2>🧭 1. Introdução & Filosofia Dark Swiss</h2>
+            <p>O <strong>Jackal Atlas</strong> foi desenvolvido com base no <em>Swiss Design System</em> para cartografia militar:</p>
+            <ul>
+                <li><strong>Minimalismo visual</strong>: Sem excesso de elementos gráficos que atrapalhem o reconhecimento do relevo.</li>
+                <li><strong>Precisão técnica</strong>: Coordenadas tabulares monoespaçadas e quadriculado oficial Wurm (padrão YAGA).</li>
+                <li><strong>Tempo real</strong>: Sincronização contínua com banco Supabase via WebSockets.</li>
+            </ul>
+        </div>
+
+        <!-- 2. ACESSO -->
+        <div class="card">
+            <h2>🔐 2. Autenticação & Cargos</h2>
+            <p>O login é realizado através da sua conta do <strong>Discord</strong>:</p>
+            <ul>
+                <li><code>pending</code>: Recruta recém-chegado. Aguarda liberação por um Oficial ou Admin.</li>
+                <li><code>member</code>: Membro ativo. Acesso a todas as camadas, beacons, rotas e envio de pontos/eventos para moderação.</li>
+                <li><code>officer</code>: Oficial militar. Aprova submissões, cria objetivos comunitários P1/P2/P3 e edita qualquer ponto no mapa.</li>
+                <li><code>admin</code>: Comando Geral. Painel administrativo em <code>admin.html</code> com aprovação de membros e gestão de cargos.</li>
+            </ul>
+        </div>
+
+        <!-- 3. NAVEGAÇÃO -->
+        <div class="card">
+            <h2>🗺️ 3. Navegação & Grade Wurm (YAGA)</h2>
+            <h3>Bases Cartográficas</h3>
+            <ul>
+                <li><strong>Terrain</strong>: Terreno aéreo com biomas, florestas, praias e água navegável.</li>
+                <li><strong>Isométrico</strong>: Projeção 3D para leitura de desníveis, montanhas e vales.</li>
+                <li><strong>Topográfico</strong>: Linhas de contorno altimétricas para planejamento de travessias e estradas.</li>
+            </ul>
+            <h3>Grade de Quadrantes Wurm</h3>
+            <p>Ative a caixa <strong>📐 Grade de Quadrantes Wurm</strong> para exibir os quadrantes (ex: <code>M15</code>, <code>K20</code>). O rodapé exibe em tempo real a posição sob o mouse no formato <code>X: 2048 • Y: 2048 [M15]</code>.</p>
+        </div>
+
+        <!-- 4. BUSCA -->
+        <div class="card">
+            <h2>🔍 4. Busca com Autocomplete & Quadrantes</h2>
+            <p>A barra de busca rápida no topo da barra esquerda oferece:</p>
+            <ul>
+                <li><strong>Destaque de Quadrante</strong>: Digite <code>M15</code> ou <code>k20</code>. O quadrante ganha um contorno ciano luminoso e a câmera foca nele.</li>
+                <li><strong>Deeds & Prefeitos</strong>: Digite o nome da vila ou o nick do <strong>Prefeito (Mayor)</strong> para localizar a Deed instantaneamente.</li>
+                <li><strong>Pontos de Interesse</strong>: Localize beacons, cavernas, lodestones e pontos de minério com voo suave (<code>flyTo</code>) e abertura automática do popup.</li>
+            </ul>
+        </div>
+
+        <!-- 5. MENU DE CONTEXTO -->
+        <div class="card">
+            <h2>🖱️ 5. Menu de Contexto (Botão Direito no Mapa)</h2>
+            <p>Clicar com o botão direito em qualquer coordenada do terreno abre o menu instantâneo:</p>
+            <ul>
+                <li>📍 <strong>Adicionar Ponto / Deed aqui</strong>: Abre o formulário de cadastro com coordenadas já preenchidas.</li>
+                <li>📋 <strong>Copiar comando /vamp</strong>: Copia para o clipboard o comando pronto para o chat do jogo (ex: <code>/vamp 2048 1850</code>).</li>
+                <li>🔍 <strong>Centralizar Mapa aqui</strong>: Centraliza suavemente a visualização.</li>
+            </ul>
+        </div>
+
+        <!-- 6. MODO FOCO DE INFRAESTRUTURA -->
+        <div class="card">
+            <h2>🛣️ 6. Modo Foco & Traçado de Infraestrutura</h2>
+            <p>Para mapear rodovias e pontes:</p>
+            <ol>
+                <li>Clique em <strong>🛣️ Traçar Estrada</strong> ou <strong>🌉 Traçar Ponte</strong> no acordeom Infraestrutura.</li>
+                <li>A barra inferior se transforma na <strong>Barra de Modo Foco</strong> (<code>sw-focus-bar</code>).</li>
+                <li>Clique no mapa ponto a ponto. A extensão é calculada <strong>ao vivo em tiles Wurm</strong>.</li>
+                <li>Use <strong>↩ Desfazer</strong> para remover o último nó ou <strong>✓ Salvar Obra</strong> para registrar a rota no banco de dados.</li>
+            </ol>
+        </div>
+
+        <!-- 7. GESTÃO DE DEEDS -->
+        <div class="card">
+            <h2>🏘️ 7. Cadastro e Gestão de Deeds e Pontos</h2>
+            <p>Ao adicionar um ponto, um <strong>Crosshair Tracker</strong> flutuante acompanha o cursor indicando as coordenadas. Deeds possuem campo dedicado para o <strong>👑 Prefeito / Responsável (Mayor)</strong>.</p>
+            <p>Nos popups de pontos no mapa, criadores e Oficiais contam com:</p>
+            <ul>
+                <li>✏️ <strong>Editar</strong>: Atualiza nome, tipo, facção ou prefeito.</li>
+                <li>🗑️ <strong>Excluir</strong>: Remove o ponto permanentemente.</li>
+                <li>📋 <strong>/vamp</strong>: Copia rápida para o chat do Wurm.</li>
+            </ul>
+        </div>
+
+        <!-- 8. CENTRAL TÁTICA -->
+        <div class="card">
+            <h2>⚔️ 8. Central Tática (HUD Direito)</h2>
+            <ul>
+                <li><strong>Radar de Influência</strong>: Proporção territorial ao vivo (Freedom vs Jackal vs Neutro).</li>
+                <li><strong>Primeiro Marco</strong>: Monitora a meta de 20% Freedom para desbloquear <em>Idols & Plinths</em>.</li>
+                <li><strong>Ações Rápidas de Campo</strong>: Selecione um beacon para registrar: 💥 Limpei, 🏳️ Converti, ⬆️ Reforcei (+1) ou 🚨 Sob Ataque.</li>
+            </ul>
+        </div>
+
+        <!-- 9. ATALHOS -->
+        <div class="card">
+            <h2>⌨️ 9. Atalhos de Teclado & Dicas</h2>
+            <table class="shortcut-table">
+                <thead>
+                    <tr><th>Atalho</th><th>Ação</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>ESC</code></td><td>Fecha modais, menu de contexto e cancela modos de desenho/traçado.</td></tr>
+                    <tr><td><code>Botão Direito</code></td><td>Abre o menu contextual militar em qualquer pixel do mapa.</td></tr>
+                    <tr><td><code>Ctrl + F5</code></td><td>Recarrega o navegador limpando o cache local.</td></tr>
+                    <tr><td><code>localStorage</code></td><td>Suas camadas e preferências são lembradas entre sessões.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Desenvolvido para A Guilda • Wurm Online Jackal Round 2 (2026)
+        </div>
+    </div>
+</body>
+</html>
