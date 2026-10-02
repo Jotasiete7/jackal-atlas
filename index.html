@@ -279,11 +279,17 @@
                 <div class="sw-crest-badge" style="background:#1e202c; font-size:20px;">🌙</div>
                 <div class="sw-institution-titles">
                     <div class="sw-institution-main">JACKAL ATLAS</div>
-                    <div class="sw-institution-sub">Central Tática • A Guilda • Wurm Online</div>
-                    <div class="jk-event-badge">Round 2 • 20/10/2026</div>
+                    <div class="sw-institution-sub" data-i18n="subTitle">Community Tactical Map • Wurm Online</div>
+                    <div class="jk-event-badge" data-i18n="eventBadge">Round 2 • 20/10/2026</div>
                 </div>
             </div>
-            <button class="sw-theme-toggle" onclick="alternarTemaVisual()">🌙 Dark</button>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                <div style="display:flex; gap:4px; font-size:10px;">
+                    <button id="btnLangPT" class="sw-base-btn active" style="padding:2px 6px; font-size:9.5px;" onclick="trocarIdioma('pt')">🇧🇷 PT</button>
+                    <button id="btnLangEN" class="sw-base-btn" style="padding:2px 6px; font-size:9.5px;" onclick="trocarIdioma('en')">🇺🇸 EN</button>
+                </div>
+                <button class="sw-theme-toggle" onclick="alternarTemaVisual()">🌙 Dark</button>
+            </div>
         </div>
 
         <!-- AUTH & PERFIL -->
@@ -292,7 +298,7 @@
             <div id="authLoggedOut">
                 <button class="sw-btn-action" style="background:#5865F2; color:#fff; border-color:#5865F2; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="window.location.href = 'login.html'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-                    Entrar com Discord
+                    <span data-i18n="discordBtn">Entrar com Discord</span>
                 </button>
             </div>
             <!-- LOGADO -->
@@ -330,8 +336,8 @@
             <!-- 1. BASE CARTOGRÁFICA -->
             <div class="sw-accordion-item" id="accBase">
                 <div class="sw-acc-header active" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> 🗺️ Base Cartográfica</div>
-                    <span style="font-size:9.5px; opacity:0.8;">Camadas</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="baseCarto">🗺️ Base Cartográfica</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="camadas">Camadas</span>
                 </div>
                 <div class="sw-acc-content open">
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(3, 1fr);">
@@ -341,13 +347,13 @@
                     </div>
                     <label class="sw-filter-row">
                         <input type="checkbox" checked onchange="toggleCamada('influencia', this.checked)">
-                        ⭕ Círculos de Influência
+                        <span data-i18n="circulos">⭕ Círculos de Influência</span>
                     </label>
                     <label class="sw-filter-row">
                         <input type="checkbox" onchange="toggleGridTiles(this.checked)">
-                        📐 Grade de Coordenadas
+                        <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
-                    <button class="sw-btn-action jk-accent-btn" style="margin-top:6px;" onclick="ativarModoAdicionarPonto()">
+                    <button class="sw-btn-action jk-accent-btn" style="margin-top:6px;" onclick="ativarModoAdicionarPonto()" data-i18n="addPonto">
                         📍 Adicionar Ponto no Mapa
                     </button>
                 </div>
@@ -356,59 +362,59 @@
             <!-- 2. PONTOS DO MAPA (FILTROS) -->
             <div class="sw-accordion-item" id="accPontos">
                 <div class="sw-acc-header active" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> 📍 Pontos do Mapa</div>
-                    <span style="font-size:9.5px; opacity:0.8;">Filtros</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="pontosMapa">📍 Pontos do Mapa</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="filtros">Filtros</span>
                 </div>
                 <div class="sw-acc-content open">
                     <label class="sw-filter-row" style="color:var(--jk-jackal);">
                         <input type="checkbox" checked onchange="toggleCamada('beacons_jackal', this.checked)">
-                        🔴 Beacons Jackal <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsJackal">(0)</span>
+                        <span data-i18n="beaconsJackal">🔴 Beacons Jackal</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsJackal">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
                         <input type="checkbox" checked onchange="toggleCamada('beacons_freedom', this.checked)">
-                        🟢 Beacons Freedom <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
+                        <span data-i18n="beaconsFreedom">🟢 Beacons Freedom</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-neutral);">
                         <input type="checkbox" checked onchange="toggleCamada('beacons_neutral', this.checked)">
-                        ⚪ Beacons Neutros <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsNeutral">(0)</span>
+                        <span data-i18n="beaconsNeutral">⚪ Beacons Neutros</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsNeutral">(0)</span>
                     </label>
                     <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:#a78bfa;">
                         <input type="checkbox" checked onchange="toggleCamada('lodestones', this.checked)">
-                        🪨 Lodestones <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLodestones">(0)</span>
+                        <span data-i18n="lodestones">🪨 Lodestones</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLodestones">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#fbbf24;">
                         <input type="checkbox" checked onchange="toggleCamada('villages', this.checked)">
-                        🏘️ Vilas Fundadas <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
+                        <span data-i18n="vilas">🏘️ Vilas Fundadas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#6ee7b7;">
                         <input type="checkbox" checked onchange="toggleCamada('caves', this.checked)">
-                        🕳️ Cavernas Naturais <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntCaves">(0)</span>
+                        <span data-i18n="cavernas">🕳️ Cavernas Naturais</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntCaves">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#fb923c;">
                         <input type="checkbox" checked onchange="toggleCamada('resource_nodes', this.checked)">
-                        ⛏️ Resource Nodes <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntNodes">(0)</span>
+                        <span data-i18n="recursos">⛏️ Recursos Minerais</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntNodes">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#e879f9;" id="rowIdols">
                         <input type="checkbox" checked onchange="toggleCamada('idols', this.checked)">
-                        ✨ Idols &amp; Plinths <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntIdols">(0)</span>
+                        <span data-i18n="idols">✨ Idols &amp; Plinths</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntIdols">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#38bdf8;">
                         <input type="checkbox" checked onchange="toggleCamada('supply_points', this.checked)">
-                        📦 Supply Points <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntSupply">(0)</span>
+                        <span data-i18n="supply">📦 Pontos de Suprimento</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntSupply">(0)</span>
                     </label>
                 </div>
             </div>
 
-            <!-- 3. OBJETIVOS DA GUILDA P1/P2/P3 -->
+            <!-- 3. OBJETIVOS COMUNITÁRIOS P1/P2/P3 -->
             <div class="sw-accordion-item" id="accObjetivos">
                 <div class="sw-acc-header active" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> 🎯 Objetivos da Guilda</div>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="objetivos">🎯 Projetos Comunitários</span></div>
                     <span style="font-size:9.5px; opacity:0.8;">P1/P2/P3</span>
                 </div>
                 <div class="sw-acc-content open">
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr); margin-bottom:8px;">
-                        <button class="sw-base-btn active" onclick="filtrarPrioridadeObj('all', this)">Todos</button>
+                        <button class="sw-base-btn active" onclick="filtrarPrioridadeObj('all', this)" data-i18n="todos">Todos</button>
                         <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p1', this)" style="color:var(--jk-p1);">🔴 P1</button>
                         <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p2', this)" style="color:var(--jk-p2);">🟡 P2</button>
                         <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p3', this)" style="color:var(--jk-p3);">🟢 P3</button>
@@ -418,7 +424,7 @@
                         <!-- Inserido dinamicamente via JS -->
                     </div>
 
-                    <button class="sw-btn-action jk-accent-btn" onclick="abrirModalObjetivo()">
+                    <button class="sw-btn-action jk-accent-btn" onclick="abrirModalObjetivo()" data-i18n="novoObjetivo">
                         ➕ Novo Objetivo
                     </button>
                 </div>
@@ -427,31 +433,31 @@
             <!-- 4. INFRAESTRUTURA (ESTRADAS & PONTES) -->
             <div class="sw-accordion-item" id="accInfra">
                 <div class="sw-acc-header" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> 🛣️ Infraestrutura</div>
-                    <span style="font-size:9.5px; opacity:0.8;">Estradas</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="infra">🛣️ Infraestrutura</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="estradas">Estradas</span>
                 </div>
                 <div class="sw-acc-content">
                     <label class="sw-filter-row" style="color:#94a3b8;">
                         <input type="checkbox" checked onchange="toggleCamada('roads_planned', this.checked)">
-                        🛣️ Estradas Planejadas
+                        <span data-i18n="estradasPlan">🛣️ Estradas Planejadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
                         <input type="checkbox" checked onchange="toggleCamada('roads_built', this.checked)">
-                        🛣️ Estradas Pavimentadas
+                        <span data-i18n="estradasPav">🛣️ Estradas Pavimentadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:#94a3b8;">
                         <input type="checkbox" checked onchange="toggleCamada('bridges_planned', this.checked)">
-                        🌉 Pontes Planejadas
+                        <span data-i18n="pontesPlan">🌉 Pontes Planejadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
                         <input type="checkbox" checked onchange="toggleCamada('bridges_built', this.checked)">
-                        🌉 Pontes Concluídas
+                        <span data-i18n="pontesConc">🌉 Pontes Concluídas</span>
                     </label>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
-                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('road')">
+                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('road')" data-i18n="tracarEstrada">
                             🛣️ Traçar Estrada
                         </button>
-                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('bridge')">
+                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('bridge')" data-i18n="tracarPonte">
                             🌉 Traçar Ponte
                         </button>
                     </div>
@@ -461,23 +467,23 @@
             <!-- 5. MONTARIAS & CRIATURAS -->
             <div class="sw-accordion-item" id="accMontarias">
                 <div class="sw-acc-header" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> 🦎 Montarias & Criaturas</div>
-                    <span style="font-size:9.5px; opacity:0.8;">Fauna</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="fauna">🦎 Montarias & Criaturas</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="faunaSub">Fauna</span>
                 </div>
                 <div class="sw-acc-content">
                     <label class="sw-filter-row" style="color:#86efac;">
                         <input type="checkbox" checked onchange="toggleCamada('weta_spots', this.checked)">
-                        🦗 Spots de Weta (Montaria Inicial)
+                        <span data-i18n="weta">🦗 Spots de Weta (Montaria Inicial)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#f0abfc;">
-                        <input type="checkbox" checked onchange="toggleCamada('octopede_spots', this.checked)">
-                        🐙 Spots de Octopede (Maior Slope)
+                        <input type="checkbox" checked onchange="toggleCamada('octopede', this.checked)">
+                        <span data-i18n="octopede">🐙 Spots de Octopede (Maior Slope)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#cbd5e1;">
-                        <input type="checkbox" checked onchange="toggleCamada('ferropod_spots', this.checked)">
-                        🐌 Ferropods (Dropam Ferro)
+                        <input type="checkbox" checked onchange="toggleCamada('ferropod', this.checked)">
+                        <span data-i18n="ferropod">🐌 Ferropods (Dropam Ferro)</span>
                     </label>
-                    <div style="font-size:10px; color:var(--sw-text-muted); background:var(--sw-bg-subtle); padding:7px 8px; border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;">
+                    <div style="font-size:10px; color:var(--sw-text-muted); background:var(--sw-bg-subtle); padding:7px 8px; border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;" data-i18n="mountsNote">
                         ℹ️ Limites de slope de cada montaria serão atualizados no primeiro dia de Jackal.
                     </div>
                 </div>
@@ -486,7 +492,7 @@
         </div><!-- /sw-accordion-container -->
 
         <!-- BOTÃO FECHAR MENU -->
-        <button class="sw-btn-close-menu" onclick="toggleSidebarEsquerda()">▲ Recolher Atlas</button>
+        <button class="sw-btn-close-menu" onclick="toggleSidebarEsquerda()" data-i18n="recolherAtlas">▲ Recolher Atlas</button>
     </div>
     <!-- /SIDEBAR ESQUERDA -->
 
@@ -499,11 +505,11 @@
             <div style="display:flex; align-items:center; gap:8px;">
                 <span style="font-size:14px;">⚔️</span>
                 <div>
-                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);">CENTRAL TÁTICA</div>
-                    <div style="font-size:9px; color:var(--sw-text-muted);">Inteligência de Campo • Jackal R2</div>
+                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);" data-i18n="centralTatica">CENTRAL TÁTICA</div>
+                    <div style="font-size:9px; color:var(--sw-text-muted);" data-i18n="tacticalSub">Inteligência de Campo • Jackal R2</div>
                 </div>
             </div>
-            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()">Recolher ▶</button>
+            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()" data-i18n="recolherHud">Recolher ▶</button>
         </div>
 
         <div style="overflow-y:auto; overflow-x:hidden; flex:1; scrollbar-width:thin; scrollbar-color:var(--sw-border) transparent;">
@@ -511,8 +517,8 @@
             <!-- RADAR DE INFLUÊNCIA -->
             <div class="jk-card">
                 <div class="jk-card-title">
-                    <span>⭕ Influência do Mapa</span>
-                    <span style="font-family:'JetBrains Mono'; font-size:9px; color:var(--sw-text-muted);">tempo real</span>
+                    <span data-i18n="radarInfluencia">⭕ Influência do Mapa</span>
+                    <span style="font-family:'JetBrains Mono'; font-size:9px; color:var(--sw-text-muted);" data-i18n="tempoReal">tempo real</span>
                 </div>
                 <div class="jk-stat-grid">
                     <div class="jk-stat-cell">
@@ -525,7 +531,7 @@
                     </div>
                     <div class="jk-stat-cell">
                         <div class="jk-stat-val neutral" id="statNeutralPct">15%</div>
-                        <div class="jk-stat-label">Neutro</div>
+                        <div class="jk-stat-label" data-i18n="lblNeutro">Neutro</div>
                     </div>
                 </div>
                 <div class="jk-influence-bar">
@@ -536,44 +542,44 @@
                 <div style="font-size:9.5px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">
                     🏰 <span id="statBeaconsFreedomCount">1</span> Freedom &nbsp;|&nbsp;
                     🔴 <span id="statBeaconsJackalCount">2</span> Jackal &nbsp;|&nbsp;
-                    ⚪ <span id="statBeaconsNeutralCount">1</span> Neutro
+                    ⚪ <span id="statBeaconsNeutralCount">1</span> <span data-i18n="lblNeutro">Neutro</span>
                 </div>
             </div>
 
             <!-- MARCOS COMUNITÁRIOS -->
             <div class="jk-card">
-                <div class="jk-card-title">🏆 Marcos Comunitários</div>
+                <div class="jk-card-title" data-i18n="marcos">🏆 Marcos Comunitários</div>
                 <div style="display:flex; align-items:center; gap:8px; font-size:11px; padding:4px 0;">
                     <div style="width:18px; height:18px; border-radius:50%; border:2px solid var(--jk-accent); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--jk-accent); flex-shrink:0;">1</div>
                     <div style="flex:1;">
-                        <div style="font-weight:700; color:var(--sw-text-main);">Primeiro Marco</div>
-                        <div style="font-size:9.5px; color:var(--sw-text-muted);">Desbloqueia Idols &amp; Plinths</div>
+                        <div style="font-weight:700; color:var(--sw-text-main);" data-i18n="primeiroMarco">Primeiro Marco</div>
+                        <div style="font-size:9.5px; color:var(--sw-text-muted);" data-i18n="marcoIdols">Desbloqueia Idols &amp; Plinths</div>
                     </div>
                     <span style="font-size:9px; color:var(--jk-accent); font-family:'JetBrains Mono'; font-weight:700;">25% / 20%</span>
                 </div>
-                <div style="font-size:9.5px; color:var(--jk-freedom); padding:5px 7px; background:var(--jk-freedom-dim); border-radius:4px; border:1px solid rgba(0,230,118,0.3); margin-top:6px;">
+                <div style="font-size:9.5px; color:var(--jk-freedom); padding:5px 7px; background:var(--jk-freedom-dim); border-radius:4px; border:1px solid rgba(0,230,118,0.3); margin-top:6px;" data-i18n="marcoAlcancado">
                     ✓ <strong>Alcançado!</strong> Idols e Plinths liberados para uso.
                 </div>
             </div>
 
             <!-- AÇÕES RÁPIDAS NO PONTO SELECIONADO -->
             <div class="jk-card">
-                <div class="jk-card-title">⚡ Ações Rápidas de Campo</div>
-                <div style="font-size:10px; color:var(--sw-text-muted); margin-bottom:8px;" id="acoTargetDesc">
+                <div class="jk-card-title" data-i18n="acoesRapidas">⚡ Ações Rápidas de Campo</div>
+                <div style="font-size:10px; color:var(--sw-text-muted); margin-bottom:8px;" id="acoTargetDesc" data-i18n="selecioneBeacon">
                     Selecione um beacon no mapa para registrar eventos:
                 </div>
                 <div class="jk-quick-grid">
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('cleared')">
-                        <span class="qb-icon">💥</span>Limpei!
+                        <span class="qb-icon">💥</span><span data-i18n="btnLimpei">Limpei!</span>
                     </button>
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('converted_freedom')">
-                        <span class="qb-icon">🏳️</span>Converti
+                        <span class="qb-icon">🏳️</span><span data-i18n="btnConverti">Converti</span>
                     </button>
                     <button class="jk-quick-btn reinforce" onclick="reportarEvento('reinforced')">
-                        <span class="qb-icon">⬆️</span>Reforcei (+1)
+                        <span class="qb-icon">⬆️</span><span data-i18n="btnReforcei">Reforcei (+1)</span>
                     </button>
                     <button class="jk-quick-btn jackal" onclick="reportarEvento('attacked')">
-                        <span class="qb-icon">🚨</span>Sob Ataque!
+                        <span class="qb-icon">🚨</span><span data-i18n="btnAtaque">Sob Ataque!</span>
                     </button>
                 </div>
             </div>
@@ -581,8 +587,8 @@
             <!-- FEED DE EVENTOS RECENTES -->
             <div class="jk-card">
                 <div class="jk-card-title">
-                    <span>📡 Linha do Tempo de Guerra</span>
-                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">ao vivo</span>
+                    <span data-i18n="feedGuerra">📡 Linha do Tempo de Guerra</span>
+                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';" data-i18n="aoVivo">ao vivo</span>
                 </div>
                 <div id="eventLogList">
                     <div class="jk-event-log-item">
@@ -613,6 +619,7 @@
     <div class="sw-coord-hud-bar">
         <div class="sw-coord-stamp">
             <span id="coordBox" style="font-weight:700;">X: 2048 • Y: 2048</span>
+            <span id="quadBox" style="font-weight:800; color:var(--jk-accent); margin-left:8px; font-family:'JetBrains Mono'; background:rgba(245,166,35,0.12); padding:1px 5px; border-radius:3px; border:1px solid rgba(245,166,35,0.3);">M15</span>
             <span id="zoomBox" class="sw-coord-label">z2.0</span>
         </div>
     </div>
@@ -800,12 +807,128 @@
 
     map.setView([2048, 2048], 2);
 
-    // Conversão e exibição de coordenadas Wurm
+    // ==============================================================
+    // SISTEMA DE GRADE & QUADRANTES WURM (ESTILO YAGA / HARMONY)
+    // ==============================================================
+    const YAGA_GRID_SPACING = 203.0;
+    const YAGA_GRID_OFFSETX = -26;
+    const YAGA_GRID_OFFSETY = -40;
+    const YAGA_LETTERS = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+    function obterQuadranteWurm(y, x) {
+        const i = Math.floor((y - YAGA_GRID_OFFSETY) / YAGA_GRID_SPACING);
+        const j = Math.floor((x - YAGA_GRID_OFFSETX) / YAGA_GRID_SPACING);
+        const letra = (i >= 0 && i < YAGA_LETTERS.length) ? YAGA_LETTERS[i] : '?';
+        const numero = j + 7;
+        return `${letra}${numero}`;
+    }
+
+    function obterBoundsQuadrante(letra, numero) {
+        const i = YAGA_LETTERS.indexOf(letra.toUpperCase());
+        const j = parseInt(numero, 10) - 7;
+        if (i === -1 || isNaN(j) || j < 0) return null;
+        const yMin = i * YAGA_GRID_SPACING + YAGA_GRID_OFFSETY;
+        const yMax = (i + 1) * YAGA_GRID_SPACING + YAGA_GRID_OFFSETY;
+        const xMin = j * YAGA_GRID_SPACING + YAGA_GRID_OFFSETX;
+        const xMax = (j + 1) * YAGA_GRID_SPACING + YAGA_GRID_OFFSETX;
+        return {
+            yMin, yMax, xMin, xMax,
+            yCenter: (yMin + yMax) / 2,
+            xCenter: (xMin + xMax) / 2
+        };
+    }
+
+    const gridLayer = L.layerGroup();
+    const quadranteHighlightLayer = L.layerGroup().addTo(map);
+
+    function desenharGridYaga() {
+        gridLayer.clearLayers();
+        const spacing = YAGA_GRID_SPACING;
+        const lineOpts = {
+            color: 'rgba(100, 116, 139, 0.45)',
+            weight: 1.2,
+            dashArray: '5, 5',
+            interactive: false
+        };
+
+        // Linhas Horizontais
+        for (let i = 1; i <= 21; i++) {
+            const y = (i * spacing) + YAGA_GRID_OFFSETY;
+            if (y >= 0 && y <= MAP_SIZE) {
+                L.polyline([[y, 0], [y, MAP_SIZE]], lineOpts).addTo(gridLayer);
+            }
+        }
+
+        // Linhas Verticais
+        for (let j = 1; j <= 21; j++) {
+            const x = (j * spacing) + YAGA_GRID_OFFSETX;
+            if (x >= 0 && x <= MAP_SIZE) {
+                L.polyline([[0, x], [MAP_SIZE, x]], lineOpts).addTo(gridLayer);
+            }
+        }
+
+        // Labels dos Quadrantes
+        for (let i = 0; i < 20; i++) {
+            for (let j = 0; j < 20; j++) {
+                const centerLat = (i * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETY;
+                const centerLng = (j * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETX;
+                const labelText = YAGA_LETTERS[i] + (j + 7);
+
+                L.marker([centerLat, centerLng], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<span style="font-size:10px; font-weight:800; color:rgba(148,163,184,0.6); font-family:'JetBrains Mono';">${labelText}</span>`,
+                        iconSize: [40, 20],
+                        iconAnchor: [20, 10]
+                    }),
+                    interactive: false
+                }).addTo(gridLayer);
+            }
+        }
+    }
+
+    function toggleGridTiles(ativo) {
+        if (ativo) {
+            desenharGridYaga();
+            if (!map.hasLayer(gridLayer)) map.addLayer(gridLayer);
+        } else {
+            if (map.hasLayer(gridLayer)) map.removeLayer(gridLayer);
+        }
+    }
+
+    function destacarQuadranteWurm(letra, numero, voar = true) {
+        const bounds = obterBoundsQuadrante(letra, numero);
+        if (!bounds) return;
+        quadranteHighlightLayer.clearLayers();
+
+        const rect = L.rectangle([[bounds.yMin, bounds.xMin], [bounds.yMax, bounds.xMax]], {
+            color: '#38bdf8',
+            weight: 2,
+            dashArray: '6, 6',
+            fillColor: '#0284c7',
+            fillOpacity: 0.12,
+            interactive: false
+        });
+        quadranteHighlightLayer.addLayer(rect);
+
+        if (voar) {
+            map.flyToBounds([[bounds.yMin, bounds.xMin], [bounds.yMax, bounds.xMax]], {
+                padding: [60, 60],
+                duration: 1.2
+            });
+        }
+    }
+
+    // Conversão e exibição contínua de coordenadas Wurm com Quadrante
     map.on('mousemove', function(e) {
-        const x = Math.round(e.latlng.lng);
-        const y = Math.round(mapSize - e.latlng.lat);
+        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lat)));
         document.getElementById('coordBox').textContent = `X: ${x} • Y: ${y}`;
+        const quad = obterQuadranteWurm(y, x);
+        const qBox = document.getElementById('quadBox');
+        if (qBox) qBox.textContent = quad;
     });
+
     map.on('zoom', function() {
         document.getElementById('zoomBox').textContent = map.getZoom().toFixed(1) + 'x';
     });
@@ -1021,7 +1144,7 @@
     }
 
     // ==============================================================
-    // BUSCA EM TEMPO REAL
+    // BUSCA EM TEMPO REAL & DETECÇÃO DE QUADRANTES
     // ==============================================================
     function filtrarMarcadores(texto) {
         const dd = document.getElementById('buscaDropdown');
@@ -1030,25 +1153,54 @@
             return;
         }
 
-        const query = texto.toLowerCase();
+        const query = texto.trim().toLowerCase();
+        let htmlExtraQuadrante = '';
+
+        // Detecção de Quadrante Wurm (ex: M15, k20, b7)
+        const quadMatch = query.match(/^([a-z])\s*(\d{1,2})$/i);
+        if (quadMatch) {
+            const letra = quadMatch[1].toUpperCase();
+            const num = quadMatch[2];
+            const bounds = obterBoundsQuadrante(letra, num);
+            if (bounds) {
+                htmlExtraQuadrante = `
+                    <div class="sw-search-item" onclick="selecionarQuadranteBusca('${letra}', '${num}')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
+                        <div>
+                            <strong style="color:#38bdf8;">🧭 Quadrante Wurm ${letra}${num}</strong>
+                            <div style="font-size:9.5px; color:var(--sw-text-muted);">Navegar e Iluminar Quadrante</div>
+                        </div>
+                        <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${letra}${num}</span>
+                    </div>
+                `;
+            }
+        }
+
         const resultados = beaconsData.filter(b => b.nome.toLowerCase().includes(query) || b.faccao.toLowerCase().includes(query));
 
-        if (resultados.length === 0) {
-            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted);">Nenhum ponto encontrado</div>`;
+        if (resultados.length === 0 && !htmlExtraQuadrante) {
+            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted);">Nenhum ponto ou quadrante encontrado</div>`;
             dd.style.display = 'block';
             return;
         }
 
-        dd.innerHTML = resultados.map(b => `
+        const itensPontos = resultados.map(b => `
             <div class="sw-search-item" onclick="focarPonto(${b.x}, ${b.y}, '${b.id}')">
                 <div>
                     <strong>${b.nome}</strong>
-                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${b.x} • Y: ${b.y}</div>
+                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${b.x} • Y: ${b.y} [${obterQuadranteWurm(b.y, b.x)}]</div>
                 </div>
                 <span class="sw-search-badge" style="color:${b.faccao === 'freedom' ? '#00e676' : '#ff4444'};">${b.faccao.toUpperCase()}</span>
             </div>
         `).join('');
+
+        dd.innerHTML = htmlExtraQuadrante + itensPontos;
         dd.style.display = 'block';
+    }
+
+    function selecionarQuadranteBusca(letra, num) {
+        document.getElementById('buscaDropdown').style.display = 'none';
+        document.getElementById('inputBusca').value = '';
+        destacarQuadranteWurm(letra, num, true);
     }
 
     function focarPonto(x, y, id) {
@@ -1341,10 +1493,152 @@
         document.getElementById('inputNomePonto').value = '';
     }
 
-    function logoutUsuario() {
-        if (supabase) supabase.auth.signOut();
-        window.location.reload();
+    // ==============================================================
+    // INTERNACIONALIZAÇÃO (i18n) PT / EN
+    // ==============================================================
+    const I18N = {
+        pt: {
+            subTitle: 'Mapa Tático Comunitário • Wurm Online',
+            eventBadge: 'Round 2 • 20/10/2026',
+            searchPlaceholder: 'Buscar beacon, caverna, quadrante (ex: M15)...',
+            baseCarto: '🗺️ Base Cartográfica',
+            camadas: 'Camadas',
+            circulos: '⭕ Círculos de Influência',
+            grade: '📐 Grade de Quadrantes Wurm',
+            addPonto: '📍 Adicionar Ponto no Mapa',
+            pontosMapa: '📍 Pontos do Mapa',
+            filtros: 'Filtros',
+            beaconsJackal: '🔴 Beacons Jackal',
+            beaconsFreedom: '🟢 Beacons Freedom',
+            beaconsNeutral: '⚪ Beacons Neutros',
+            lodestones: '🪨 Lodestones',
+            vilas: '🏘️ Vilas Fundadas',
+            cavernas: '🕳️ Cavernas Naturais',
+            recursos: '⛏️ Recursos Minerais',
+            idols: '✨ Idols & Plinths',
+            supply: '📦 Pontos de Suprimento',
+            objetivos: '🎯 Projetos Comunitários',
+            todos: 'Todos',
+            novoObjetivo: '➕ Novo Objetivo',
+            infra: '🛣️ Infraestrutura',
+            estradas: 'Estradas',
+            estradasPlan: '🛣️ Estradas Planejadas',
+            estradasPav: '🛣️ Estradas Pavimentadas',
+            pontesPlan: '🌉 Pontes Planejadas',
+            pontesConc: '🌉 Pontes Concluídas',
+            tracarEstrada: '🛣️ Traçar Estrada',
+            tracarPonte: '🌉 Traçar Ponte',
+            fauna: '🦎 Montarias & Criaturas',
+            faunaSub: 'Fauna',
+            weta: '🦗 Spots de Weta (Montaria Inicial)',
+            octopede: '🐙 Spots de Octopede (Maior Slope)',
+            ferropod: '🐌 Ferropods (Dropam Ferro)',
+            mountsNote: 'ℹ️ Limites de slope de cada montaria serão atualizados no primeiro dia de Jackal.',
+            centralTatica: 'CENTRAL TÁTICA',
+            tacticalSub: 'Inteligência de Campo • Jackal R2',
+            radarInfluencia: '⭕ Influência do Mapa',
+            tempoReal: 'tempo real',
+            aoVivo: 'ao vivo',
+            lblNeutro: 'Neutro',
+            marcos: '🏆 Marcos Comunitários',
+            primeiroMarco: 'Primeiro Marco',
+            marcoIdols: 'Desbloqueia Idols & Plinths',
+            marcoAlcancado: '✓ Alcançado! Idols e Plinths liberados para uso.',
+            acoesRapidas: '⚡ Ações Rápidas de Campo',
+            selecioneBeacon: 'Selecione um beacon no mapa para registrar eventos:',
+            btnLimpei: 'Limpei!',
+            btnConverti: 'Converti',
+            btnReforcei: 'Reforcei (+1)',
+            btnAtaque: 'Sob Ataque!',
+            feedGuerra: '📡 Linha do Tempo de Guerra',
+            recolherAtlas: '▲ Recolher Atlas',
+            recolherHud: 'Recolher ▶',
+            discordBtn: 'Entrar com Discord'
+        },
+        en: {
+            subTitle: 'Community Tactical Map • Wurm Online',
+            eventBadge: 'Round 2 • Oct 20, 2026',
+            searchPlaceholder: 'Search beacon, cave, quadrant (e.g. M15)...',
+            baseCarto: '🗺️ Map Layers',
+            camadas: 'Layers',
+            circulos: '⭕ Influence Circles',
+            grade: '📐 Wurm Quadrant Grid',
+            addPonto: '📍 Add Map Marker',
+            pontosMapa: '📍 Map Points',
+            filtros: 'Filters',
+            beaconsJackal: '🔴 Jackal Beacons',
+            beaconsFreedom: '🟢 Freedom Beacons',
+            beaconsNeutral: '⚪ Neutral Beacons',
+            lodestones: '🪨 Lodestones',
+            vilas: '🏘️ Founded Deeds',
+            cavernas: '🕳️ Natural Caves',
+            recursos: '⛏️ Resource Nodes',
+            idols: '✨ Idols & Plinths',
+            supply: '📦 Supply Points',
+            objetivos: '🎯 Community Projects',
+            todos: 'All',
+            novoObjetivo: '➕ New Objective',
+            infra: '🛣️ Infrastructure',
+            estradas: 'Roads',
+            estradasPlan: '🛣️ Planned Roads',
+            estradasPav: '🛣️ Paved Roads',
+            pontesPlan: '🌉 Planned Bridges',
+            pontesConc: '🌉 Finished Bridges',
+            tracarEstrada: '🛣️ Trace Road',
+            tracarPonte: '🌉 Trace Bridge',
+            fauna: '🦎 Mounts & Creatures',
+            faunaSub: 'Fauna',
+            weta: '🦗 Weta Spots (Starter Mount)',
+            octopede: '🐙 Octopede Spots (High Slope)',
+            ferropod: '🐌 Ferropods (Iron Drop)',
+            mountsNote: 'ℹ️ Mount slope limits will be updated on day 1 of Jackal.',
+            centralTatica: 'TACTICAL COMMAND',
+            tacticalSub: 'Field Intelligence • Jackal R2',
+            radarInfluencia: '⭕ Territory Influence',
+            tempoReal: 'live',
+            aoVivo: 'live stream',
+            lblNeutro: 'Neutral',
+            marcos: '🏆 Community Milestones',
+            primeiroMarco: 'First Milestone',
+            marcoIdols: 'Unlocks Idols & Plinths',
+            marcoAlcancado: '✓ Achieved! Idols and Plinths unlocked for use.',
+            acoesRapidas: '⚡ Field Quick Actions',
+            selecioneBeacon: 'Select a beacon on map to register events:',
+            btnLimpei: 'Cleared!',
+            btnConverti: 'Converted',
+            btnReforcei: 'Reinforced (+1)',
+            btnAtaque: 'Under Attack!',
+            feedGuerra: '📡 Live War Timeline',
+            recolherAtlas: '▲ Collapse Atlas',
+            recolherHud: 'Collapse ▶',
+            discordBtn: 'Sign In with Discord'
+        }
+    };
+
+    let idiomaAtual = localStorage.getItem('jackal_atlas_lang') || 'pt';
+
+    function trocarIdioma(lang) {
+        idiomaAtual = lang;
+        localStorage.setItem('jackal_atlas_lang', lang);
+
+        document.getElementById('btnLangPT').classList.toggle('active', lang === 'pt');
+        document.getElementById('btnLangEN').classList.toggle('active', lang === 'en');
+
+        const dic = I18N[lang] || I18N.pt;
+
+        // Atualizar textos com data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dic[key]) el.textContent = dic[key];
+        });
+
+        // Placeholder busca
+        const busca = document.getElementById('inputBusca');
+        if (busca) busca.placeholder = dic.searchPlaceholder;
     }
+
+    // Inicializar idioma
+    trocarIdioma(idiomaAtual);
 
     // ==============================================================
     // SESSÃO SUPABASE
