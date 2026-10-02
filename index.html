@@ -766,7 +766,7 @@
     };
 
     // Inicialização do cliente Supabase
-    const supabase = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
+    const supabaseClient = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
         ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey)
         : null;
 
@@ -1162,9 +1162,9 @@
         const actor = sanitize(currentProfile ? (currentProfile.nick || 'Batedor') : 'Você');
         const nomeBeacon = sanitize(pontoSelecionado.nome);
 
-        if (supabase && pontoSelecionado.id && !String(pontoSelecionado.id).startsWith('local_')) {
+        if (supabaseClient && pontoSelecionado.id && !String(pontoSelecionado.id).startsWith('local_')) {
             try {
-                const { error } = await supabase.from('point_events').insert({
+                const { error } = await supabaseClient.from('point_events').insert({
                     point_id: pontoSelecionado.id,
                     event_type: tipo
                 });
@@ -1288,13 +1288,13 @@
         const container = document.getElementById('listaObjetivosContainer');
         if (!container) return;
 
-        if (!supabase) {
+        if (!supabaseClient) {
             container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
             return;
         }
 
         try {
-            let query = supabase.from('objectives').select('*').order('created_at', { ascending: false });
+            let query = supabaseClient.from('objectives').select('*').order('created_at', { ascending: false });
             if (filtro && filtro !== 'all') {
                 query = query.eq('priority', filtro);
             }
@@ -1367,9 +1367,9 @@
 
         const tipo = document.getElementById('selectObjTipo').value;
 
-        if (supabase) {
+        if (supabaseClient) {
             try {
-                const { error } = await supabase.from('objectives').insert({
+                const { error } = await supabaseClient.from('objectives').insert({
                     title: titulo,
                     kind: tipo,
                     priority: prioridadeSelecionadaModal,
@@ -1565,9 +1565,9 @@
         const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
         const dificuldade = document.getElementById('selectDificuldade')?.value;
 
-        if (supabase) {
+        if (supabaseClient) {
             try {
-                const { data, error } = await supabase.from('points').insert({
+                const { data, error } = await supabaseClient.from('points').insert({
                     kind: kindSelecionado,
                     name: nome,
                     x: clickCoords.x,
@@ -1764,8 +1764,8 @@
     // SESSÃO SUPABASE & SINCRONIZAÇÃO EM TEMPO REAL
     // ==============================================================
     async function checarSessao() {
-        if (!supabase) return;
-        const { data: { session } } = await supabase.auth.getSession();
+        if (!supabaseClient) return;
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session && session.user) {
             currentUser = session.user;
             document.getElementById('authLoggedOut').style.display = 'none';
@@ -1777,7 +1777,7 @@
                 document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url;
             }
 
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
             if (profile) {
                 currentProfile = profile;
                 const badge = document.getElementById('userRoleBadge');
@@ -1796,9 +1796,9 @@
     // CARREGAMENTO DE DADOS REAIS DO SUPABASE
     // ==============================================================
     async function carregarPontosDoBanco() {
-        if (!supabase) return;
+        if (!supabaseClient) return;
         try {
-            const { data, error } = await supabase.from('points').select('*');
+            const { data, error } = await supabaseClient.from('points').select('*');
             if (error) throw error;
             if (data) {
                 beaconsData = data.filter(p => p.kind === 'beacon').map(p => ({
@@ -1825,10 +1825,10 @@
     async function carregarEventosDoBanco() {
         const feed = document.getElementById('eventLogList');
         if (!feed) return;
-        if (!supabase) return;
+        if (!supabaseClient) return;
 
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('point_events')
                 .select('id, event_type, created_at, confirmed, points(name, kind)')
                 .order('created_at', { ascending: false })
@@ -1882,9 +1882,9 @@
     }
 
     async function carregarRotasDoBanco() {
-        if (!supabase) return;
+        if (!supabaseClient) return;
         try {
-            const { data, error } = await supabase.from('routes').select('*');
+            const { data, error } = await supabaseClient.from('routes').select('*');
             if (error) throw error;
             if (!data) return;
 
@@ -1926,8 +1926,8 @@
         await carregarRotasDoBanco();
 
         // Escuta em tempo real (Realtime WebSocket)
-        if (supabase) {
-            supabase.channel('jackal_live_sync')
+        if (supabaseClient) {
+            supabaseClient.channel('jackal_live_sync')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'points' }, () => carregarPontosDoBanco())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'point_events' }, () => { carregarPontosDoBanco(); carregarEventosDoBanco(); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco('all'))

@@ -297,7 +297,7 @@
             supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdya3F4enR4eGVsZWJkZmxobmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjA0NjQsImV4cCI6MjA5NDA5NjQ2NH0.hR_DpTLuZYAlvdIBNfG9yk4wFW6mCwxsU9PvwPta94w'
         };
 
-        const supabase = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
+        const supabaseClient = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
             ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey)
             : null;
 
@@ -318,10 +318,10 @@
         }
 
         async function carregarMembros() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-membros-corpo');
             try {
-                const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhum membro cadastrado ainda.</td></tr>`;
@@ -351,10 +351,10 @@
         }
 
         async function carregarFilaGuerra() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-guerra-corpo');
             try {
-                const { data, error } = await supabase.from('points').select('*').eq('confirmed', false).order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient.from('points').select('*').eq('confirmed', false).order('created_at', { ascending: false });
                 if (error) throw error;
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhuma submissão pendente de validação.</td></tr>`;
@@ -381,9 +381,9 @@
         }
 
         async function aprovarPonto(id) {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             try {
-                const { error } = await supabase.from('points').update({ confirmed: true }).eq('id', id);
+                const { error } = await supabaseClient.from('points').update({ confirmed: true }).eq('id', id);
                 if (error) throw error;
                 alert('✓ Ponto aprovado e visível publicamente!');
                 await carregarFilaGuerra();
@@ -393,9 +393,9 @@
         }
 
         async function rejeitarPonto(id) {
-            if (!supabase || !confirm('Deseja realmente rejeitar e excluir este ponto?')) return;
+            if (!supabaseClient || !confirm('Deseja realmente rejeitar e excluir este ponto?')) return;
             try {
-                const { error } = await supabase.from('points').delete().eq('id', id);
+                const { error } = await supabaseClient.from('points').delete().eq('id', id);
                 if (error) throw error;
                 alert('Ponto removido com sucesso.');
                 await carregarFilaGuerra();
@@ -405,9 +405,9 @@
         }
 
         async function alterarCargo(userId, novoRole) {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             try {
-                const { error } = await supabase.from('profiles').update({ role: novoRole }).eq('id', userId);
+                const { error } = await supabaseClient.from('profiles').update({ role: novoRole }).eq('id', userId);
                 if (error) throw error;
                 alert(`✓ Cargo alterado para ${novoRole.toUpperCase()}!`);
                 await carregarMembros();
@@ -417,10 +417,10 @@
         }
 
         async function carregarObjetivosAdmin() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-objetivos-corpo');
             try {
-                const { data, error } = await supabase.from('objectives').select('*').order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient.from('objectives').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhum objetivo cadastrado ainda.</td></tr>`;
@@ -444,9 +444,9 @@
         }
 
         async function excluirObjetivo(id) {
-            if (!supabase || !confirm('Excluir este objetivo?')) return;
+            if (!supabaseClient || !confirm('Excluir este objetivo?')) return;
             try {
-                const { error } = await supabase.from('objectives').delete().eq('id', id);
+                const { error } = await supabaseClient.from('objectives').delete().eq('id', id);
                 if (error) throw error;
                 await carregarObjetivosAdmin();
             } catch (err) {
@@ -460,9 +460,9 @@
             const prioridade = prompt('Prioridade (p1, p2, p3):', 'p1') || 'p1';
             const tipo = prompt('Tipo (beacon_clear, road, bridge, explore, supply):', 'road') || 'road';
 
-            if (supabase) {
+            if (supabaseClient) {
                 try {
-                    const { error } = await supabase.from('objectives').insert({
+                    const { error } = await supabaseClient.from('objectives').insert({
                         title: titulo,
                         kind: tipo,
                         priority: prioridade.toLowerCase(),
