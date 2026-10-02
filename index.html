@@ -83,6 +83,33 @@
             color: var(--jk-accent) !important;
         }
 
+        /* Context Menu itens */
+        .ctx-item {
+            transition: background 0.15s, color 0.15s;
+        }
+        .ctx-item:hover {
+            background: rgba(245, 166, 35, 0.15) !important;
+            color: var(--jk-accent) !important;
+        }
+
+        /* Botão /vamp nos popups */
+        .sw-btn-copy-vamp {
+            background: rgba(245, 166, 35, 0.12);
+            border: 1px solid var(--jk-accent-border);
+            color: var(--jk-accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .sw-btn-copy-vamp:hover {
+            background: var(--jk-accent);
+            color: #000;
+        }
+
         /* Sidebar Direita */
         .sw-sidebar-right { border-top: 3px solid var(--jk-jackal); }
 
@@ -370,11 +397,11 @@
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
                     </div>
                     <label class="sw-filter-row">
-                        <input type="checkbox" checked onchange="toggleCamada('influencia', this.checked)">
+                        <input type="checkbox" data-layer="influencia" checked onchange="toggleCamada('influencia', this.checked)">
                         <span data-i18n="circulos">⭕ Círculos de Influência</span>
                     </label>
                     <label class="sw-filter-row">
-                        <input type="checkbox" onchange="toggleGridTiles(this.checked)">
+                        <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
                         <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
                     <button class="sw-btn-action jk-accent-btn" style="margin-top:6px;" onclick="ativarModoAdicionarPonto()" data-i18n="addPonto">
@@ -391,40 +418,40 @@
                 </div>
                 <div class="sw-acc-content open">
                     <label class="sw-filter-row" style="color:var(--jk-jackal);">
-                        <input type="checkbox" checked onchange="toggleCamada('beacons_jackal', this.checked)">
+                        <input type="checkbox" data-layer="beacons_jackal" checked onchange="toggleCamada('beacons_jackal', this.checked)">
                         <span data-i18n="beaconsJackal">🔴 Beacons Jackal</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsJackal">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
-                        <input type="checkbox" checked onchange="toggleCamada('beacons_freedom', this.checked)">
+                        <input type="checkbox" data-layer="beacons_freedom" checked onchange="toggleCamada('beacons_freedom', this.checked)">
                         <span data-i18n="beaconsFreedom">🟢 Beacons Freedom</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-neutral);">
-                        <input type="checkbox" checked onchange="toggleCamada('beacons_neutral', this.checked)">
+                        <input type="checkbox" data-layer="beacons_neutral" checked onchange="toggleCamada('beacons_neutral', this.checked)">
                         <span data-i18n="beaconsNeutral">⚪ Beacons Neutros</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsNeutral">(0)</span>
                     </label>
                     <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:#a78bfa;">
-                        <input type="checkbox" checked onchange="toggleCamada('lodestones', this.checked)">
+                        <input type="checkbox" data-layer="lodestones" checked onchange="toggleCamada('lodestones', this.checked)">
                         <span data-i18n="lodestones">🪨 Lodestones</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLodestones">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#fbbf24;">
-                        <input type="checkbox" checked onchange="toggleCamada('villages', this.checked)">
+                        <input type="checkbox" data-layer="villages" checked onchange="toggleCamada('villages', this.checked)">
                         <span data-i18n="vilas">🏘️ Deeds & Vilas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#6ee7b7;">
-                        <input type="checkbox" checked onchange="toggleCamada('caves', this.checked)">
+                        <input type="checkbox" data-layer="caves" checked onchange="toggleCamada('caves', this.checked)">
                         <span data-i18n="cavernas">🕳️ Cavernas Naturais</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntCaves">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#fb923c;">
-                        <input type="checkbox" checked onchange="toggleCamada('resource_nodes', this.checked)">
+                        <input type="checkbox" data-layer="resource_nodes" checked onchange="toggleCamada('resource_nodes', this.checked)">
                         <span data-i18n="recursos">⛏️ Recursos Minerais</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntNodes">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#e879f9;" id="rowIdols">
-                        <input type="checkbox" checked onchange="toggleCamada('idols', this.checked)">
+                        <input type="checkbox" data-layer="idols" checked onchange="toggleCamada('idols', this.checked)">
                         <span data-i18n="idols">✨ Idols &amp; Plinths</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntIdols">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#38bdf8;">
-                        <input type="checkbox" checked onchange="toggleCamada('supply_points', this.checked)">
+                        <input type="checkbox" data-layer="supply_points" checked onchange="toggleCamada('supply_points', this.checked)">
                         <span data-i18n="supply">📦 Pontos de Suprimento</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntSupply">(0)</span>
                     </label>
                 </div>
@@ -462,19 +489,19 @@
                 </div>
                 <div class="sw-acc-content">
                     <label class="sw-filter-row" style="color:#94a3b8;">
-                        <input type="checkbox" checked onchange="toggleCamada('roads_planned', this.checked)">
+                        <input type="checkbox" data-layer="roads_planned" checked onchange="toggleCamada('roads_planned', this.checked)">
                         <span data-i18n="estradasPlan">🛣️ Estradas Planejadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
-                        <input type="checkbox" checked onchange="toggleCamada('roads_built', this.checked)">
+                        <input type="checkbox" data-layer="roads_built" checked onchange="toggleCamada('roads_built', this.checked)">
                         <span data-i18n="estradasPav">🛣️ Estradas Pavimentadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:#94a3b8;">
-                        <input type="checkbox" checked onchange="toggleCamada('bridges_planned', this.checked)">
+                        <input type="checkbox" data-layer="bridges_planned" checked onchange="toggleCamada('bridges_planned', this.checked)">
                         <span data-i18n="pontesPlan">🌉 Pontes Planejadas</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
-                        <input type="checkbox" checked onchange="toggleCamada('bridges_built', this.checked)">
+                        <input type="checkbox" data-layer="bridges_built" checked onchange="toggleCamada('bridges_built', this.checked)">
                         <span data-i18n="pontesConc">🌉 Pontes Concluídas</span>
                     </label>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
@@ -496,15 +523,15 @@
                 </div>
                 <div class="sw-acc-content">
                     <label class="sw-filter-row" style="color:#86efac;">
-                        <input type="checkbox" checked onchange="toggleCamada('weta_spots', this.checked)">
+                        <input type="checkbox" data-layer="weta_spots" checked onchange="toggleCamada('weta_spots', this.checked)">
                         <span data-i18n="weta">🦗 Spots de Weta (Montaria Inicial)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#f0abfc;">
-                        <input type="checkbox" checked onchange="toggleCamada('octopede', this.checked)">
+                        <input type="checkbox" data-layer="octopede_spots" checked onchange="toggleCamada('octopede_spots', this.checked)">
                         <span data-i18n="octopede">🐙 Spots de Octopede (Maior Slope)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#cbd5e1;">
-                        <input type="checkbox" checked onchange="toggleCamada('ferropod', this.checked)">
+                        <input type="checkbox" data-layer="ferropod_spots" checked onchange="toggleCamada('ferropod_spots', this.checked)">
                         <span data-i18n="ferropod">🐌 Ferropods (Dropam Ferro)</span>
                     </label>
                     <div style="font-size:10px; color:var(--sw-text-muted); background:var(--sw-bg-subtle); padding:7px 8px; border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;" data-i18n="mountsNote">
@@ -629,10 +656,20 @@
          BARRA INFERIOR DE COORDENADAS TABULARES
          ================================================================ -->
     <div class="sw-coord-hud-bar">
-        <div class="sw-coord-stamp">
+        <!-- BARRA NORMAL DE COORDENADAS -->
+        <div id="hudBottomNormal" class="sw-coord-stamp">
             <span id="coordBox" style="font-weight:700;">X: 2048 • Y: 2048</span>
             <span id="quadBox" style="font-weight:800; color:var(--jk-accent); margin-left:8px; font-family:'JetBrains Mono'; background:rgba(245,166,35,0.12); padding:1px 5px; border-radius:3px; border:1px solid rgba(245,166,35,0.3);">M15</span>
             <span id="zoomBox" class="sw-coord-label">z2.0</span>
+        </div>
+
+        <!-- BARRA DO MODO FOCO (QUANDO ESTÁ TRAÇANDO ESTRADA OU PONTE) -->
+        <div id="hudBottomFoco" class="sw-focus-bar" style="display:none; align-items:center; gap:10px;">
+            <span id="hudFocoTitulo" style="color:var(--jk-accent); font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;">🛣️ Traçar Obra:</span>
+            <span id="hudLiveDistancia" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;">0 tiles (0 pts)</span>
+            <button onclick="desfazerUltimoPontoTracado()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Desfazer último nó">↩ Desfazer</button>
+            <button onclick="abrirModalSalvarRota()" style="background:var(--jk-accent); color:#000; border:none; padding:6px 14px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">✓ Salvar Obra</button>
+            <button onclick="cancelarTracado()" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Cancelar</button>
         </div>
     </div>
 
@@ -834,6 +871,41 @@
         </div>
     </div>
 
+    <!-- ================================================================
+         MODAL — SALVAR ESTRADA / PONTE (INFRAESTRUTURA)
+         ================================================================ -->
+    <div id="modalSalvarRota" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:380px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title" id="modalRotaTitle">🛣️ Salvar Infraestrutura</div>
+                <button class="sw-modal-close" onclick="fecharModal('modalSalvarRota')">✕</button>
+            </div>
+
+            <div style="background:var(--sw-bg-subtle); border:1px solid var(--sw-border-subtle); border-radius:6px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; color:var(--sw-text-muted);">Extensão Total da Obra:</span>
+                <strong id="modalRotaDistancia" style="color:var(--jk-accent); font-family:'JetBrains Mono'; font-size:13px;">0 tiles</strong>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Nome da Estrada / Ponte</label>
+                <input type="text" class="sw-form-input" id="inputNomeRota" placeholder="Ex: Estrada Real do Leste, Ponte do Desfiladeiro...">
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Estado da Obra</label>
+                <select class="sw-form-select" id="selectStatusRota">
+                    <option value="planned">🟡 Planejada (Linha Tracejada)</option>
+                    <option value="built">🟢 Concluída / Pavimentada (Linha Sólida)</option>
+                </select>
+            </div>
+
+            <div class="sw-modal-actions">
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalSalvarRota')">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarSalvarRota()">✓ Salvar Obra</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1030,14 +1102,89 @@
         }
     }
 
-    // Conversão e exibição contínua de coordenadas Wurm com Quadrante
+    // ==============================================================
+    // TOAST NOTIFICATIONS & UTILITÁRIOS SUÍÇOS
+    // ==============================================================
+    let toastCartoTimer = null;
+    function mostrarToastCartografico(textoHtml) {
+        let toast = document.getElementById('mapCartoToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'mapCartoToast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 48px;
+                left: 50%;
+                transform: translateX(-50%) translateY(6px);
+                background: rgba(14, 15, 20, 0.94);
+                backdrop-filter: blur(10px);
+                border: 1px solid var(--jk-accent-border, rgba(245,166,35,0.4));
+                color: #fff;
+                padding: 7px 16px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 700;
+                font-family: 'Inter', sans-serif;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                z-index: 99999;
+                box-shadow: 0 6px 20px rgba(0,0,0,0.75);
+                pointer-events: none;
+                transition: opacity 0.25s ease, transform 0.25s ease;
+                opacity: 0;
+            `;
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = textoHtml;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        if (toastCartoTimer) clearTimeout(toastCartoTimer);
+        toastCartoTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(6px)';
+        }, 2200);
+    }
+
+    function copiarVamp(x, y, btn) {
+        const cmd = `/vamp ${Math.round(x)} ${Math.round(y)}`;
+        navigator.clipboard.writeText(cmd).then(() => {
+            mostrarToastCartografico(`📋 Comando <strong>${cmd}</strong> copiado para a área de transferência!`);
+            if (btn) {
+                const oldText = btn.innerHTML;
+                btn.innerHTML = '✓ Copiado';
+                btn.style.borderColor = '#00e676';
+                btn.style.color = '#00e676';
+                setTimeout(() => {
+                    btn.innerHTML = oldText;
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 1800);
+            }
+        }).catch(() => {
+            prompt('Copie o comando /vamp:', cmd);
+        });
+    }
+
+    // Conversão e exibição contínua de coordenadas Wurm com Quadrante & Tracker
     map.on('mousemove', function(e) {
         const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lat)));
+        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
         document.getElementById('coordBox').textContent = `X: ${x} • Y: ${y}`;
         const quad = obterQuadranteWurm(y, x);
         const qBox = document.getElementById('quadBox');
         if (qBox) qBox.textContent = quad;
+
+        // Tooltip flutuante quando em modo de adicionar ponto
+        if (typeof modoAdicionar !== 'undefined' && modoAdicionar) {
+            const tt = document.getElementById('crosshairTooltip');
+            const cc = document.getElementById('crosshairCoords');
+            if (tt && cc) {
+                cc.textContent = `X: ${x} • Y: ${y} [${quad}]`;
+                tt.style.left = `${e.originalEvent.clientX}px`;
+                tt.style.top = `${e.originalEvent.clientY}px`;
+            }
+        }
     });
 
     map.on('zoom', function() {
@@ -1065,10 +1212,47 @@
         ferropod_spots:   L.layerGroup().addTo(map)
     };
 
-    function toggleCamada(nome, ativo) {
+    function toggleCamada(nome, ativo, salvar = true) {
         if (layers[nome]) {
             ativo ? map.addLayer(layers[nome]) : map.removeLayer(layers[nome]);
         }
+        if (salvar) salvarEstadoCamadas();
+    }
+
+    function salvarEstadoCamadas() {
+        try {
+            const estado = {};
+            document.querySelectorAll('input[data-layer]').forEach(chk => {
+                estado[chk.getAttribute('data-layer')] = chk.checked;
+            });
+            const chkGrade = document.getElementById('chkGrade');
+            if (chkGrade) estado['grid_yaga'] = chkGrade.checked;
+            localStorage.setItem('jackal_layer_prefs', JSON.stringify(estado));
+        } catch(e) {}
+    }
+
+    function restaurarEstadoCamadas() {
+        try {
+            const salvo = localStorage.getItem('jackal_layer_prefs');
+            if (!salvo) return;
+            const estado = JSON.parse(salvo);
+            Object.keys(estado).forEach(nome => {
+                const val = estado[nome];
+                if (nome === 'grid_yaga') {
+                    const chk = document.getElementById('chkGrade');
+                    if (chk) {
+                        chk.checked = val;
+                        toggleGridTiles(val);
+                    }
+                } else {
+                    const chk = document.querySelector(`input[data-layer="${nome}"]`);
+                    if (chk) {
+                        chk.checked = val;
+                        toggleCamada(nome, val, false);
+                    }
+                }
+            });
+        } catch(e) {}
     }
 
     // ==============================================================
@@ -1255,8 +1439,9 @@
                             🚩 Facção: ${faccaoNome}
                         </div>
                         ${mayor ? `<div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">👑 Prefeito: <strong style="color:#fff;">${sanitize(mayor)}</strong></div>` : ''}
-                        <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px;">
-                            📍 <strong>X: ${x} • Y: ${y}</strong> &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
+                        <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                            <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
                         ${actionBtns}
                     </div>
@@ -1267,8 +1452,9 @@
                         <div style="font-size:12.5px; font-weight:700; color:#fff; margin-bottom:4px;">
                             ${conf.icon} ${sanitize(p.name || p.kind.toUpperCase())}
                         </div>
-                        <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px;">
-                            📍 X: ${x} • Y: ${y} &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
+                        <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                            <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
                         ${actionBtns}
                     </div>
@@ -1384,23 +1570,52 @@
             }
         }
 
-        const resultados = beaconsData.filter(b => b.nome.toLowerCase().includes(query) || b.faccao.toLowerCase().includes(query));
+        // Busca unificada em todos os pontos do cache (Deeds, Beacons, Cavernas, etc.)
+        const todos = (todosPontosCache && todosPontosCache.length > 0) ? todosPontosCache : beaconsData;
+        const resultados = todos.filter(p => {
+            const nome = (p.name || p.nome || '').toLowerCase();
+            const kind = (p.kind || '').toLowerCase();
+            const faccao = (p.faction || p.faccao || '').toLowerCase();
+            const mayor = (p.attrs?.mayor || '').toLowerCase();
+            return nome.includes(query) || kind.includes(query) || faccao.includes(query) || mayor.includes(query);
+        }).slice(0, 15);
 
         if (resultados.length === 0 && !htmlExtraQuadrante) {
-            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted);">Nenhum ponto ou quadrante encontrado</div>`;
+            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum ponto, Deed ou quadrante encontrado</div>`;
             dd.style.display = 'block';
             return;
         }
 
-        const itensPontos = resultados.map(b => `
-            <div class="sw-search-item" onclick="focarPonto(${sanitizeCoord(b.x)}, ${sanitizeCoord(b.y)}, '${sanitizeId(b.id)}')">
-                <div>
-                    <strong>${sanitize(b.nome)}</strong>
-                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${sanitizeCoord(b.x)} • Y: ${sanitizeCoord(b.y)} [${sanitize(obterQuadranteWurm(b.y, b.x))}]</div>
+        const iconMap = {
+            beacon: '🔴',
+            village: '🏘️',
+            lodestone: '🪨',
+            cave: '🕳️',
+            resource_node: '⛏️',
+            idol: '✨',
+            supply_point: '📦',
+            landmark: '📌'
+        };
+
+        const itensPontos = resultados.map(p => {
+            const x = Number(p.x);
+            const y = Number(p.y);
+            const quad = obterQuadranteWurm(y, x);
+            const icone = iconMap[p.kind] || '📍';
+            const nome = p.name || p.nome || p.kind;
+            const faccao = p.faction || p.faccao || 'neutral';
+            const cor = faccao === 'freedom' ? '#00e676' : (faccao === 'jackal' ? '#ff4444' : '#607d8b');
+
+            return `
+                <div class="sw-search-item" onclick="focarPonto(${x}, ${y}, '${sanitizeId(p.id)}')">
+                    <div>
+                        <strong>${icone} ${sanitize(nome)}</strong>
+                        <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${x} • Y: ${y} [${quad}] ${p.attrs?.mayor ? '&bull; 👑 ' + sanitize(p.attrs.mayor) : ''}</div>
+                    </div>
+                    <span class="sw-search-badge" style="color:${cor}; border-color:${cor};">${faccao.toUpperCase()}</span>
                 </div>
-                <span class="sw-search-badge" style="color:${b.faccao === 'freedom' ? '#00e676' : '#ff4444'};">${sanitize(b.faccao).toUpperCase()}</span>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         dd.innerHTML = htmlExtraQuadrante + itensPontos;
         dd.style.display = 'block';
@@ -1416,8 +1631,22 @@
         document.getElementById('buscaDropdown').style.display = 'none';
         document.getElementById('inputBusca').value = '';
         map.flyTo([mapSize - y, x], 4, { duration: 1 });
-        const b = beaconsData.find(item => item.id === id);
+
+        // Se for beacon, seleciona na central
+        const b = beaconsData.find(item => String(item.id) === String(id));
         if (b) selecionarBeacon(b);
+
+        // Abre o popup do marcador correspondente
+        setTimeout(() => {
+            map.eachLayer(layer => {
+                if (layer.getLatLng) {
+                    const ll = layer.getLatLng();
+                    if (Math.round(ll.lng) === Math.round(x) && Math.round(mapSize - ll.lat) === Math.round(y)) {
+                        if (layer.openPopup) layer.openPopup();
+                    }
+                }
+            });
+        }, 1100);
     }
 
     // Fechar dropdown ao clicar fora
@@ -1543,65 +1772,185 @@
     }
 
     // ==============================================================
-    // TRAÇADO INTERATIVO DE INFRAESTRUTURA (ESTRADAS & PONTES)
+    // TRAÇADO INTERATIVO DE INFRAESTRUTURA (ESTRADAS & PONTES) COM MODO FOCO
     // ==============================================================
-    let modoTracado = null;
-    let pontosTracado = [];
+    let modoTracado = null; // 'road' ou 'bridge'
+    let pontosTracado = []; // array de { x, y, latlng }
     let polylineTemp = null;
+    let markersTempTracado = [];
 
     function iniciarTracado(tipo) {
         modoTracado = tipo;
         pontosTracado = [];
+        limparDesenhoTracadoTemp();
+
+        // Alternar barra inferior para Modo Foco
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudFoco = document.getElementById('hudBottomFoco');
+        if (hudNormal) hudNormal.style.display = 'none';
+        if (hudFoco) hudFoco.style.display = 'flex';
+
+        const tituloFoco = document.getElementById('hudFocoTitulo');
+        if (tituloFoco) {
+            tituloFoco.textContent = (tipo === 'road') ? '🛣️ Traçar Estrada:' : '🌉 Traçar Ponte:';
+        }
+        const distEl = document.getElementById('hudLiveDistancia');
+        if (distEl) distEl.textContent = '0 tiles (0 nós)';
+
         map.getContainer().style.cursor = 'crosshair';
-        alert(`Modo de traçado de ${tipo === 'road' ? 'Estrada' : 'Ponte'} ativado!\nClique nos pontos do mapa sequencialmente. Dê duplo clique ou pressione ESC para concluir.`);
+        mostrarToastCartografico(`📍 Traçado de <strong>${tipo === 'road' ? 'Estrada' : 'Ponte'}</strong> iniciado. Clique no mapa para adicionar nós.`);
     }
 
-    map.on('click', function(e) {
-        if (!modoTracado) return;
-        pontosTracado.push(e.latlng);
-
-        if (!polylineTemp) {
-            polylineTemp = L.polyline(pontosTracado, {
-                color: modoTracado === 'road' ? '#f5a623' : '#38bdf8',
-                weight: 3,
-                dashArray: '6 4'
-            }).addTo(map);
-        } else {
-            polylineTemp.setLatLngs(pontosTracado);
-        }
-    });
-
-    map.on('dblclick', function(e) {
-        if (!modoTracado) return;
-        finalizarTracado();
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modoTracado) {
-            finalizarTracado();
-        }
-    });
-
-    function finalizarTracado() {
-        if (pontosTracado.length >= 2) {
-            const nome = prompt(`Nome para esta ${modoTracado === 'road' ? 'Estrada' : 'Ponte'}:`, `${modoTracado.toUpperCase()} Trecho ${Date.now().toString().slice(-4)}`);
-            if (nome) {
-                const targetLayer = (modoTracado === 'road') ? layers.roads_planned : layers.bridges_planned;
-                L.polyline(pontosTracado, {
-                    color: modoTracado === 'road' ? '#f5a623' : '#38bdf8',
-                    weight: 3,
-                    dashArray: '6 4'
-                }).bindTooltip(nome, { permanent: false }).addTo(targetLayer);
-                alert(`✓ ${modoTracado === 'road' ? 'Estrada' : 'Ponte'} "${nome}" registrada na Infraestrutura!`);
-            }
-        }
+    function limparDesenhoTracadoTemp() {
         if (polylineTemp) {
             map.removeLayer(polylineTemp);
             polylineTemp = null;
         }
+        markersTempTracado.forEach(m => map.removeLayer(m));
+        markersTempTracado = [];
+    }
+
+    function calcularDistanciaRota(pts) {
+        if (!pts || pts.length < 2) return 0;
+        let dist = 0;
+        for (let i = 1; i < pts.length; i++) {
+            const dx = pts[i].x - pts[i - 1].x;
+            const dy = pts[i].y - pts[i - 1].y;
+            dist += Math.hypot(dx, dy);
+        }
+        return dist;
+    }
+
+    function atualizarDesenhoTracado() {
+        limparDesenhoTracadoTemp();
+        if (pontosTracado.length === 0) {
+            const distEl = document.getElementById('hudLiveDistancia');
+            if (distEl) distEl.textContent = '0 tiles (0 nós)';
+            return;
+        }
+
+        const latlngs = pontosTracado.map(p => p.latlng);
+        const cor = (modoTracado === 'road') ? '#f5a623' : '#38bdf8';
+
+        polylineTemp = L.polyline(latlngs, {
+            color: cor,
+            weight: 3.5,
+            dashArray: '6 4',
+            opacity: 0.9
+        }).addTo(map);
+
+        pontosTracado.forEach((p, idx) => {
+            const isFirst = (idx === 0);
+            const isLast = (idx === pontosTracado.length - 1);
+            const m = L.circleMarker(p.latlng, {
+                radius: (isFirst || isLast) ? 6 : 4,
+                color: '#fff',
+                fillColor: (isFirst) ? '#00e676' : ((isLast && pontosTracado.length > 1) ? '#ff4444' : cor),
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(map);
+            markersTempTracado.push(m);
+        });
+
+        const dist = Math.round(calcularDistanciaRota(pontosTracado));
+        const distEl = document.getElementById('hudLiveDistancia');
+        if (distEl) distEl.textContent = `${dist} tiles (${pontosTracado.length} nós)`;
+    }
+
+    function desfazerUltimoPontoTracado() {
+        if (pontosTracado.length > 0) {
+            pontosTracado.pop();
+            atualizarDesenhoTracado();
+            mostrarToastCartografico('↩ Último nó removido.');
+        }
+    }
+
+    function cancelarTracado() {
+        limparDesenhoTracadoTemp();
         modoTracado = null;
         pontosTracado = [];
+
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudFoco = document.getElementById('hudBottomFoco');
+        if (hudFoco) hudFoco.style.display = 'none';
+        if (hudNormal) hudNormal.style.display = 'flex';
+
         map.getContainer().style.cursor = '';
+        mostrarToastCartografico('Traçado de obra cancelado.');
+    }
+
+    function abrirModalSalvarRota() {
+        if (!modoTracado || pontosTracado.length < 2) {
+            alert('Adicione pelo menos 2 pontos no mapa antes de salvar a obra.');
+            return;
+        }
+
+        const dist = Math.round(calcularDistanciaRota(pontosTracado));
+        const distBadge = document.getElementById('modalRotaDistancia');
+        if (distBadge) distBadge.textContent = `${dist} tiles (${pontosTracado.length} nós)`;
+
+        const modalTitle = document.getElementById('modalRotaTitle');
+        if (modalTitle) modalTitle.textContent = (modoTracado === 'road') ? '🛣️ Salvar Estrada' : '🌉 Salvar Ponte';
+
+        const inputNome = document.getElementById('inputNomeRota');
+        if (inputNome) {
+            const prefixo = (modoTracado === 'road') ? 'Estrada Trecho ' : 'Ponte Trecho ';
+            inputNome.value = prefixo + Date.now().toString().slice(-4);
+        }
+
+        document.getElementById('modalSalvarRota').classList.add('open');
+    }
+
+    async function confirmarSalvarRota() {
+        if (!modoTracado || pontosTracado.length < 2) return;
+
+        const nome = document.getElementById('inputNomeRota').value.trim() || `${modoTracado.toUpperCase()} Trecho`;
+        const status = document.getElementById('selectStatusRota').value;
+        const isBridge = (modoTracado === 'bridge');
+        const kind = isBridge
+            ? (status === 'built' ? 'bridge_built' : 'bridge_planned')
+            : (status === 'built' ? 'road_built' : 'road_planned');
+
+        const pathCoords = pontosTracado.map(p => [p.x, p.y]);
+
+        if (supabaseClient) {
+            try {
+                const { error } = await supabaseClient.from('routes').insert({
+                    name: nome,
+                    kind: kind,
+                    path: pathCoords,
+                    width: 3
+                });
+                if (error) throw error;
+
+                fecharModal('modalSalvarRota');
+                cancelarTracado();
+                await carregarRotasDoBanco();
+                mostrarToastCartografico(`✓ <strong>${sanitize(nome)}</strong> salva com sucesso!`);
+                return;
+            } catch (err) {
+                alert('Erro ao salvar obra no Supabase: ' + err.message);
+                return;
+            }
+        }
+
+        // Modo Offline
+        const targetLayer = isBridge
+            ? (status === 'built' ? layers.bridges_built : layers.bridges_planned)
+            : (status === 'built' ? layers.roads_built : layers.roads_planned);
+
+        const latlngs = pontosTracado.map(p => p.latlng);
+        const cor = isBridge ? '#38bdf8' : (status === 'built' ? '#00e676' : '#f5a623');
+        const line = L.polyline(latlngs, {
+            color: cor,
+            weight: 3,
+            dashArray: status === 'built' ? null : '6 4'
+        }).bindPopup(`<strong>${sanitize(nome)}</strong><br><span style="font-size:10px; color:#999;">${kind}</span>`);
+        line.addTo(targetLayer);
+
+        fecharModal('modalSalvarRota');
+        cancelarTracado();
+        mostrarToastCartografico(`✓ ${sanitize(nome)} registrada localmente!`);
     }
 
     // ==============================================================
@@ -1677,23 +2026,127 @@
     let clickCoords = { x: 0, y: 0 };
     let faccaoSelecionada = 'jackal';
     let kindSelecionado = 'beacon';
+    let ctxMenuCoords = { x: 0, y: 0, latlng: null };
 
     function ativarModoAdicionarPonto() {
         modoAdicionar = true;
         map.getContainer().style.cursor = 'crosshair';
-        alert('Clique no mapa onde deseja posicionar o novo ponto.');
+        const tt = document.getElementById('crosshairTooltip');
+        if (tt) tt.style.display = 'block';
+        mostrarToastCartografico('📍 Modo Adicionar Ponto: clique no mapa para posicionar.');
     }
 
-    map.on('click', function(e) {
-        if (!modoAdicionar) return;
-        const x = Math.round(e.latlng.lng);
-        const y = Math.round(mapSize - e.latlng.lat);
-        clickCoords = { x, y };
-
-        document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
-        document.getElementById('modalAddPonto').classList.add('open');
+    function desativarModoAdicionarPonto() {
         modoAdicionar = false;
         map.getContainer().style.cursor = '';
+        const tt = document.getElementById('crosshairTooltip');
+        if (tt) tt.style.display = 'none';
+    }
+
+    // ==============================================================
+    // MENU DE CONTEXTO TÁTICO (BOTÃO DIREITO NO MAPA)
+    // ==============================================================
+    map.on('contextmenu', function(e) {
+        e.originalEvent.preventDefault();
+        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+        const quad = obterQuadranteWurm(y, x);
+        ctxMenuCoords = { x, y, latlng: e.latlng };
+
+        const menu = document.getElementById('customContextMenu');
+        if (!menu) return;
+
+        const hdr = document.getElementById('ctxCoordHeader');
+        if (hdr) hdr.innerHTML = `📍 X: ${x} • Y: ${y} &bull; <span style="color:var(--jk-accent); font-weight:800;">${quad}</span>`;
+
+        menu.style.display = 'block';
+        const menuW = menu.offsetWidth || 210;
+        const menuH = menu.offsetHeight || 130;
+        const winW = window.innerWidth;
+        const winH = window.innerHeight;
+
+        let posX = e.originalEvent.clientX;
+        let posY = e.originalEvent.clientY;
+        if (posX + menuW > winW - 10) posX = winW - menuW - 10;
+        if (posY + menuH > winH - 10) posY = winH - menuH - 10;
+
+        menu.style.left = `${posX}px`;
+        menu.style.top = `${posY}px`;
+    });
+
+    function fecharContextMenu() {
+        const menu = document.getElementById('customContextMenu');
+        if (menu) menu.style.display = 'none';
+    }
+
+    function executarAcaoContexto(acao) {
+        fecharContextMenu();
+        if (!ctxMenuCoords) return;
+
+        if (acao === 'adicionar') {
+            clickCoords = { x: ctxMenuCoords.x, y: ctxMenuCoords.y };
+            document.getElementById('modalCoordStrong').textContent = `X: ${clickCoords.x} • Y: ${clickCoords.y}`;
+            document.getElementById('modalAddPonto').classList.add('open');
+        } else if (acao === 'vamp') {
+            copiarVamp(ctxMenuCoords.x, ctxMenuCoords.y);
+        } else if (acao === 'centralizar') {
+            if (ctxMenuCoords.latlng) {
+                map.panTo(ctxMenuCoords.latlng, { animate: true });
+                mostrarToastCartografico(`Centralizado em X: ${ctxMenuCoords.x} • Y: ${ctxMenuCoords.y}`);
+            }
+        }
+    }
+
+    // Clique unificado no mapa
+    map.on('click', function(e) {
+        fecharContextMenu();
+
+        // 1. Se estiver no modo de adicionar ponto
+        if (modoAdicionar) {
+            const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+            const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+            clickCoords = { x, y };
+            document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
+            document.getElementById('modalAddPonto').classList.add('open');
+            desativarModoAdicionarPonto();
+            return;
+        }
+
+        // 2. Se estiver traçando rota de infraestrutura
+        if (modoTracado) {
+            const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+            const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+            pontosTracado.push({ x, y, latlng: e.latlng });
+            atualizarDesenhoTracado();
+            return;
+        }
+    });
+
+    map.on('movestart', fecharContextMenu);
+
+    // Fechar context menu ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#customContextMenu')) {
+            fecharContextMenu();
+        }
+    });
+
+    // Tecla ESC unificada
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            fecharContextMenu();
+            if (modoAdicionar) {
+                desativarModoAdicionarPonto();
+                mostrarToastCartografico('Modo adição cancelado.');
+            }
+            if (modoTracado) {
+                cancelarTracado();
+            }
+            const modais = ['modalAddPonto', 'modalNovoObjetivo', 'modalNickWurm', 'modalEditarPonto', 'modalSalvarRota'];
+            modais.forEach(id => fecharModal(id));
+            const dd = document.getElementById('buscaDropdown');
+            if (dd) dd.style.display = 'none';
+        }
     });
 
     // Seletor de Tipo
@@ -2208,6 +2661,7 @@
 
     // Inicialização geral de dados
     async function inicializarDados() {
+        restaurarEstadoCamadas();
         await checarSessao();
         await carregarPontosDoBanco();
         await carregarObjetivosDoBanco('all');
@@ -2227,5 +2681,30 @@
 
     inicializarDados();
     </script>
+
+    <!-- ================================================================
+         MENU DE CONTEXTO TÁTICO (BOTÃO DIREITO NO MAPA)
+         ================================================================ -->
+    <div id="customContextMenu" style="display:none; position:fixed; z-index:99999; background:rgba(18, 20, 28, 0.98); border:1px solid #30363d; border-radius:8px; box-shadow:0 12px 36px rgba(0,0,0,0.85); backdrop-filter:blur(12px); min-width:210px; padding:5px 0; font-family:'Inter', sans-serif;">
+        <div id="ctxCoordHeader" style="padding:6px 14px; font-size:10px; font-weight:800; color:var(--sw-text-muted); border-bottom:1px solid #232738; letter-spacing:0.5px;">
+            COORDENADAS WURM
+        </div>
+        <div class="ctx-item" onclick="executarAcaoContexto('adicionar')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <span>📍</span> <span>Adicionar Ponto / Deed aqui</span>
+        </div>
+        <div class="ctx-item" onclick="executarAcaoContexto('vamp')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <span>📋</span> <span>Copiar comando /vamp</span>
+        </div>
+        <div class="ctx-item" onclick="executarAcaoContexto('centralizar')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <span>🔍</span> <span>Centralizar Mapa aqui</span>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         TOOLTIP FLUTUANTE DE ADIÇÃO DE PONTO (CROSSHAIR TRACKER)
+         ================================================================ -->
+    <div id="crosshairTooltip" style="display:none; position:fixed; pointer-events:none; z-index:99999; background:rgba(18, 20, 28, 0.95); border:1px solid var(--jk-accent); color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 10px; border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,0.8); transform:translate(15px, 15px);">
+        📍 Clique para marcar • <span id="crosshairCoords" style="color:var(--jk-accent);">X 0 • Y 0</span>
+    </div>
 </body>
 </html>
