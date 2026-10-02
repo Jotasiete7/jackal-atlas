@@ -336,10 +336,13 @@
                             <td>${sanitize(m.nick || '— Não definido —')}</td>
                             <td><span class="role-pill ${m.role}">${m.role.toUpperCase()}</span></td>
                             <td>${dataFormatada}</td>
-                            <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                                ${m.role === 'pending' ? `<button class="btn-table-action approve" onclick="alterarCargo('${m.id}', 'member')">🛡️ Aprovar Membro</button>` : ''}
-                                ${m.role === 'member' ? `<button class="btn-table-action" onclick="alterarCargo('${m.id}', 'officer')">⭐ Promover Officer</button>` : ''}
-                                ${m.role !== 'pending' && m.role !== 'admin' ? `<button class="btn-table-action danger" onclick="alterarCargo('${m.id}', 'pending')">Revogar</button>` : ''}
+                            <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end; align-items:center;">
+                                <select class="btn-table-action" style="background:#161922; color:#fff; border:1px solid #333; padding:5px 8px; border-radius:4px; font-size:11.5px; cursor:pointer;" onchange="alterarCargo('${m.id}', this.value)">
+                                    <option value="pending" ${m.role === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                                    <option value="member" ${m.role === 'member' ? 'selected' : ''}>🛡️ Member</option>
+                                    <option value="officer" ${m.role === 'officer' ? 'selected' : ''}>⭐ Officer</option>
+                                    <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>👑 Admin</option>
+                                </select>
                             </td>
                         </tr>
                     `;
@@ -478,6 +481,22 @@
         }
 
         async function initAdmin() {
+            if (!supabaseClient) return;
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session || !session.user) {
+                alert('Acesso restrito. Faça login primeiro.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            if (!profile || (profile.role !== 'admin' && profile.role !== 'officer')) {
+                alert('Acesso restrito: apenas Administradores e Oficiais têm acesso a este painel.');
+                window.location.href = 'index.html';
+                return;
+            }
+
             await carregarMembros();
             await carregarFilaGuerra();
             await carregarObjetivosAdmin();
