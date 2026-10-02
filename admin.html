@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <title>Jackal Atlas • Gestão Militar & Admins</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="swisstopo-ui.css">
+
+    <style>
+        :root {
+            --jk-accent: #f5a623;
+            --jk-accent-dim: rgba(245, 166, 35, 0.15);
+            --jk-accent-border: rgba(245, 166, 35, 0.45);
+            --jk-freedom: #00e676;
+            --jk-jackal: #ff4444;
+            --jk-p1: #ff4444;
+            --jk-p2: #f5a623;
+            --jk-p3: #00e676;
+        }
+
+        body {
+            background-color: var(--sw-bg-page);
+            color: var(--sw-text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .admin-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .admin-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--sw-bg-panel);
+            border: 1px solid var(--sw-border);
+            border-top: 3px solid var(--jk-accent);
+            border-radius: 8px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--sw-shadow-card);
+        }
+
+        .admin-title-crest {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-crest-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: rgba(245, 166, 35, 0.15);
+            border: 1px solid var(--jk-accent-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .admin-nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            background: var(--sw-bg-subtle);
+            border: 1px solid var(--sw-border);
+            color: var(--sw-text-sub);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .tab-btn:hover {
+            color: var(--sw-text-main);
+            border-color: var(--sw-text-muted);
+        }
+
+        .tab-btn.active {
+            background: var(--jk-accent-dim);
+            border-color: var(--jk-accent);
+            color: var(--jk-accent);
+        }
+
+        .admin-card {
+            background: var(--sw-bg-panel);
+            border: 1px solid var(--sw-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--sw-shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--sw-border-subtle);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        table.admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        table.admin-table th {
+            padding: 10px 12px;
+            color: var(--sw-text-muted);
+            border-bottom: 1px solid var(--sw-border);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table.admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--sw-border-subtle);
+            vertical-align: middle;
+        }
+
+        .role-pill {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .role-pill.admin   { background: rgba(245, 166, 35, 0.2); color: var(--jk-accent); border: 1px solid var(--jk-accent-border); }
+        .role-pill.officer { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); }
+        .role-pill.member  { background: rgba(0, 230, 118, 0.12); color: var(--jk-freedom); border: 1px solid rgba(0,230,118,0.3); }
+        .role-pill.pending { background: rgba(100, 100, 100, 0.2); color: #888; border: 1px solid #444; }
+
+        .btn-table-action {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--sw-border);
+            background: var(--sw-bg-subtle);
+            color: var(--sw-text-main);
+            transition: 0.15s;
+        }
+        .btn-table-action:hover { background: var(--sw-bg-hover); }
+        .btn-table-action.approve {
+            background: rgba(0, 230, 118, 0.12);
+            color: var(--jk-freedom);
+            border-color: rgba(0, 230, 118, 0.4);
+        }
+        .btn-table-action.approve:hover { background: rgba(0, 230, 118, 0.25); }
+        .btn-table-action.danger {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--jk-jackal);
+            border-color: rgba(255, 68, 68, 0.4);
+        }
+        .btn-table-action.danger:hover { background: rgba(255, 68, 68, 0.25); }
+    </style>
+</head>
+<body class="swiss-theme-dark">
+
+    <div class="admin-container">
+        <!-- BARRA SUPERIOR -->
+        <div class="admin-nav">
+            <div class="admin-title-crest">
+                <div class="admin-crest-badge">👑</div>
+                <div>
+                    <div style="font-size:15px; font-weight:900; letter-spacing:0.3px;">PAINEL MILITAR & ADMINISTRAÇÃO</div>
+                    <div style="font-size:11px; color:var(--sw-text-muted);">Jackal Atlas • A Guilda</div>
+                </div>
+            </div>
+
+            <div class="admin-nav-tabs">
+                <button class="tab-btn active" onclick="trocarSecao('membros', this)">👥 Membros & Roles</button>
+                <button class="tab-btn" onclick="trocarSecao('filaGuerra', this)">⚔️ Fila de Pontos & Eventos</button>
+                <button class="tab-btn" onclick="trocarSecao('objetivos', this)">🎯 Objetivos P1/P2/P3</button>
+                <button class="tab-btn" onclick="window.location.href = 'index.html'">🗺️ Abrir Atlas</button>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 1: GESTÃO DE MEMBROS E ROLES -->
+        <div id="secao-membros" class="admin-card">
+            <div class="card-header">
+                <div class="card-title">👥 Fila de Aprovação de Membros da Guilda</div>
+                <div style="font-size:11px; color:var(--sw-text-muted);">
+                    Roles: <strong>pending</strong> (aguardando) &bull; <strong>member</strong> &bull; <strong>officer</strong> (aprova pontos no campo) &bull; <strong>admin</strong>
+                </div>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Usuário Discord</th>
+                        <th>Nick Wurm</th>
+                        <th>Cargo Atual</th>
+                        <th>Data de Entrada</th>
+                        <th style="text-align:right;">Ações de Promoção</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-membros-corpo">
+                    <tr>
+                        <td><strong>Kira#1234</strong></td>
+                        <td>KiraShadow</td>
+                        <td><span class="role-pill pending">PENDING</span></td>
+                        <td>Hoje, 19:40</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                            <button class="btn-table-action approve" onclick="alterarCargo('exemplo-id', 'member')">🛡️ Aprovar Membro</button>
+                            <button class="btn-table-action" onclick="alterarCargo('exemplo-id', 'officer')">⭐ Officer</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thorin#5678</strong></td>
+                        <td>ThorinIron</td>
+                        <td><span class="role-pill member">MEMBER</span></td>
+                        <td>Ontem, 21:10</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                            <button class="btn-table-action" onclick="alterarCargo('exemplo-id', 'officer')">Promover a Officer</button>
+                            <button class="btn-table-action danger" onclick="alterarCargo('exemplo-id', 'pending')">Revogar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SEÇÃO 2: FILA DE PONTOS E EVENTOS DE GUERRA -->
+        <div id="secao-filaGuerra" class="admin-card" style="display:none;">
+            <div class="card-header">
+                <div class="card-title">⚔️ Submissões de Campo Pendentes de Validação</div>
+                <div style="font-size:11px; color:var(--sw-text-muted);">
+                    Officers e Admins podem aprovar ou recusar relatórios enviados pelos batedores.
+                </div>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Nome / Descrição</th>
+                        <th>Coordenadas</th>
+                        <th>Facção / Ação</th>
+                        <th>Autor</th>
+                        <th style="text-align:right;">Decisão</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-guerra-corpo">
+                    <tr>
+                        <td>🔴 Beacon</td>
+                        <td><strong>Beacon Vale Oeste</strong></td>
+                        <td>X: 1820 &bull; Y: 2940</td>
+                        <td>Jackal (Dificuldade 3)</td>
+                        <td>Membro1</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                            <button class="btn-table-action approve">✓ Aprovar no Mapa</button>
+                            <button class="btn-table-action danger">✕ Rejeitar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SEÇÃO 3: OBJETIVOS ESTRATÉGICOS P1/P2/P3 -->
+        <div id="secao-objetivos" class="admin-card" style="display:none;">
+            <div class="card-header">
+                <div class="card-title">🎯 Criar e Gerenciar Objetivos Prioritários</div>
+                <button class="btn-table-action approve" onclick="novoObjetivoModal()">➕ Criar Novo Objetivo</button>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Prioridade</th>
+                        <th>Título do Objetivo</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th style="text-align:right;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-objetivos-corpo">
+                    <tr>
+                        <td><span class="role-pill admin">P1 CRÍTICO</span></td>
+                        <td><strong>Limpar Beacons ao Redor do Spawn</strong></td>
+                        <td>beacon_clear</td>
+                        <td><span style="color:#ffd285;">Em Andamento</span></td>
+                        <td>Esquadrão Alpha</td>
+                        <td style="text-align:right;">
+                            <button class="btn-table-action">Editar</button>
+                            <button class="btn-table-action danger">Concluir</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="role-pill" style="background:rgba(245,166,35,0.2); color:#f5a623;">P2 ALTA</span></td>
+                        <td><strong>Construir Estrada Norte para a Caverna dos Ferropods</strong></td>
+                        <td>road</td>
+                        <td><span style="color:#8b949e;">Planejado</span></td>
+                        <td>Equipe de Obras</td>
+                        <td style="text-align:right;">
+                            <button class="btn-table-action">Editar</button>
+                            <button class="btn-table-action danger">Concluir</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Script de Abas e Conexão Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js" onerror="console.warn('config.js não encontrado');"></script>
+    <script>
+        function trocarSecao(secao, btn) {
+            document.getElementById('secao-membros').style.display = (secao === 'membros') ? 'block' : 'none';
+            document.getElementById('secao-filaGuerra').style.display = (secao === 'filaGuerra') ? 'block' : 'none';
+            document.getElementById('secao-objetivos').style.display = (secao === 'objetivos') ? 'block' : 'none';
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        async function alterarCargo(userId, novoRole) {
+            alert(`Alterar usuário para cargo: ${novoRole.toUpperCase()} (conectado ao Supabase no deploy)`);
+        }
+
+        function novoObjetivoModal() {
+            const titulo = prompt('Título do Objetivo:');
+            const prioridade = prompt('Prioridade (p1, p2, p3):', 'p1');
+            if (titulo) {
+                alert(`Objetivo "${titulo}" [${prioridade.toUpperCase()}] registrado.`);
+            }
+        }
+    </script>
+</body>
+</html>

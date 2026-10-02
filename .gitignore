@@ -1,0 +1,16 @@
+# Segredos e Configurações de Ambiente
+config.js
+.env
+.env.local
+*.log
+
+# Dependências
+node_modules/
+package-lock.json
+
+# Backups e Temporários
+backups/
+scratch/
+test_tile.png
+.DS_Store
+Thumbs.db

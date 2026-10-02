@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+    <title>Jackal Atlas • Acesso</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #08090d;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Grade tática com radial âmbar */
+        .bg-grid {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(245, 166, 35, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            pointer-events: none;
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            padding: 36px;
+            background: rgba(16, 18, 24, 0.94);
+            border: 1px solid #232634;
+            border-top: 4px solid #f5a623;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(245, 166, 35, 0.1);
+            backdrop-filter: blur(12px);
+            text-align: center;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #f5a623;
+            background: rgba(245, 166, 35, 0.12);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(245, 166, 35, 0.35);
+            margin-bottom: 12px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .title span { color: #f5a623; }
+
+        .subtitle {
+            font-size: 12px;
+            color: #8b92a5;
+            line-height: 1.5;
+            margin-bottom: 26px;
+        }
+
+        .discord-login-btn {
+            background: #5865F2;
+            color: #fff;
+            border: none;
+            padding: 13px 20px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
+            transition: all 0.2s ease;
+        }
+        .discord-login-btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(88, 101, 242, 0.6);
+        }
+
+        /* Status de Usuário Logado */
+        .user-box {
+            background: #10121a;
+            border: 1px solid #232738;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 18px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #f5a623;
+            object-fit: cover;
+        }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: bold; font-size: 13.5px; color: #fff; }
+        .user-wurm { font-size: 11px; color: #f5a623; margin-top: 2px; }
+
+        .status-alert {
+            padding: 12px 14px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .status-pending {
+            background: rgba(245, 166, 35, 0.12);
+            border: 1px solid #f5a623;
+            color: #ffd285;
+        }
+        .status-approved {
+            background: rgba(0, 230, 118, 0.12);
+            border: 1px solid #00e676;
+            color: #69f0ae;
+        }
+
+        .enter-btn {
+            background: #f5a623;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .enter-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .logout-link {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #666e85;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .logout-link:hover { color: #f5a623; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div class="login-card">
+        <div class="brand-badge">🌙 ROUND 2 • 20/10/2026</div>
+        <div class="title">JACKAL <span>ATLAS</span></div>
+        <div class="subtitle">Central Tática de Operações Militares e Infraestrutura da Guilda no servidor temporário Jackal.</div>
+
+        <!-- Bloco 1: Deslogado -->
+        <div id="unauthenticated-block">
+            <button class="discord-login-btn" onclick="signInWithDiscord()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+                Entrar com Discord
+            </button>
+            <div style="margin-top:16px; font-size:11px; color:#555d72;">
+                Acesso restrito. Novos membros entram em fila de aprovação dos oficiais.
+            </div>
+        </div>
+
+        <!-- Bloco 2: Logado mas Pendente -->
+        <div id="pending-block" style="display: none;">
+            <div class="user-box">
+                <img id="avatar-pending" src="" class="user-avatar" alt="Avatar">
+                <div class="user-details">
+                    <div id="name-pending" class="user-name">Carregando...</div>
+                    <div class="user-wurm">Conta Discord Autenticada</div>
+                </div>
+            </div>
+            <div class="status-alert status-pending">
+                ⏳ <strong>Acesso em Análise</strong><br>
+                Seu cadastro foi recebido com sucesso. Por ser um mapa tático de guerra, um oficial da guilda precisa aprovar sua entrada.
+            </div>
+            <button class="discord-login-btn" style="background:#2a2f42;" onclick="window.location.reload()">
+                🔄 Verificar Aprovação
+            </button>
+            <a class="logout-link" onclick="signOut()">Desconectar da conta</a>
+        </div>
+
+        <!-- Bloco 3: Logado e Aprovado -->
+        <div id="approved-block" style="display: none;">
+            <div class="user-box">
+                <img id="avatar-approved" src="" class="user-avatar" alt="Avatar">
+                <div class="user-details">
+                    <div id="name-approved" class="user-name">Carregando...</div>
+                    <div id="role-approved" class="user-wurm">Membro Autorizado</div>
+                </div>
+            </div>
+            <div class="status-alert status-approved">
+                ✓ <strong>Acesso Autorizado!</strong><br>
+                Sua credencial de inteligência está ativa para as operações em Jackal.
+            </div>
+            <button class="enter-btn" onclick="window.location.href = 'index.html'">
+                🗺️ Acessar Jackal Atlas
+            </button>
+            <a class="logout-link" onclick="signOut()">Desconectar</a>
+        </div>
+    </div>
+
+    <!-- Scripts e Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js" onerror="console.warn('config.js não encontrado, usando exemplo');"></script>
+    <script>
+        const cfg = window.JACKAL_CONFIG || {
+            supabaseUrl: 'https://placeholder.supabase.co',
+            supabaseKey: 'placeholder-key'
+        };
+
+        const supabase = (typeof supabase !== 'undefined' && cfg.supabaseUrl !== 'https://placeholder.supabase.co')
+            ? supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey)
+            : null;
+
+        async function init() {
+            if (!supabase) {
+                console.log('Modo de visualização: Supabase não conectado.');
+                return;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && session.user) {
+                renderUser(session.user);
+            }
+        }
+
+        async function renderUser(user) {
+            document.getElementById('unauthenticated-block').style.display = 'none';
+
+            const avatarUrl = user.user_metadata.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            const name = user.user_metadata.custom_claims?.global_name || user.user_metadata.full_name || user.user_metadata.name || 'Guerreiro';
+
+            // Buscar perfil
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            const role = profile ? profile.role : 'pending';
+
+            if (role === 'pending') {
+                document.getElementById('avatar-pending').src = avatarUrl;
+                document.getElementById('name-pending').innerText = name;
+                document.getElementById('pending-block').style.display = 'block';
+            } else {
+                document.getElementById('avatar-approved').src = avatarUrl;
+                document.getElementById('name-approved').innerText = (profile && profile.nick) ? `${name} (${profile.nick})` : name;
+                document.getElementById('role-approved').innerText = `Cargo: ${role.toUpperCase()}`;
+                document.getElementById('approved-block').style.display = 'block';
+
+                // Redirecionamento automático se já for membro aprovado
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
+            }
+        }
+
+        async function signInWithDiscord() {
+            if (!supabase) {
+                alert('Aviso: Configure o arquivo config.js com as chaves do seu Supabase para realizar o login real com Discord.');
+                return;
+            }
+            await supabase.auth.signInWithOAuth({
+                provider: 'discord',
+                options: {
+                    redirectTo: window.location.origin + window.location.pathname
+                }
+            });
+        }
+
+        async function signOut() {
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
+            window.location.reload();
+        }
+
+        init();
+    </script>
+</body>
+</html>

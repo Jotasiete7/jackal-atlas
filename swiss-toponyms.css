@@ -1,0 +1,313 @@
+/* ==============================================================================
+   SWISSTOPO CARTOGRAPHIC TOPONYMY SYSTEM — HARMONY ATLAS
+   Baseado nas diretrizes do Bundesamt für Landestopografie (Swisstopo)
+   swissNAMES3D / Cartographic Typography
+   Versão 1.2: Capitais com Cristal Dev e Locais de Interesse Estratégicos (POIs)
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;0,8..60,800;1,8..60,400;1,8..60,600;1,8..60,700&display=swap');
+
+/* --- HALOS CARTOGRÁFICOS (Proteção óptica sem caixas retangulares) --- */
+.swiss-halo-light {
+    text-shadow: 
+        1px  1px 0 rgba(255, 255, 255, 0.94),
+       -1px -1px 0 rgba(255, 255, 255, 0.94),
+        1px -1px 0 rgba(255, 255, 255, 0.94),
+       -1px  1px 0 rgba(255, 255, 255, 0.94),
+        0px  1.5px 2px rgba(0, 0, 0, 0.22);
+}
+
+.swiss-halo-dark {
+    text-shadow: 
+        1px  1px 0 rgba(10, 10, 14, 0.94),
+       -1px -1px 0 rgba(10, 10, 14, 0.94),
+        1px -1px 0 rgba(10, 10, 14, 0.94),
+       -1px  1px 0 rgba(10, 10, 14, 0.94),
+        0px  1.5px 3px rgba(0, 0, 0, 0.85);
+}
+
+/* --- CLASSE BASE DO RÓTULO (Leaflet divIcon reset) --- */
+.leaflet-swiss-marker {
+    display: block !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+}
+
+.swiss-label-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    user-select: none;
+    pointer-events: auto;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.1;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.swiss-label-container:hover {
+    filter: brightness(1.2);
+    cursor: pointer;
+}
+
+/* Esmaecimento suave de nomes macro (Tier 1) em zoom tático alto (4.5x a 6x) */
+.swiss-dimmed-macro {
+    opacity: 0.25 !important;
+    transition: opacity 0.3s ease;
+}
+
+/* --- REGRA DE OURO 1: NATUREZA EM ITÁLICO vs. CONSTRUÇÃO EM RETO --- */
+.swiss-nature {
+    font-style: italic !important;
+}
+
+.swiss-manmade {
+    font-style: normal !important;
+}
+
+/* --- REGRA DE OURO 2: PALETA DE CORES POR FAMÍLIA CARTOGRÁFICA --- */
+
+/* 1. CAPITAIS DO SERVIDOR & CIDADES COM CRISTAL DEV */
+.swiss-capital {
+    color: #111417; /* Grafite nobre absoluto */
+    font-weight: 700 !important;
+    font-style: normal;
+    letter-spacing: 0.05em;
+}
+.map-dark .swiss-capital {
+    color: #ffffff;
+}
+
+/* Ícone de Cristal de Teleporte Dev */
+.swiss-crystal-glyph {
+    color: #00bcd4;
+    font-size: 0.95em;
+    margin-right: 4px;
+    display: inline-block;
+    filter: drop-shadow(0 0 2px rgba(0, 188, 212, 0.8));
+    font-style: normal !important;
+}
+
+/* 2. LOCAIS DE INTERESSE (POIs Estratégicos: Abrigos, Correios, Camas) */
+.swiss-poi {
+    color: #333940;
+    font-style: normal;
+    font-weight: 600;
+}
+.map-dark .swiss-poi {
+    color: #e2e8f0;
+}
+
+.swiss-poi-icon {
+    margin-right: 4px;
+    font-size: 0.9em;
+    font-style: normal !important;
+}
+
+/* 3. ÁGUA (Mares, Baías, Lagos, Rios, Golfos) */
+.swiss-water {
+    color: #1a4f73; /* Azul clássico de batimetria e hidrografia */
+    font-style: italic;
+}
+.map-dark .swiss-water {
+    color: #5bb3ea;
+}
+
+/* 4. RELEVO (Montanhas, Picos, Serras, Passos de Montanha) */
+.swiss-relief {
+    color: #5c3826; /* Sépia alpino das curvas de nível suíças */
+    font-style: italic;
+}
+.map-dark .swiss-relief {
+    color: #d79f7a;
+}
+
+/* 5. ASSENTAMENTOS GERAIS */
+.swiss-settlement {
+    color: #15171a; /* Preto nanquim sólido */
+    font-style: normal;
+}
+.map-dark .swiss-settlement {
+    color: #f8fafc;
+}
+
+/* 5.1 TORRES DE GUARDA */
+.swiss-tower {
+    color: #15171a; /* Preto nanquim sólido */
+    font-style: normal;
+    font-weight: 600;
+}
+.map-dark .swiss-tower {
+    color: #f8fafc;
+}
+
+/* ÂNCORA PERFEITA DE FEIÇÕES PONTUAIS (Torres, Deeds, Ruínas, Missões, Capitais, POIs, Recursos) */
+.swiss-point-feature.swiss-anchor-center,
+.swiss-tower.swiss-anchor-center,
+.swiss-tree.swiss-anchor-center,
+.swiss-bush.swiss-anchor-center {
+    display: inline-flex;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(0, 0) !important;
+}
+.swiss-point-feature.swiss-anchor-center .swiss-point-icon,
+.swiss-point-feature.swiss-anchor-center .icon-nanquim-tower,
+.swiss-point-feature.swiss-anchor-center .swiss-tower-icon,
+.swiss-point-feature.swiss-anchor-center .swiss-marker-icon,
+.swiss-tower.swiss-anchor-center .icon-nanquim-tower,
+.swiss-tower.swiss-anchor-center .swiss-tower-icon,
+.swiss-tree.swiss-anchor-center .swiss-marker-icon,
+.swiss-bush.swiss-anchor-center .swiss-marker-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    margin: 0 !important;
+}
+.swiss-point-feature.swiss-anchor-center .swiss-point-label-group,
+.swiss-point-feature.swiss-anchor-center .swiss-tower-name,
+.swiss-point-feature.swiss-anchor-center .swiss-tower-label-group,
+.swiss-tower.swiss-anchor-center .swiss-tower-name,
+.swiss-tower.swiss-anchor-center .swiss-tower-label-group,
+.swiss-tree.swiss-anchor-center .swiss-marker-name,
+.swiss-bush.swiss-anchor-center .swiss-marker-name {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-left: 12px;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+/* MODO LIMPO: OCULTAÇÃO DOS NOMES DAS TORRES DE GUARDA (TECLA T OU CHECKBOX) */
+body.ocultar-nomes-torres .swiss-tower .swiss-tower-name,
+body.ocultar-nomes-torres .swiss-tower .swiss-tower-label-group,
+body.ocultar-nomes-torres .swiss-tower .swiss-point-label-group {
+    display: none !important;
+}
+
+/* 5.2 RUÍNAS / DEEDS CAÍDAS */
+.swiss-ruin {
+    color: #4b5563; /* Cinza grafite histórico nítido */
+    font-style: normal;
+    font-weight: 500;
+}
+.map-dark .swiss-ruin {
+    color: #94a3b8;
+}
+
+/* 6. REGIÕES / ÁREAS (Grandes Florestas, Territórios, Planícies) */
+.swiss-region {
+    color: #3b4d3c; /* Verde musgo cartográfico escuro */
+    font-style: normal;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase;
+}
+.map-dark .swiss-region {
+    color: #a2c7a5;
+}
+
+/* 7. FEIÇÕES LOCAIS & PONTOS NOTÁVEIS */
+.swiss-feature {
+    color: #474f56;
+    font-style: normal;
+}
+.map-dark .swiss-feature {
+    color: #cdd3dc;
+}
+
+/* --- REGRA DE OURO 3: HIERARQUIA TIPOGRÁFICA (PIRÂMIDE DE 4 TIERS) --- */
+
+/* TIER 1: CONTINENTAL / MACRO (Visível do Zoom 0 ao 6) */
+.swiss-tier-1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+/* TIER 2: REGIONAL / CAPITAIS / NOTÁVEL (Visível do Zoom 2 ao 6) */
+.swiss-tier-2 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+/* TIER 3: LOCAL / POIS ESTRATÉGICOS (Visível do Zoom 3.5 ao 6) */
+.swiss-tier-3 {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* TIER 4: DETALHE / MICRO-TOPONÍMIA / CABANAS (Visível do Zoom 4.75 ao 6) */
+.swiss-tier-4 {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    opacity: 0.9;
+}
+
+/* --- REGRAS DE ÂNCORA E QUADRANTE CARTOGRÁFICO --- */
+.swiss-anchor-center {
+    transform: translate(-50%, -50%);
+}
+
+.swiss-anchor-top-right {
+    transform: translate(6px, -100%);
+}
+
+.swiss-anchor-bottom-right {
+    transform: translate(6px, 2px);
+}
+
+.swiss-anchor-top-left {
+    transform: translate(calc(-100% - 6px), -100%);
+}
+
+.swiss-anchor-bottom-left {
+    transform: translate(calc(-100% - 6px), 2px);
+}
+
+/* Cota de Altitude para picos (ex: ▲ 245m) */
+.swiss-elevation-tag {
+    font-family: 'Inter', monospace;
+    font-size: 0.82em;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-left: 4px;
+    font-style: normal !important;
+}
+
+/* Selo de Variante Local / Apelido Não-Oficial */
+.swiss-proposal-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff9100;
+    margin-right: 4px;
+    box-shadow: 0 0 6px rgba(255, 145, 0, 0.8);
+}

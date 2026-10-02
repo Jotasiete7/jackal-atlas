@@ -1,0 +1,992 @@
+/* ==============================================================================
+   SWISSTOPO UI DESIGN SYSTEM — HARMONY ATLAS
+   Inspirado no visual oficial de https://map.geo.admin.ch/
+   Design minimalista suíço com suporte completo a Modo Claro e Modo Escuro
+   ============================================================================== */
+
+:root, body.swiss-theme-light {
+    --sw-bg-page: #f8f9fa;
+    --sw-bg-panel: #ffffff;
+    --sw-bg-subtle: #f1f3f5;
+    --sw-bg-hover: #e9ecef;
+    --sw-border: #d1d5db;
+    --sw-border-subtle: #e5e7eb;
+    --sw-text-main: #1f2937;
+    --sw-text-sub: #4b5563;
+    --sw-text-muted: #6b7280;
+    --sw-acc-header-bg: #4a545e;
+    --sw-acc-header-hover: #3a434c;
+    --sw-acc-header-text: #ffffff;
+    --sw-acc-header-active-bg: #2b3036;
+    --sw-accent-red: #da291c;
+    --sw-accent-red-hover: #b82216;
+    --sw-accent-green: #059669;
+    --sw-accent-blue: #0284c7;
+    --sw-shadow-panel: 0 6px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+    --sw-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --sw-coord-bg: rgba(255, 255, 255, 0.96);
+    --sw-coord-text: #0f172a;
+    --sw-coord-label: #64748b;
+    --sw-coord-border: #cbd5e1;
+    --sw-input-bg: #ffffff;
+    --sw-input-border: #cbd5e1;
+    --sw-input-text: #1e293b;
+    --sw-btn-draw-bg: #da291c;
+    --sw-btn-draw-text: #ffffff;
+    --sw-modal-bg: rgba(255, 255, 255, 0.98);
+    --sw-modal-border: #cbd5e1;
+}
+
+body.swiss-theme-dark {
+    --sw-bg-page: #0d1117;
+    --sw-bg-panel: #161b22;
+    --sw-bg-subtle: #0f1319;
+    --sw-bg-hover: #21262d;
+    --sw-border: #30363d;
+    --sw-border-subtle: #21262d;
+    --sw-text-main: #f0f6fc;
+    --sw-text-sub: #c9d1d9;
+    --sw-text-muted: #8b949e;
+    --sw-acc-header-bg: #2d333b;
+    --sw-acc-header-hover: #373e47;
+    --sw-acc-header-text: #f0f6fc;
+    --sw-acc-header-active-bg: #1c2128;
+    --sw-accent-red: #ff4d4d;
+    --sw-accent-red-hover: #e03131;
+    --sw-accent-green: #10b981;
+    --sw-accent-blue: #38bdf8;
+    --sw-shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4);
+    --sw-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --sw-coord-bg: rgba(22, 27, 34, 0.95);
+    --sw-coord-text: #f8fafc;
+    --sw-coord-label: #94a3b8;
+    --sw-coord-border: #30363d;
+    --sw-input-bg: #0d1117;
+    --sw-input-border: #30363d;
+    --sw-input-text: #f0f6fc;
+    --sw-btn-draw-bg: #e03131;
+    --sw-btn-draw-text: #ffffff;
+    --sw-modal-bg: rgba(22, 27, 34, 0.98);
+    --sw-modal-border: #30363d;
+}
+
+/* --- TIPOGRAFIA GERAL --- */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--sw-text-main);
+    background-color: var(--sw-bg-page);
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* --- BARRA LATERAL ESQUERDA (ATLAS SWISSTOPO) --- */
+.sw-sidebar-left {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 320px;
+    max-height: calc(100vh - 28px);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: var(--sw-shadow-panel);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
+}
+
+.sw-sidebar-left.recolhida {
+    transform: translateX(calc(-100% - 25px));
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* HEADER INSTITUCIONAL ESTILO MAP.GEO.ADMIN.CH */
+.sw-header-institution {
+    background: var(--sw-bg-panel);
+    padding: 12px 14px 10px 14px;
+    border-bottom: 1px solid var(--sw-border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.sw-institution-crest {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.sw-crest-badge {
+    width: 30px;
+    height: 30px;
+    background: var(--sw-accent-red);
+    color: #ffffff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(218, 41, 28, 0.4);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.sw-institution-titles {
+    line-height: 1.25;
+}
+
+.sw-institution-main {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--sw-text-main);
+    letter-spacing: -0.2px;
+}
+
+.sw-institution-sub {
+    font-size: 9.5px;
+    color: var(--sw-text-muted);
+    letter-spacing: 0.2px;
+}
+
+/* BOTÃO DE TEMA (CLARO / ESCURO) */
+.sw-theme-toggle {
+    background: var(--sw-bg-subtle);
+    border: 1px solid var(--sw-border);
+    color: var(--sw-text-sub);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: 0.15s;
+    user-select: none;
+}
+.sw-theme-toggle:hover {
+    background: var(--sw-bg-hover);
+    color: var(--sw-text-main);
+}
+
+/* CAIXA DE BUSCA ESTILO ADMIN.CH */
+.sw-search-box {
+    padding: 10px 14px;
+    background: var(--sw-bg-subtle);
+    border-bottom: 1px solid var(--sw-border-subtle);
+}
+
+.sw-search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sw-search-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--sw-text-muted);
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.sw-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px 8px 30px;
+    font-size: 11.5px;
+    background: var(--sw-input-bg);
+    border: 1px solid var(--sw-input-border);
+    border-radius: 4px;
+    color: var(--sw-input-text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sw-search-input:focus {
+    border-color: var(--sw-acc-header-bg);
+    box-shadow: 0 0 0 2px rgba(74, 84, 94, 0.18);
+}
+
+.sw-search-dropdown {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 1100;
+}
+
+.sw-search-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--sw-border-subtle);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    color: var(--sw-text-main);
+    transition: background 0.12s;
+}
+
+.sw-search-item:hover {
+    background: var(--sw-bg-hover);
+}
+
+.sw-search-item:last-child {
+    border-bottom: none;
+}
+
+.sw-search-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--sw-bg-subtle);
+    border: 1px solid var(--sw-border-subtle);
+    color: var(--sw-text-muted);
+}
+
+/* CONTAINER DE ACCORDIONS ROLÁVEL */
+.sw-accordion-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 170px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--sw-border) transparent;
+}
+
+.sw-accordion-container::-webkit-scrollbar {
+    width: 4px;
+}
+.sw-accordion-container::-webkit-scrollbar-thumb {
+    background: var(--sw-border);
+    border-radius: 4px;
+}
+
+/* ABAS DE ACCORDION (BARRAS HORIZONTAIS ARDÓSIA DO MAP.GEO.ADMIN.CH) */
+.sw-accordion-item {
+    border-bottom: 1px solid var(--sw-border-subtle);
+}
+
+.sw-acc-header {
+    background: var(--sw-acc-header-bg);
+    color: var(--sw-acc-header-text);
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    transition: background 0.18s;
+}
+
+.sw-acc-header:hover {
+    background: var(--sw-acc-header-hover);
+}
+
+.sw-acc-header.active {
+    background: var(--sw-acc-header-active-bg);
+}
+
+.sw-acc-arrow {
+    font-size: 9px;
+    display: inline-block;
+    transition: transform 0.2s ease;
+    margin-right: 6px;
+}
+
+.sw-acc-header.active .sw-acc-arrow {
+    transform: rotate(90deg);
+}
+
+/* CONTEÚDO EXPANDIDO DO ACCORDION */
+.sw-acc-content {
+    display: none;
+    padding: 12px 14px;
+    background: var(--sw-bg-panel);
+    color: var(--sw-text-main);
+    font-size: 11.5px;
+}
+
+.sw-acc-content.open {
+    display: block;
+}
+
+/* BOTÃO DE FECHAR MENU ESTILO ADMIN.CH (▲ CLOSE MENU) */
+.sw-btn-close-menu {
+    background: #202428;
+    color: #ffffff;
+    border: none;
+    width: 100%;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    user-select: none;
+    transition: 0.18s;
+}
+
+.sw-btn-close-menu:hover {
+    background: #111417;
+}
+
+/* LINGUETA DISCRETA PARA REABRIR A SIDEBAR ESQUERDA */
+.sw-tab-open-left {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    z-index: 1001;
+    background: var(--sw-acc-header-bg);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.25);
+    display: none;
+    transition: 0.2s;
+    user-select: none;
+}
+.sw-tab-open-left:hover {
+    background: var(--sw-acc-header-active-bg);
+}
+
+/* --- FILTROS, CHECKBOXES E CARDS INTERNOS --- */
+.sw-filter-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+    cursor: pointer;
+    color: var(--sw-text-main);
+    font-size: 11.5px;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.sw-filter-row:hover {
+    color: var(--sw-accent-blue);
+}
+
+.sw-filter-row input {
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: var(--sw-accent-red);
+}
+
+/* SELETOR DE MAPAS BASE */
+.sw-base-switcher {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.sw-base-btn {
+    background: var(--sw-bg-subtle);
+    border: 1px solid var(--sw-border);
+    color: var(--sw-text-sub);
+    padding: 6px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+}
+
+.sw-base-btn:hover {
+    background: var(--sw-bg-hover);
+    color: var(--sw-text-main);
+}
+
+.sw-base-btn.active {
+    background: var(--sw-acc-header-bg);
+    color: #ffffff;
+    border-color: var(--sw-acc-header-bg);
+}
+
+/* BOTÕES DE AÇÃO SWISSTOPO */
+.sw-btn-action {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--sw-border);
+    background: var(--sw-bg-panel);
+    color: var(--sw-text-main);
+    transition: 0.15s;
+    user-select: none;
+}
+
+.sw-btn-action:hover {
+    background: var(--sw-bg-hover);
+    border-color: var(--sw-text-muted);
+}
+
+.sw-btn-action-primary {
+    background: var(--sw-acc-header-bg);
+    color: #ffffff;
+    border-color: var(--sw-acc-header-bg);
+}
+.sw-btn-action-primary:hover {
+    background: var(--sw-acc-header-active-bg);
+    border-color: var(--sw-acc-header-active-bg);
+}
+
+/* --- BARRA LATERAL DIREITA (CENTRAL TÁTICA DE CAÇA) --- */
+.sw-sidebar-right {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 290px;
+    max-height: calc(100vh - 28px);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: var(--sw-shadow-panel);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sw-sidebar-right.recolhida {
+    transform: translateX(calc(100% + 25px));
+    pointer-events: none;
+}
+
+/* LINGUETA DISCRETA PARA EXPANDIR O HUD DE CAÇA */
+.sw-hud-trigger-tab {
+    position: absolute;
+    top: 18px;
+    right: 0;
+    z-index: 1001;
+    background: #202428;
+    border: 1px solid #374151;
+    border-right: none;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px 0 0 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.3);
+    transition: 0.2s;
+    user-select: none;
+}
+
+.sw-hud-trigger-tab:hover {
+    background: var(--sw-accent-red);
+}
+
+.sw-hud-trigger-tab.alerta-ativo {
+    border-color: var(--sw-accent-red);
+}
+
+/* BOTÃO TRAÇAR ROTA DE CAÇA */
+.sw-btn-draw-hunt {
+    background: var(--sw-btn-draw-bg);
+    color: var(--sw-btn-draw-text);
+    border: none;
+    padding: 9px 14px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    transition: 0.15s;
+    box-shadow: 0 2px 6px rgba(218, 41, 28, 0.35);
+}
+
+.sw-btn-draw-hunt:hover {
+    background: var(--sw-accent-red-hover);
+    box-shadow: 0 4px 12px rgba(218, 41, 28, 0.55);
+}
+
+/* --- BARRA INFERIOR DE COORDENADAS SWISSTOPO (GRID TABULAR) --- */
+.sw-coord-hud-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.sw-coord-stamp {
+    background: var(--sw-coord-bg);
+    border: 1px solid var(--sw-coord-border);
+    color: var(--sw-coord-text);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--sw-shadow-card);
+    backdrop-filter: blur(8px);
+}
+
+.sw-coord-label {
+    color: var(--sw-coord-label);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.sw-coord-quad {
+    background: var(--sw-bg-subtle);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 800;
+    border: 1px solid var(--sw-border-subtle);
+}
+
+/* MODO FOCO: BARRA DE CONTROLE NA PARTE INFERIOR */
+.sw-focus-bar {
+    display: none;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-accent-red);
+    border-radius: 6px;
+    padding: 8px 16px;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--sw-shadow-panel);
+}
+
+/* --- MODAIS SWISSTOPO --- */
+.sw-modal-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--sw-modal-bg);
+    border: 1px solid var(--sw-modal-border);
+    border-radius: 8px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+    color: var(--sw-text-main);
+    overflow-y: auto;
+    width: 380px;
+    max-width: 92vw;
+    max-height: 88vh;
+    padding: 16px 18px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.sw-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--sw-border-subtle);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    cursor: grab;
+    user-select: none;
+}
+.sw-modal-header:active {
+    cursor: grabbing;
+}
+.sw-modal-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--sw-text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: -0.2px;
+}
+.sw-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--sw-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+}
+.sw-modal-close:hover {
+    background: var(--sw-bg-subtle);
+    color: var(--sw-accent-red);
+}
+
+.sw-coord-pill-badge {
+    background: var(--sw-bg-subtle);
+    border: 1px solid var(--sw-border-subtle);
+    border-radius: 5px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--sw-text-sub);
+}
+.sw-coord-pill-badge strong {
+    color: var(--sw-accent-red);
+    font-weight: 700;
+}
+
+.sw-form-group {
+    margin-bottom: 11px;
+}
+.sw-form-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--sw-text-muted);
+    margin-bottom: 4px;
+}
+.sw-form-input, .sw-form-select, .sw-form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 12px;
+    color: var(--sw-text-main);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+}
+.sw-form-input:focus, .sw-form-select:focus, .sw-form-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.sw-shape-group {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.sw-shape-btn {
+    flex: 1;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sw-text-sub);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sw-shape-btn.active {
+    background: var(--sw-accent-red);
+    color: #ffffff;
+    border-color: var(--sw-accent-red);
+    font-weight: 700;
+}
+
+.sw-range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--sw-border);
+    border-radius: 2px;
+    outline: none;
+    margin: 8px 0 4px 0;
+}
+.sw-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--sw-accent-red);
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+.sw-modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+.sw-btn-modal-cancel {
+    flex: 1;
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    color: var(--sw-text-sub);
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sw-btn-modal-cancel:hover {
+    background: var(--sw-bg-subtle);
+    color: var(--sw-text-main);
+}
+.sw-btn-modal-save {
+    flex: 2;
+    background: var(--sw-accent-red);
+    border: none;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 6px rgba(218, 41, 28, 0.25);
+}
+.sw-btn-modal-save:hover {
+    filter: brightness(1.1);
+}
+
+.preview-flora-tooltip {
+    background: rgba(18, 20, 26, 0.9) !important;
+    border: 1px solid #444 !important;
+    color: #fff !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+}
+
+/* --- GRID SWISSTOPO LIMPO & NÍTIDO --- */
+.yaga-grid-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #1e293b;
+    text-shadow: 0 0 3px #ffffff, 0 0 1px #ffffff;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+    transition: opacity 0.2s;
+}
+
+body.swiss-theme-dark .yaga-grid-label {
+    color: #f1f5f9;
+    text-shadow: 0 0 3px #000000, 0 0 1px #000000;
+}
+
+/* POPUP SWISSTOPO ADAPTÁVEL (LIGHT / DARK) */
+.leaflet-popup-content-wrapper {
+    background: var(--sw-bg-panel) !important;
+    color: var(--sw-text-main) !important;
+    border: 1px solid var(--sw-border) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+    padding: 2px !important;
+}
+.leaflet-popup-tip {
+    background: var(--sw-bg-panel) !important;
+}
+.leaflet-popup-close-button {
+    color: var(--sw-text-muted) !important;
+    top: 6px !important;
+    right: 8px !important;
+}
+.leaflet-popup-close-button:hover {
+    color: var(--sw-text-main) !important;
+}
+
+/* --- CONTROLE INDEPENDENTE DE TINTA DOS RÓTULOS DO MAPA --- */
+.swiss-labels-light {
+    color: #111417 !important;
+}
+.swiss-labels-light.swiss-capital,
+.swiss-labels-light.swiss-settlement,
+.swiss-labels-light.swiss-tower,
+.swiss-labels-light.swiss-ruin {
+    color: #111417 !important;
+}
+.swiss-labels-light.swiss-water {
+    color: #1a4f73 !important;
+}
+.swiss-labels-light.swiss-relief {
+    color: #5c3826 !important;
+}
+.swiss-labels-light .icon-nanquim-solid,
+.swiss-labels-light .icon-nanquim-tower {
+    color: #111417 !important;
+    filter: drop-shadow(1px 1px 0 rgba(255,255,255,0.95)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.95)) drop-shadow(1px -1px 0 rgba(255,255,255,0.95)) drop-shadow(-1px 1px 0 rgba(255,255,255,0.95)) !important;
+}
+
+.swiss-labels-dark {
+    color: #f8fafc !important;
+}
+.swiss-labels-dark.swiss-capital,
+.swiss-labels-dark.swiss-settlement,
+.swiss-labels-dark.swiss-tower,
+.swiss-labels-dark.swiss-ruin {
+    color: #f8fafc !important;
+}
+.swiss-labels-dark.swiss-water {
+    color: #5bb3ea !important;
+}
+.swiss-labels-dark.swiss-relief {
+    color: #d79f7a !important;
+}
+.swiss-labels-dark .icon-nanquim-solid,
+.swiss-labels-dark .icon-nanquim-tower {
+    color: #ffffff !important;
+    filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.9)) drop-shadow(-1px -1px 0 rgba(0,0,0,0.9)) !important;
+}
+
+/* ==============================================================================
+   CENTRAL TÁTICA & RADAR DE CAÇA — SWISSTOPO THEME
+   ============================================================================== */
+.sw-spawn-stamp {
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.sw-spawn-stamp:hover {
+    border-color: var(--sw-accent-red);
+    box-shadow: 0 0 10px rgba(218, 41, 28, 0.25);
+}
+
+.sw-spawn-stamp.status-critical {
+    border-color: #ef4444;
+    animation: swisspulseCritical 1.5s infinite;
+}
+
+@keyframes swisspulseCritical {
+    0% { box-shadow: 0 0 3px rgba(239, 68, 68, 0.4); }
+    50% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.85); }
+    100% { box-shadow: 0 0 3px rgba(239, 68, 68, 0.4); }
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 800;
+}
+.rank-badge.rank-other {
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border-subtle);
+    color: var(--sw-text-muted);
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--sw-border-subtle);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--sw-accent-blue);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.color-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    display: inline-block;
+}
+.color-swatch:hover {
+    transform: scale(1.2);
+}
+.color-swatch.active {
+    border-color: #ffffff;
+    transform: scale(1.25);
+    box-shadow: 0 0 8px rgba(255,255,255,0.85);
+}
+
+/* --- TOOLTIP & POPUP DE ROTAS TÁTICAS (SWISSTOPO) --- */
+.leaflet-tooltip.sw-route-tooltip {
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border-strong);
+    color: var(--sw-text-main);
+    box-shadow: var(--sw-shadow-card);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 11px;
+}
+.leaflet-tooltip.sw-route-tooltip::before {
+    border-top-color: var(--sw-border-strong);
+}
+
+.leaflet-popup.sw-route-popup .leaflet-popup-content-wrapper {
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+    color: var(--sw-text-main);
+    box-shadow: var(--sw-shadow-panel);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.leaflet-popup.sw-route-popup .leaflet-popup-tip {
+    background: var(--sw-bg-panel);
+    border: 1px solid var(--sw-border);
+}
+
+
+
+
+/* ANIMACAO DE MIRA TARGET */
+@keyframes sw-ping {
+    0% { transform: scale(0.7); opacity: 0.9; }
+    80%, 100% { transform: scale(2.2); opacity: 0; }
+}
