@@ -777,6 +777,28 @@
         }
     };
 
+    // ==============================================================
+    // SEGURANÇA — Sanitização de dados do banco inseridos via innerHTML
+    // Previne XSS caso um nome de ponto contenha HTML/JS malicioso
+    // ==============================================================
+    function sanitize(str) {
+        if (!str) return '';
+        const el = document.createElement('div');
+        el.textContent = String(str);
+        return el.innerHTML;
+    }
+
+    // Sanitiza coordenadas numéricas para uso em onclick inline
+    function sanitizeCoord(val) {
+        const n = parseFloat(val);
+        return isNaN(n) ? 0 : Math.max(0, Math.min(4096, n));
+    }
+
+    // Sanitiza UUIDs (aceita apenas formato uuid v4 padrão)
+    function sanitizeId(id) {
+        return /^[0-9a-f-]{36}$/i.test(String(id)) ? String(id) : '';
+    }
+
     const MAP_SIZE = 4096;
     const mapSize = MAP_SIZE;
     const SCALE_FACTOR = 1 / 16;
@@ -1076,7 +1098,7 @@
 
     function selecionarBeacon(b) {
         pontoSelecionado = b;
-        document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${b.nome}</strong> (${b.faccao.toUpperCase()}) em X: ${b.x}, Y: ${b.y}`;
+        document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${sanitize(b.nome)}</strong> (${sanitize(b.faccao).toUpperCase()}) em X: ${sanitizeCoord(b.x)}, Y: ${sanitizeCoord(b.y)}`;
         const sbRight = document.getElementById('sidebarRight');
         if (sbRight.classList.contains('recolhida')) toggleSidebarDireita();
     }
@@ -1088,7 +1110,8 @@
         }
 
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const actor = currentProfile ? (currentProfile.nick || 'Batedor') : 'Você';
+        const actor = sanitize(currentProfile ? (currentProfile.nick || 'Batedor') : 'Você');
+        const nomeBeacon = sanitize(pontoSelecionado.nome);
         let logItemHtml = '';
 
         if (tipo === 'cleared') {
@@ -1097,7 +1120,7 @@
             logItemHtml = `
                 <div class="jk-event-log-item">
                     <div class="jk-event-dot note"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> limpou <strong>${pontoSelecionado.nome}</strong> (agora Neutro)</div>
+                    <div class="jk-event-text"><strong>${actor}</strong> limpou <strong>${nomeBeacon}</strong> (agora Neutro)</div>
                     <div class="jk-event-time">${hora}</div>
                 </div>`;
         } else if (tipo === 'converted_freedom') {
@@ -1106,7 +1129,7 @@
             logItemHtml = `
                 <div class="jk-event-log-item">
                     <div class="jk-event-dot freedom"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> converteu <strong>${pontoSelecionado.nome}</strong> para Freedom!</div>
+                    <div class="jk-event-text"><strong>${actor}</strong> converteu <strong>${nomeBeacon}</strong> para Freedom!</div>
                     <div class="jk-event-time">${hora}</div>
                 </div>`;
         } else if (tipo === 'reinforced') {
@@ -1122,14 +1145,14 @@
             logItemHtml = `
                 <div class="jk-event-log-item">
                     <div class="jk-event-dot info"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> reforçou <strong>${pontoSelecionado.nome}</strong> (nível ${pontoSelecionado.reforco}x)</div>
+                    <div class="jk-event-text"><strong>${actor}</strong> reforçou <strong>${nomeBeacon}</strong> (nível ${pontoSelecionado.reforco}x)</div>
                     <div class="jk-event-time">${hora}</div>
                 </div>`;
         } else if (tipo === 'attacked') {
             logItemHtml = `
                 <div class="jk-event-log-item">
                     <div class="jk-event-dot jackal"></div>
-                    <div class="jk-event-text">🚨 <strong>${pontoSelecionado.nome}</strong> está <strong>sob ataque das forças Jackal!</strong></div>
+                    <div class="jk-event-text">🚨 <strong>${nomeBeacon}</strong> está <strong>sob ataque das forças Jackal!</strong></div>
                     <div class="jk-event-time">${hora}</div>
                 </div>`;
         }
@@ -1164,12 +1187,12 @@
             const bounds = obterBoundsQuadrante(letra, num);
             if (bounds) {
                 htmlExtraQuadrante = `
-                    <div class="sw-search-item" onclick="selecionarQuadranteBusca('${letra}', '${num}')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
+                    <div class="sw-search-item" onclick="selecionarQuadranteBusca('${sanitize(letra)}', '${sanitize(num)}')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
                         <div>
-                            <strong style="color:#38bdf8;">🧭 Quadrante Wurm ${letra}${num}</strong>
+                            <strong style="color:#38bdf8;">🧭 Quadrante Wurm ${sanitize(letra)}${sanitize(num)}</strong>
                             <div style="font-size:9.5px; color:var(--sw-text-muted);">Navegar e Iluminar Quadrante</div>
                         </div>
-                        <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${letra}${num}</span>
+                        <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${sanitize(letra)}${sanitize(num)}</span>
                     </div>
                 `;
             }
@@ -1184,12 +1207,12 @@
         }
 
         const itensPontos = resultados.map(b => `
-            <div class="sw-search-item" onclick="focarPonto(${b.x}, ${b.y}, '${b.id}')">
+            <div class="sw-search-item" onclick="focarPonto(${sanitizeCoord(b.x)}, ${sanitizeCoord(b.y)}, '${sanitizeId(b.id)}')">
                 <div>
-                    <strong>${b.nome}</strong>
-                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${b.x} • Y: ${b.y} [${obterQuadranteWurm(b.y, b.x)}]</div>
+                    <strong>${sanitize(b.nome)}</strong>
+                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${sanitizeCoord(b.x)} • Y: ${sanitizeCoord(b.y)} [${sanitize(obterQuadranteWurm(b.y, b.x))}]</div>
                 </div>
-                <span class="sw-search-badge" style="color:${b.faccao === 'freedom' ? '#00e676' : '#ff4444'};">${b.faccao.toUpperCase()}</span>
+                <span class="sw-search-badge" style="color:${b.faccao === 'freedom' ? '#00e676' : '#ff4444'};">${sanitize(b.faccao).toUpperCase()}</span>
             </div>
         `).join('');
 
