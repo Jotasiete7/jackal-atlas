@@ -409,7 +409,7 @@
                     </label>
                     <label class="sw-filter-row" style="color:#fbbf24;">
                         <input type="checkbox" checked onchange="toggleCamada('villages', this.checked)">
-                        <span data-i18n="vilas">🏘️ Vilas Fundadas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
+                        <span data-i18n="vilas">🏘️ Deeds & Vilas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#6ee7b7;">
                         <input type="checkbox" checked onchange="toggleCamada('caves', this.checked)">
@@ -658,7 +658,7 @@
                 <div class="jk-kind-chips" id="kindChipsContainer">
                     <span class="jk-kind-chip selected" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
-                    <span class="jk-kind-chip" data-kind="village">🏘️ Vila</span>
+                    <span class="jk-kind-chip" data-kind="village">🏘️ Deed / Vila</span>
                     <span class="jk-kind-chip" data-kind="cave">🕳️ Caverna</span>
                     <span class="jk-kind-chip" data-kind="resource_node">⛏️ Resource</span>
                     <span class="jk-kind-chip" data-kind="idol">✨ Idol</span>
@@ -679,7 +679,12 @@
 
             <div class="sw-form-group">
                 <label class="sw-form-label">Nome / Descrição</label>
-                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Beacon da Garganta, Mina de Ferro 70ql...">
+                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Beacon da Garganta...">
+            </div>
+
+            <div class="sw-form-group" id="rowMayor" style="display:none;">
+                <label class="sw-form-label">👑 Prefeito / Responsável (Mayor)</label>
+                <input type="text" class="sw-form-input" id="inputMayor" placeholder="Ex: Kuropr, ShadowHunter...">
             </div>
 
             <div class="sw-form-group" id="rowDificuldade">
@@ -1146,14 +1151,50 @@
             if (!conf) return;
             const x = Number(p.x);
             const y = Number(p.y);
+            const quad = obterQuadranteWurm(y, x);
+            const isVillage = (p.kind === 'village');
+            const mayor = p.attrs?.mayor;
+            const faccaoCor = p.faction === 'freedom' ? 'var(--jk-freedom)' : (p.faction === 'jackal' ? 'var(--jk-jackal)' : 'var(--jk-neutral)');
+            const faccaoNome = p.faction === 'freedom' ? 'Freedom' : (p.faction === 'jackal' ? 'Jackal' : 'Neutro');
+
             const m = L.marker([mapSize - y, x], {
                 icon: L.divIcon({
                     className: '',
-                    iconAnchor: [10, 10],
-                    html: `<div style="font-size:16px; cursor:pointer;" title="${sanitize(p.name || p.kind)}">${conf.icon}</div>`
+                    iconAnchor: [12, 12],
+                    html: `<div style="font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}">${conf.icon}</div>`
                 })
             });
-            m.bindPopup(`<strong>${sanitize(p.name || p.kind.toUpperCase())}</strong><br><span style="font-size:10px; color:#999;">X: ${x} • Y: ${y}</span>`);
+
+            let popupContent = '';
+            if (isVillage) {
+                popupContent = `
+                    <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
+                        <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                            <span>🏘️</span> <span>${sanitize(p.name || 'Deed Sem Nome')}</span>
+                        </div>
+                        <div style="font-size:10px; color:${faccaoCor}; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
+                            🚩 Facção: ${faccaoNome}
+                        </div>
+                        ${mayor ? `<div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">👑 Prefeito: <strong style="color:#fff;">${sanitize(mayor)}</strong></div>` : ''}
+                        <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px;">
+                            📍 <strong>X: ${x} • Y: ${y}</strong> &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
+                        </div>
+                    </div>
+                `;
+            } else {
+                popupContent = `
+                    <div style="font-family:'Inter',sans-serif; min-width:160px; padding:2px;">
+                        <div style="font-size:12.5px; font-weight:700; color:#fff; margin-bottom:4px;">
+                            ${conf.icon} ${sanitize(p.name || p.kind.toUpperCase())}
+                        </div>
+                        <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px;">
+                            📍 X: ${x} • Y: ${y} &bull; Quadrante: <strong style="color:var(--jk-accent);">${quad}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            m.bindPopup(popupContent);
             m.addTo(conf.layer);
             if (counts[p.kind] !== undefined) counts[p.kind]++;
         });
@@ -1580,6 +1621,9 @@
             document.querySelectorAll('.jk-kind-chip').forEach(c => c.classList.remove('selected'));
             this.classList.add('selected');
             kindSelecionado = this.dataset.kind;
+
+            const rowMayor = document.getElementById('rowMayor');
+            if (rowMayor) rowMayor.style.display = (kindSelecionado === 'village') ? 'block' : 'none';
         });
     });
 
@@ -1592,6 +1636,11 @@
     async function salvarPontoSubmissao() {
         const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
         const dificuldade = document.getElementById('selectDificuldade')?.value;
+        const mayor = document.getElementById('inputMayor')?.value.trim();
+
+        const attrs = {};
+        if (dificuldade) attrs.dificuldade = Number(dificuldade);
+        if (mayor) attrs.mayor = mayor;
 
         if (supabaseClient) {
             try {
@@ -1601,7 +1650,7 @@
                     x: clickCoords.x,
                     y: clickCoords.y,
                     faction: faccaoSelecionada,
-                    attrs: dificuldade ? { dificuldade: Number(dificuldade) } : {}
+                    attrs: attrs
                 }).select().single();
 
                 if (error) throw error;
@@ -1609,6 +1658,7 @@
                 alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente.`);
                 fecharModal('modalAddPonto');
                 document.getElementById('inputNomePonto').value = '';
+                if (document.getElementById('inputMayor')) document.getElementById('inputMayor').value = '';
                 await carregarPontosDoBanco();
                 return;
             } catch (err) {
@@ -1660,7 +1710,7 @@
             beaconsFreedom: '🟢 Beacons Freedom',
             beaconsNeutral: '⚪ Beacons Neutros',
             lodestones: '🪨 Lodestones',
-            vilas: '🏘️ Vilas Fundadas',
+            vilas: '🏘️ Deeds & Vilas',
             cavernas: '🕳️ Cavernas Naturais',
             recursos: '⛏️ Recursos Minerais',
             idols: '✨ Idols & Plinths',
@@ -1718,7 +1768,7 @@
             beaconsFreedom: '🟢 Freedom Beacons',
             beaconsNeutral: '⚪ Neutral Beacons',
             lodestones: '🪨 Lodestones',
-            vilas: '🏘️ Founded Deeds',
+            vilas: '🏘️ Deeds & Villages',
             cavernas: '🕳️ Natural Caves',
             recursos: '⛏️ Resource Nodes',
             idols: '✨ Idols & Plinths',
