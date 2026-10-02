@@ -315,12 +315,13 @@
             </div>
         </div>
 
-        <!-- BUSCA ESTILO SWISSTOPO -->
+        <!-- BUSCA ESTILO SWISSTOPO COM DROPDOWN INTERATIVO -->
         <div class="sw-search-box" style="position:relative;">
             <div class="sw-search-input-wrapper">
                 <span class="sw-search-icon">🔍</span>
                 <input type="text" id="inputBusca" class="sw-search-input" placeholder="Buscar beacon, caverna, lodestone..." oninput="filtrarMarcadores(this.value)">
             </div>
+            <div id="buscaDropdown" class="sw-search-dropdown" style="display:none;"></div>
         </div>
 
         <!-- ACCORDIONS -->
@@ -684,6 +685,68 @@
         </div>
     </div>
 
+    <!-- ================================================================
+         MODAL — NOVO OBJETIVO ESTRATÉGICO (P1/P2/P3)
+         ================================================================ -->
+    <div id="modalNovoObjetivo" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:400px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">🎯 Criar Objetivo da Guilda</div>
+                <button class="sw-modal-close" onclick="fecharModal('modalNovoObjetivo')">✕</button>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Título da Missão / Obra</label>
+                <input type="text" class="sw-form-input" id="inputObjTitulo" placeholder="Ex: Pavimentar Estrada do Vale Norte...">
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Nível de Prioridade</label>
+                <div class="jk-faction-row">
+                    <button class="jk-faction-btn jackal selected" id="btnP1" onclick="selecionarPrioridadeModal('p1', this)">🔴 P1 Crítico</button>
+                    <button class="jk-faction-btn neutral" id="btnP2" onclick="selecionarPrioridadeModal('p2', this)">🟡 P2 Alta</button>
+                    <button class="jk-faction-btn freedom" id="btnP3" onclick="selecionarPrioridadeModal('p3', this)">🟢 P3 Normal</button>
+                </div>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label">Categoria de Operação</label>
+                <select class="sw-form-select" id="selectObjTipo">
+                    <option value="beacon_clear">💥 Limpeza de Beacon Hostil</option>
+                    <option value="road">🛣️ Construção de Estrada</option>
+                    <option value="bridge">🌉 Engenharia de Ponte</option>
+                    <option value="explore">🕳️ Exploração de Caverna</option>
+                    <option value="supply">📦 Linha de Suprimento</option>
+                </select>
+            </div>
+
+            <div class="sw-modal-actions">
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNovoObjetivo')">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarNovoObjetivo()">✓ Publicar Objetivo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         MODAL — DEFINIR NICK WURM
+         ================================================================ -->
+    <div id="modalNickWurm" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:340px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">⚔️ Nick no Wurm Online</div>
+                <button class="sw-modal-close" onclick="fecharModal('modalNickWurm')">✕</button>
+            </div>
+            <div class="sw-form-group">
+                <label class="sw-form-label">Nome do seu Personagem</label>
+                <input type="text" class="sw-form-input" id="inputNovoNick" placeholder="Ex: ShadowHunter">
+            </div>
+            <div class="sw-modal-actions">
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNickWurm')">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarNickModal()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -708,6 +771,7 @@
     };
 
     const MAP_SIZE = 4096;
+    const mapSize = MAP_SIZE;
     const SCALE_FACTOR = 1 / 16;
     L.CRS.Jackal = L.Util.extend({}, L.CRS.Simple, {
         transformation: new L.Transformation(SCALE_FACTOR, 0, SCALE_FACTOR, 0)
@@ -774,62 +838,108 @@
     }
 
     // ==============================================================
-    // SELEÇÃO & INTERAÇÃO COM MARCADORES
+    // DADOS SEMENTES & MARCADORES
     // ==============================================================
-    let pontoSelecionado = null;
+    let currentUser = null;
+    let currentProfile = null;
 
-    function criarPinBeacon(x, y, faccao, nome, reforco, prioridade) {
-        const lat = mapSize - y;
-        const lng = x;
+    let beaconsData = [
+        { id: 'b1', x: 1500, y: 1296, faccao: 'jackal',  nome: 'Beacon do Norte', reforco: 0, p: 'p1', marker: null, circle: null },
+        { id: 'b2', x: 2600, y: 1896, faccao: 'freedom', nome: 'Beacon Central', reforco: 2, p: null, marker: null, circle: null },
+        { id: 'b3', x: 1800, y: 2496, faccao: 'jackal',  nome: 'Beacon do Sul',   reforco: 0, p: 'p2', marker: null, circle: null },
+        { id: 'b4', x: 2900, y: 1496, faccao: 'neutral', nome: 'Beacon Leste',   reforco: 0, p: null, marker: null, circle: null }
+    ];
+
+    function criarPinBeacon(beacon) {
+        const lat = mapSize - beacon.y;
+        const lng = beacon.x;
         const cores = { jackal:'#ff4444', freedom:'#00e676', neutral:'#607d8b', unknown:'#3a4455' };
 
         const icon = L.divIcon({
             className: '',
             iconAnchor: [12, 24],
             html: `
-                <div style="position:relative; cursor:pointer;" title="${nome} (${faccao.toUpperCase()})">
+                <div style="position:relative; cursor:pointer;" title="${beacon.nome} (${beacon.faccao.toUpperCase()})">
                     <div style="width:24px; height:24px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
-                                background:${cores[faccao] || cores.unknown}; border:2px solid rgba(0,0,0,0.5);
+                                background:${cores[beacon.faccao] || cores.unknown}; border:2px solid rgba(0,0,0,0.5);
                                 box-shadow:0 2px 8px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;">
                         <span style="transform:rotate(45deg); font-size:11px;">📡</span>
                     </div>
-                    ${prioridade ? `<span style="position:absolute; top:-6px; right:-6px; font-size:8px; font-weight:900; background:#fff; color:#000; padding:1px 3px; border-radius:3px;">${prioridade.toUpperCase()}</span>` : ''}
-                    <div style="font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.95); margin-top:2px; white-space:nowrap; font-family:'Inter', sans-serif;">${nome}</div>
+                    ${beacon.reforco > 0 ? `<span style="position:absolute; bottom:-4px; right:-4px; font-size:8px; font-weight:900; background:#38bdf8; color:#000; padding:1px 3px; border-radius:3px;">+${beacon.reforco}</span>` : ''}
+                    ${beacon.p ? `<span style="position:absolute; top:-6px; right:-6px; font-size:8px; font-weight:900; background:#fff; color:#000; padding:1px 3px; border-radius:3px;">${beacon.p.toUpperCase()}</span>` : ''}
+                    <div style="font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.95); margin-top:2px; white-space:nowrap; font-family:'Inter', sans-serif;">${beacon.nome}</div>
                 </div>
             `
         });
 
         const m = L.marker([lat, lng], { icon });
         m.on('click', () => {
-            pontoSelecionado = { x, y, faccao, nome, reforco };
-            document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${nome}</strong> (${faccao.toUpperCase()}) em X: ${x}, Y: ${y}`;
-            // Abrir sidebar direita se recolhida
-            const sbRight = document.getElementById('sidebarRight');
-            if (sbRight.classList.contains('recolhida')) toggleSidebarDireita();
+            selecionarBeacon(beacon);
         });
 
+        beacon.marker = m;
         return m;
     }
 
-    // Dados Sementes de Exemplo Visual
-    const mockBeacons = [
-        { x: 1500, y: 1296, faccao: 'jackal',  nome: 'Beacon do Norte', reforco: 0, p: 'p1' },
-        { x: 2600, y: 1896, faccao: 'freedom', nome: 'Beacon Central', reforco: 2, p: null },
-        { x: 1800, y: 2496, faccao: 'jackal',  nome: 'Beacon do Sul',   reforco: 0, p: 'p2' },
-        { x: 2900, y: 1496, faccao: 'neutral', nome: 'Beacon Leste',   reforco: 0, p: null }
-    ];
+    function renderizarTodosBeacons() {
+        layers.beacons_jackal.clearLayers();
+        layers.beacons_freedom.clearLayers();
+        layers.beacons_neutral.clearLayers();
+        layers.influencia.clearLayers();
 
-    mockBeacons.forEach(b => {
-        const m = criarPinBeacon(b.x, b.y, b.faccao, b.nome, b.reforco, b.p);
-        if (b.faccao === 'jackal') m.addTo(layers.beacons_jackal);
-        else if (b.faccao === 'freedom') m.addTo(layers.beacons_freedom);
-        else m.addTo(layers.beacons_neutral);
-    });
+        let countJackal = 0, countFreedom = 0, countNeutral = 0;
 
-    // Círculos de Influência
-    L.circle([mapSize - 1896, 2600], { radius:240, color:'#00e676', fillColor:'#00e676', fillOpacity:0.08, weight:1.5, dashArray:'4 4' }).addTo(layers.influencia);
-    L.circle([mapSize - 1296, 1500], { radius:120, color:'#ff4444', fillColor:'#ff4444', fillOpacity:0.06, weight:1, dashArray:'4 4' }).addTo(layers.influencia);
-    L.circle([mapSize - 2496, 1800], { radius:120, color:'#ff4444', fillColor:'#ff4444', fillOpacity:0.06, weight:1, dashArray:'4 4' }).addTo(layers.influencia);
+        beaconsData.forEach(b => {
+            const m = criarPinBeacon(b);
+            if (b.faccao === 'jackal') {
+                m.addTo(layers.beacons_jackal);
+                countJackal++;
+            } else if (b.faccao === 'freedom') {
+                m.addTo(layers.beacons_freedom);
+                countFreedom++;
+            } else {
+                m.addTo(layers.beacons_neutral);
+                countNeutral++;
+            }
+
+            // Círculo de influência
+            const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 180 : 120);
+            const cor = b.faccao === 'freedom' ? '#00e676' : (b.faccao === 'jackal' ? '#ff4444' : '#607d8b');
+            const circle = L.circle([mapSize - b.y, b.x], {
+                radius: radius,
+                color: cor,
+                fillColor: cor,
+                fillOpacity: b.faccao === 'freedom' ? 0.08 : 0.05,
+                weight: 1.5,
+                dashArray: '4 4'
+            }).addTo(layers.influencia);
+            b.circle = circle;
+        });
+
+        // Contadores nos menus
+        document.getElementById('cntBeaconsJackal').textContent = `(${countJackal})`;
+        document.getElementById('cntBeaconsFreedom').textContent = `(${countFreedom})`;
+        document.getElementById('cntBeaconsNeutral').textContent = `(${countNeutral})`;
+
+        document.getElementById('statBeaconsFreedomCount').textContent = countFreedom;
+        document.getElementById('statBeaconsJackalCount').textContent = countJackal;
+        document.getElementById('statBeaconsNeutralCount').textContent = countNeutral;
+
+        const total = countJackal + countFreedom + countNeutral || 1;
+        const pctF = Math.round((countFreedom / total) * 100);
+        const pctJ = Math.round((countJackal / total) * 100);
+        const pctN = 100 - pctF - pctJ;
+
+        document.getElementById('statFreedomPct').textContent = `${pctF}%`;
+        document.getElementById('statJackalPct').textContent = `${pctJ}%`;
+        document.getElementById('statNeutralPct').textContent = `${pctN}%`;
+
+        document.getElementById('barFreedom').style.width = `${pctF}%`;
+        document.getElementById('barJackal').style.width = `${pctJ}%`;
+        document.getElementById('barNeutral').style.width = `${pctN}%`;
+    }
+
+    renderizarTodosBeacons();
 
     // Estradas e Pontes de Exemplo
     L.polyline([[mapSize - 1896, 2600], [mapSize - 2048, 2048], [mapSize - 2496, 1800]], {
@@ -837,9 +947,131 @@
     }).addTo(layers.roads_planned);
 
     // ==============================================================
+    // SELEÇÃO & AÇÕES RÁPIDAS
+    // ==============================================================
+    let pontoSelecionado = null;
+
+    function selecionarBeacon(b) {
+        pontoSelecionado = b;
+        document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${b.nome}</strong> (${b.faccao.toUpperCase()}) em X: ${b.x}, Y: ${b.y}`;
+        const sbRight = document.getElementById('sidebarRight');
+        if (sbRight.classList.contains('recolhida')) toggleSidebarDireita();
+    }
+
+    function reportarEvento(tipo) {
+        if (!pontoSelecionado) {
+            alert('Selecione primeiro um beacon no mapa clicando no marcador.');
+            return;
+        }
+
+        const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const actor = currentProfile ? (currentProfile.nick || 'Batedor') : 'Você';
+        let logItemHtml = '';
+
+        if (tipo === 'cleared') {
+            pontoSelecionado.faccao = 'neutral';
+            pontoSelecionado.reforco = 0;
+            logItemHtml = `
+                <div class="jk-event-log-item">
+                    <div class="jk-event-dot note"></div>
+                    <div class="jk-event-text"><strong>${actor}</strong> limpou <strong>${pontoSelecionado.nome}</strong> (agora Neutro)</div>
+                    <div class="jk-event-time">${hora}</div>
+                </div>`;
+        } else if (tipo === 'converted_freedom') {
+            pontoSelecionado.faccao = 'freedom';
+            pontoSelecionado.reforco = 0;
+            logItemHtml = `
+                <div class="jk-event-log-item">
+                    <div class="jk-event-dot freedom"></div>
+                    <div class="jk-event-text"><strong>${actor}</strong> converteu <strong>${pontoSelecionado.nome}</strong> para Freedom!</div>
+                    <div class="jk-event-time">${hora}</div>
+                </div>`;
+        } else if (tipo === 'reinforced') {
+            if (pontoSelecionado.faccao !== 'freedom') {
+                alert('Apenas beacons sob controle da Freedom podem ser reforçados.');
+                return;
+            }
+            if (pontoSelecionado.reforco >= 2) {
+                alert('Este beacon já atingiu o nível máximo de reforço (2x).');
+                return;
+            }
+            pontoSelecionado.reforco += 1;
+            logItemHtml = `
+                <div class="jk-event-log-item">
+                    <div class="jk-event-dot info"></div>
+                    <div class="jk-event-text"><strong>${actor}</strong> reforçou <strong>${pontoSelecionado.nome}</strong> (nível ${pontoSelecionado.reforco}x)</div>
+                    <div class="jk-event-time">${hora}</div>
+                </div>`;
+        } else if (tipo === 'attacked') {
+            logItemHtml = `
+                <div class="jk-event-log-item">
+                    <div class="jk-event-dot jackal"></div>
+                    <div class="jk-event-text">🚨 <strong>${pontoSelecionado.nome}</strong> está <strong>sob ataque das forças Jackal!</strong></div>
+                    <div class="jk-event-time">${hora}</div>
+                </div>`;
+        }
+
+        renderizarTodosBeacons();
+        selecionarBeacon(pontoSelecionado);
+
+        const feed = document.getElementById('eventLogList');
+        if (feed && logItemHtml) {
+            feed.insertAdjacentHTML('afterbegin', logItemHtml);
+        }
+    }
+
+    // ==============================================================
+    // BUSCA EM TEMPO REAL
+    // ==============================================================
+    function filtrarMarcadores(texto) {
+        const dd = document.getElementById('buscaDropdown');
+        if (!texto || texto.trim().length < 1) {
+            dd.style.display = 'none';
+            return;
+        }
+
+        const query = texto.toLowerCase();
+        const resultados = beaconsData.filter(b => b.nome.toLowerCase().includes(query) || b.faccao.toLowerCase().includes(query));
+
+        if (resultados.length === 0) {
+            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted);">Nenhum ponto encontrado</div>`;
+            dd.style.display = 'block';
+            return;
+        }
+
+        dd.innerHTML = resultados.map(b => `
+            <div class="sw-search-item" onclick="focarPonto(${b.x}, ${b.y}, '${b.id}')">
+                <div>
+                    <strong>${b.nome}</strong>
+                    <div style="font-size:9.5px; color:var(--sw-text-muted);">X: ${b.x} • Y: ${b.y}</div>
+                </div>
+                <span class="sw-search-badge" style="color:${b.faccao === 'freedom' ? '#00e676' : '#ff4444'};">${b.faccao.toUpperCase()}</span>
+            </div>
+        `).join('');
+        dd.style.display = 'block';
+    }
+
+    function focarPonto(x, y, id) {
+        document.getElementById('buscaDropdown').style.display = 'none';
+        document.getElementById('inputBusca').value = '';
+        map.flyTo([mapSize - y, x], 4, { duration: 1 });
+        const b = beaconsData.find(item => item.id === id);
+        if (b) selecionarBeacon(b);
+    }
+
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', function(e) {
+        const box = document.querySelector('.sw-search-box');
+        if (box && !box.contains(e.target)) {
+            const dd = document.getElementById('buscaDropdown');
+            if (dd) dd.style.display = 'none';
+        }
+    });
+
+    // ==============================================================
     // OBJETIVOS P1 / P2 / P3
     // ==============================================================
-    const mockObjetivos = [
+    let mockObjetivos = [
         { id: '1', prioridade: 'p1', icone: '💥', titulo: 'Limpar Beacon do Norte', desc: 'beacon_clear • em andamento', x: 1500, y: 1296 },
         { id: '2', prioridade: 'p1', icone: '🛣️', titulo: 'Estrada Central → Spawn', desc: 'road • planejado', x: 2048, y: 2048 },
         { id: '3', prioridade: 'p2', icone: '🌉', titulo: 'Ponte sobre Lago Sul', desc: 'bridge • planejado', x: 1800, y: 2496 },
@@ -880,86 +1112,122 @@
         renderizarObjetivos(prioridade);
     }
 
-    // ==============================================================
-    // MODAL DE ADIÇÃO DE PONTOS
-    // ==============================================================
-    let modoAdicionar = false;
-    let clickCoords = { x: 0, y: 0 };
-    let faccaoSelecionada = 'jackal';
-    let kindSelecionado = 'beacon';
-
-    function ativarModoAdicionarPonto() {
-        modoAdicionar = true;
-        map.getContainer().style.cursor = 'crosshair';
-        alert('Clique no mapa onde deseja posicionar o novo ponto.');
-    }
-
-    map.on('click', function(e) {
-        if (!modoAdicionar) return;
-        const x = Math.round(e.latlng.lng);
-        const y = Math.round(mapSize - e.latlng.lat);
-        clickCoords = { x, y };
-
-        document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
-        document.getElementById('modalAddPonto').classList.add('open');
-        modoAdicionar = false;
-        map.getContainer().style.cursor = '';
-    });
-
-    function fecharModal(id) {
-        document.getElementById(id).classList.remove('open');
-    }
-
-    // Seletor de Tipo
-    document.querySelectorAll('.jk-kind-chip').forEach(chip => {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('.jk-kind-chip').forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            kindSelecionado = this.dataset.kind;
-        });
-    });
-
-    function selecionarFaccao(f, btn) {
-        document.querySelectorAll('.jk-faction-btn').forEach(b => b.classList.remove('selected'));
+    let prioridadeSelecionadaModal = 'p1';
+    function selecionarPrioridadeModal(p, btn) {
+        document.querySelectorAll('#modalNovoObjetivo .jk-faction-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        faccaoSelecionada = f;
+        prioridadeSelecionadaModal = p;
     }
 
-    function salvarPontoSubmissao() {
-        const nome = document.getElementById('inputNomePonto').value || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
-        
-        // Adicionar marcador na tela
-        const m = criarPinBeacon(clickCoords.x, clickCoords.y, faccaoSelecionada, nome, 0, null);
-        if (faccaoSelecionada === 'jackal') m.addTo(layers.beacons_jackal);
-        else if (faccaoSelecionada === 'freedom') m.addTo(layers.beacons_freedom);
-        else m.addTo(layers.beacons_neutral);
-
-        alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente. Membros regulares aguardam validação.`);
-        fecharModal('modalAddPonto');
-        document.getElementById('inputNomePonto').value = '';
+    function abrirModalObjetivo() {
+        document.getElementById('modalNovoObjetivo').classList.add('open');
     }
 
-    // ==============================================================
-    // AÇÕES RÁPIDAS DE CAMPO
-    // ==============================================================
-    function reportarEvento(tipo) {
-        if (!pontoSelecionado) {
-            alert('Selecione primeiro um beacon no mapa clicando no marcador.');
+    function salvarNovoObjetivo() {
+        const titulo = document.getElementById('inputObjTitulo').value.trim();
+        if (!titulo) {
+            alert('Por favor, informe o título do objetivo.');
             return;
         }
 
-        const nomes = {
-            cleared: '💥 Limpeza de Beacon registrada!',
-            converted_freedom: '🏳️ Conversão para Freedom registrada!',
-            reinforced: '⬆️ Reforço de Beacon registrado!',
-            attacked: '🚨 Alerta de Ataque registrado!'
-        };
+        const tipo = document.getElementById('selectObjTipo').value;
+        const icones = { beacon_clear: '💥', road: '🛣️', bridge: '🌉', explore: '🕳️', supply: '📦' };
 
-        alert(`${nomes[tipo]}\nPonto: ${pontoSelecionado.nome} (X: ${pontoSelecionado.x}, Y: ${pontoSelecionado.y})`);
+        mockObjetivos.unshift({
+            id: String(Date.now()),
+            prioridade: prioridadeSelecionadaModal,
+            icone: icones[tipo] || '🎯',
+            titulo: titulo,
+            desc: `${tipo} • planejado`,
+            x: 2048, y: 2048
+        });
+
+        renderizarObjetivos('all');
+        fecharModal('modalNovoObjetivo');
+        document.getElementById('inputObjTitulo').value = '';
+        alert(`✓ Objetivo "${titulo}" criado com sucesso!`);
     }
 
     // ==============================================================
-    // CONTROLES DE INTERFACE
+    // TRAÇADO INTERATIVO DE INFRAESTRUTURA (ESTRADAS & PONTES)
+    // ==============================================================
+    let modoTracado = null;
+    let pontosTracado = [];
+    let polylineTemp = null;
+
+    function iniciarTracado(tipo) {
+        modoTracado = tipo;
+        pontosTracado = [];
+        map.getContainer().style.cursor = 'crosshair';
+        alert(`Modo de traçado de ${tipo === 'road' ? 'Estrada' : 'Ponte'} ativado!\nClique nos pontos do mapa sequencialmente. Dê duplo clique ou pressione ESC para concluir.`);
+    }
+
+    map.on('click', function(e) {
+        if (!modoTracado) return;
+        pontosTracado.push(e.latlng);
+
+        if (!polylineTemp) {
+            polylineTemp = L.polyline(pontosTracado, {
+                color: modoTracado === 'road' ? '#f5a623' : '#38bdf8',
+                weight: 3,
+                dashArray: '6 4'
+            }).addTo(map);
+        } else {
+            polylineTemp.setLatLngs(pontosTracado);
+        }
+    });
+
+    map.on('dblclick', function(e) {
+        if (!modoTracado) return;
+        finalizarTracado();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modoTracado) {
+            finalizarTracado();
+        }
+    });
+
+    function finalizarTracado() {
+        if (pontosTracado.length >= 2) {
+            const nome = prompt(`Nome para esta ${modoTracado === 'road' ? 'Estrada' : 'Ponte'}:`, `${modoTracado.toUpperCase()} Trecho ${Date.now().toString().slice(-4)}`);
+            if (nome) {
+                const targetLayer = (modoTracado === 'road') ? layers.roads_planned : layers.bridges_planned;
+                L.polyline(pontosTracado, {
+                    color: modoTracado === 'road' ? '#f5a623' : '#38bdf8',
+                    weight: 3,
+                    dashArray: '6 4'
+                }).bindTooltip(nome, { permanent: false }).addTo(targetLayer);
+                alert(`✓ ${modoTracado === 'road' ? 'Estrada' : 'Ponte'} "${nome}" registrada na Infraestrutura!`);
+            }
+        }
+        if (polylineTemp) {
+            map.removeLayer(polylineTemp);
+            polylineTemp = null;
+        }
+        modoTracado = null;
+        pontosTracado = [];
+        map.getContainer().style.cursor = '';
+    }
+
+    // ==============================================================
+    // DEFINIR NICK WURM
+    // ==============================================================
+    function editarNickPrompt() {
+        document.getElementById('modalNickWurm').classList.add('open');
+    }
+
+    function confirmarNickModal() {
+        const nick = document.getElementById('inputNovoNick').value.trim();
+        if (nick) {
+            document.getElementById('userWurmNick').textContent = nick;
+            if (currentProfile) currentProfile.nick = nick;
+            fecharModal('modalNickWurm');
+        }
+    }
+
+    // ==============================================================
+    // CONTROLES DE INTERFACE (SWISSTOPO SYSTEM)
     // ==============================================================
     function toggleAccordion(header) {
         const content = header.nextElementSibling;
@@ -994,49 +1262,88 @@
     }
 
     function toggleGridTiles(ativo) {
-        // Reservado para overlay de grid
-    }
-
-    function abrirModalObjetivo() {
-        const titulo = prompt('Título do Objetivo (ex: Limpar Beacon Leste):');
-        if (titulo) {
-            const prioridade = prompt('Prioridade (p1, p2, p3):', 'p1') || 'p1';
-            mockObjetivos.unshift({
-                id: String(Date.now()),
-                prioridade: prioridade.toLowerCase(),
-                icone: '🎯',
-                titulo: titulo,
-                desc: 'custom • planejado',
-                x: 2048, y: 2048
-            });
-            renderizarObjetivos('all');
-            alert(`Objetivo "${titulo}" criado!`);
-        }
-    }
-
-    function iniciarTracado(tipo) {
-        alert(`Modo de traçado de ${tipo === 'road' ? 'Estrada' : 'Ponte'} ativo. Clique no ponto inicial e final.`);
+        // Reservado para overlay de grade
     }
 
     function alternarTemaVisual() {
         document.body.classList.toggle('swiss-theme-light');
         document.body.classList.toggle('swiss-theme-dark');
+        const btn = document.querySelector('.sw-theme-toggle');
+        if (btn) {
+            btn.textContent = document.body.classList.contains('swiss-theme-dark') ? '🌙 Dark' : '☀️ Light';
+        }
     }
 
-    function editarNickPrompt() {
-        const nick = prompt('Digite seu Nick oficial no Wurm Online:');
-        if (nick) {
-            document.getElementById('userWurmNick').textContent = nick;
-        }
+    function fecharModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('open');
+    }
+
+    let modoAdicionar = false;
+    let clickCoords = { x: 0, y: 0 };
+    let faccaoSelecionada = 'jackal';
+    let kindSelecionado = 'beacon';
+
+    function ativarModoAdicionarPonto() {
+        modoAdicionar = true;
+        map.getContainer().style.cursor = 'crosshair';
+        alert('Clique no mapa onde deseja posicionar o novo ponto.');
+    }
+
+    map.on('click', function(e) {
+        if (!modoAdicionar) return;
+        const x = Math.round(e.latlng.lng);
+        const y = Math.round(mapSize - e.latlng.lat);
+        clickCoords = { x, y };
+
+        document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
+        document.getElementById('modalAddPonto').classList.add('open');
+        modoAdicionar = false;
+        map.getContainer().style.cursor = '';
+    });
+
+    // Seletor de Tipo
+    document.querySelectorAll('.jk-kind-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.jk-kind-chip').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            kindSelecionado = this.dataset.kind;
+        });
+    });
+
+    function selecionarFaccao(f, btn) {
+        document.querySelectorAll('.jk-faction-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        faccaoSelecionada = f;
+    }
+
+    function salvarPontoSubmissao() {
+        const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
+        
+        const novoBeacon = {
+            id: 'p_' + Date.now(),
+            x: clickCoords.x,
+            y: clickCoords.y,
+            faccao: faccaoSelecionada,
+            nome: nome,
+            reforco: 0,
+            p: null,
+            marker: null,
+            circle: null
+        };
+
+        beaconsData.push(novoBeacon);
+        renderizarTodosBeacons();
+        selecionarBeacon(novoBeacon);
+
+        alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente.`);
+        fecharModal('modalAddPonto');
+        document.getElementById('inputNomePonto').value = '';
     }
 
     function logoutUsuario() {
         if (supabase) supabase.auth.signOut();
         window.location.reload();
-    }
-
-    function filtrarMarcadores(texto) {
-        // Filtro rápido de busca
     }
 
     // ==============================================================
