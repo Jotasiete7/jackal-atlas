@@ -222,23 +222,8 @@
                 </thead>
                 <tbody id="tabela-membros-corpo">
                     <tr>
-                        <td><strong>Kira#1234</strong></td>
-                        <td>KiraShadow</td>
-                        <td><span class="role-pill pending">PENDING</span></td>
-                        <td>Hoje, 19:40</td>
-                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                            <button class="btn-table-action approve" onclick="alterarCargo('exemplo-id', 'member')">🛡️ Aprovar Membro</button>
-                            <button class="btn-table-action" onclick="alterarCargo('exemplo-id', 'officer')">⭐ Officer</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Thorin#5678</strong></td>
-                        <td>ThorinIron</td>
-                        <td><span class="role-pill member">MEMBER</span></td>
-                        <td>Ontem, 21:10</td>
-                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                            <button class="btn-table-action" onclick="alterarCargo('exemplo-id', 'officer')">Promover a Officer</button>
-                            <button class="btn-table-action danger" onclick="alterarCargo('exemplo-id', 'pending')">Revogar</button>
+                        <td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">
+                            Carregando membros...
                         </td>
                     </tr>
                 </tbody>
@@ -260,21 +245,15 @@
                         <th>Tipo</th>
                         <th>Nome / Descrição</th>
                         <th>Coordenadas</th>
-                        <th>Facção / Ação</th>
+                        <th>Facção</th>
                         <th>Autor</th>
                         <th style="text-align:right;">Decisão</th>
                     </tr>
                 </thead>
                 <tbody id="tabela-guerra-corpo">
                     <tr>
-                        <td>🔴 Beacon</td>
-                        <td><strong>Beacon Vale Oeste</strong></td>
-                        <td>X: 1820 &bull; Y: 2940</td>
-                        <td>Jackal (Dificuldade 3)</td>
-                        <td>Membro1</td>
-                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                            <button class="btn-table-action approve">✓ Aprovar no Mapa</button>
-                            <button class="btn-table-action danger">✕ Rejeitar</button>
+                        <td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">
+                            Nenhuma submissão pendente de validação.
                         </td>
                     </tr>
                 </tbody>
@@ -295,31 +274,13 @@
                         <th>Título do Objetivo</th>
                         <th>Tipo</th>
                         <th>Status</th>
-                        <th>Responsável</th>
                         <th style="text-align:right;">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tabela-objetivos-corpo">
                     <tr>
-                        <td><span class="role-pill admin">P1 CRÍTICO</span></td>
-                        <td><strong>Limpar Beacons ao Redor do Spawn</strong></td>
-                        <td>beacon_clear</td>
-                        <td><span style="color:#ffd285;">Em Andamento</span></td>
-                        <td>Esquadrão Alpha</td>
-                        <td style="text-align:right;">
-                            <button class="btn-table-action">Editar</button>
-                            <button class="btn-table-action danger">Concluir</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><span class="role-pill" style="background:rgba(245,166,35,0.2); color:#f5a623;">P2 ALTA</span></td>
-                        <td><strong>Construir Estrada Norte para a Caverna dos Ferropods</strong></td>
-                        <td>road</td>
-                        <td><span style="color:#8b949e;">Planejado</span></td>
-                        <td>Equipe de Obras</td>
-                        <td style="text-align:right;">
-                            <button class="btn-table-action">Editar</button>
-                            <button class="btn-table-action danger">Concluir</button>
+                        <td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">
+                            Nenhum objetivo cadastrado ainda.
                         </td>
                     </tr>
                 </tbody>
@@ -331,6 +292,22 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js" onerror="console.warn('config.js não encontrado');"></script>
     <script>
+        const CFG = window.JACKAL_CONFIG || {
+            supabaseUrl: 'https://placeholder.supabase.co',
+            supabaseKey: 'placeholder-key'
+        };
+
+        const supabase = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
+            ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey)
+            : null;
+
+        function sanitize(str) {
+            if (!str) return '';
+            const el = document.createElement('div');
+            el.textContent = String(str);
+            return el.innerHTML;
+        }
+
         function trocarSecao(secao, btn) {
             document.getElementById('secao-membros').style.display = (secao === 'membros') ? 'block' : 'none';
             document.getElementById('secao-filaGuerra').style.display = (secao === 'filaGuerra') ? 'block' : 'none';
@@ -340,17 +317,173 @@
             btn.classList.add('active');
         }
 
-        async function alterarCargo(userId, novoRole) {
-            alert(`Alterar usuário para cargo: ${novoRole.toUpperCase()} (conectado ao Supabase no deploy)`);
-        }
+        async function carregarMembros() {
+            if (!supabase) return;
+            const tbody = document.getElementById('tabela-membros-corpo');
+            try {
+                const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhum membro cadastrado ainda.</td></tr>`;
+                    return;
+                }
 
-        function novoObjetivoModal() {
-            const titulo = prompt('Título do Objetivo:');
-            const prioridade = prompt('Prioridade (p1, p2, p3):', 'p1');
-            if (titulo) {
-                alert(`Objetivo "${titulo}" [${prioridade.toUpperCase()}] registrado.`);
+                tbody.innerHTML = data.map(m => {
+                    const dataFormatada = new Date(m.created_at).toLocaleDateString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <tr>
+                            <td><strong>${sanitize(m.discord_id || m.id.slice(0,8))}</strong></td>
+                            <td>${sanitize(m.nick || '— Não definido —')}</td>
+                            <td><span class="role-pill ${m.role}">${m.role.toUpperCase()}</span></td>
+                            <td>${dataFormatada}</td>
+                            <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                                ${m.role === 'pending' ? `<button class="btn-table-action approve" onclick="alterarCargo('${m.id}', 'member')">🛡️ Aprovar Membro</button>` : ''}
+                                ${m.role === 'member' ? `<button class="btn-table-action" onclick="alterarCargo('${m.id}', 'officer')">⭐ Promover Officer</button>` : ''}
+                                ${m.role !== 'pending' && m.role !== 'admin' ? `<button class="btn-table-action danger" onclick="alterarCargo('${m.id}', 'pending')">Revogar</button>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ff4444; padding:16px;">Erro ao carregar perfis: ${sanitize(err.message)}</td></tr>`;
             }
         }
+
+        async function carregarFilaGuerra() {
+            if (!supabase) return;
+            const tbody = document.getElementById('tabela-guerra-corpo');
+            try {
+                const { data, error } = await supabase.from('points').select('*').eq('confirmed', false).order('created_at', { ascending: false });
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhuma submissão pendente de validação.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${sanitize(p.kind.toUpperCase())}</td>
+                        <td><strong>${sanitize(p.name || 'Sem nome')}</strong></td>
+                        <td>X: ${p.x} &bull; Y: ${p.y}</td>
+                        <td>${sanitize(p.faction || 'desconhecido')}</td>
+                        <td>${p.created_by ? p.created_by.slice(0,8) : 'Anônimo'}</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                            <button class="btn-table-action approve" onclick="aprovarPonto('${p.id}')">✓ Aprovar</button>
+                            <button class="btn-table-action danger" onclick="rejeitarPonto('${p.id}')">✕ Rejeitar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ff4444; padding:16px;">Erro ao carregar fila: ${sanitize(err.message)}</td></tr>`;
+            }
+        }
+
+        async function aprovarPonto(id) {
+            if (!supabase) return;
+            try {
+                const { error } = await supabase.from('points').update({ confirmed: true }).eq('id', id);
+                if (error) throw error;
+                alert('✓ Ponto aprovado e visível publicamente!');
+                await carregarFilaGuerra();
+            } catch (err) {
+                alert(`Erro ao aprovar: ${err.message}`);
+            }
+        }
+
+        async function rejeitarPonto(id) {
+            if (!supabase || !confirm('Deseja realmente rejeitar e excluir este ponto?')) return;
+            try {
+                const { error } = await supabase.from('points').delete().eq('id', id);
+                if (error) throw error;
+                alert('Ponto removido com sucesso.');
+                await carregarFilaGuerra();
+            } catch (err) {
+                alert(`Erro ao rejeitar: ${err.message}`);
+            }
+        }
+
+        async function alterarCargo(userId, novoRole) {
+            if (!supabase) return;
+            try {
+                const { error } = await supabase.from('profiles').update({ role: novoRole }).eq('id', userId);
+                if (error) throw error;
+                alert(`✓ Cargo alterado para ${novoRole.toUpperCase()}!`);
+                await carregarMembros();
+            } catch (err) {
+                alert(`Erro ao alterar cargo: ${err.message}`);
+            }
+        }
+
+        async function carregarObjetivosAdmin() {
+            if (!supabase) return;
+            const tbody = document.getElementById('tabela-objetivos-corpo');
+            try {
+                const { data, error } = await supabase.from('objectives').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--sw-text-muted); padding:16px;">Nenhum objetivo cadastrado ainda.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(o => `
+                    <tr>
+                        <td><span class="role-pill ${o.priority || 'admin'}">${(o.priority || 'P2').toUpperCase()}</span></td>
+                        <td><strong>${sanitize(o.title)}</strong></td>
+                        <td>${sanitize(o.kind)}</td>
+                        <td>${sanitize(o.status)}</td>
+                        <td style="text-align:right;">
+                            <button class="btn-table-action danger" onclick="excluirObjetivo('${o.id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function excluirObjetivo(id) {
+            if (!supabase || !confirm('Excluir este objetivo?')) return;
+            try {
+                const { error } = await supabase.from('objectives').delete().eq('id', id);
+                if (error) throw error;
+                await carregarObjetivosAdmin();
+            } catch (err) {
+                alert(`Erro ao excluir objetivo: ${err.message}`);
+            }
+        }
+
+        async function novoObjetivoModal() {
+            const titulo = prompt('Título do Objetivo:');
+            if (!titulo) return;
+            const prioridade = prompt('Prioridade (p1, p2, p3):', 'p1') || 'p1';
+            const tipo = prompt('Tipo (beacon_clear, road, bridge, explore, supply):', 'road') || 'road';
+
+            if (supabase) {
+                try {
+                    const { error } = await supabase.from('objectives').insert({
+                        title: titulo,
+                        kind: tipo,
+                        priority: prioridade.toLowerCase(),
+                        status: 'planned'
+                    });
+                    if (error) throw error;
+                    alert(`✓ Objetivo "${titulo}" criado!`);
+                    await carregarObjetivosAdmin();
+                } catch (err) {
+                    alert(`Erro: ${err.message}`);
+                }
+            }
+        }
+
+        async function initAdmin() {
+            await carregarMembros();
+            await carregarFilaGuerra();
+            await carregarObjetivosAdmin();
+        }
+
+        initAdmin();
     </script>
 </body>
 </html>

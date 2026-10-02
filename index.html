@@ -522,27 +522,27 @@
                 </div>
                 <div class="jk-stat-grid">
                     <div class="jk-stat-cell">
-                        <div class="jk-stat-val freedom" id="statFreedomPct">25%</div>
+                        <div class="jk-stat-val freedom" id="statFreedomPct">0%</div>
                         <div class="jk-stat-label">Freedom</div>
                     </div>
                     <div class="jk-stat-cell">
-                        <div class="jk-stat-val jackal" id="statJackalPct">60%</div>
+                        <div class="jk-stat-val jackal" id="statJackalPct">0%</div>
                         <div class="jk-stat-label">Jackal</div>
                     </div>
                     <div class="jk-stat-cell">
-                        <div class="jk-stat-val neutral" id="statNeutralPct">15%</div>
+                        <div class="jk-stat-val neutral" id="statNeutralPct">0%</div>
                         <div class="jk-stat-label" data-i18n="lblNeutro">Neutro</div>
                     </div>
                 </div>
                 <div class="jk-influence-bar">
-                    <div class="jk-influence-seg freedom" id="barFreedom" style="width:25%"></div>
-                    <div class="jk-influence-seg neutral" id="barNeutral" style="width:15%"></div>
-                    <div class="jk-influence-seg jackal" id="barJackal" style="width:60%"></div>
+                    <div class="jk-influence-seg freedom" id="barFreedom" style="width:0%"></div>
+                    <div class="jk-influence-seg neutral" id="barNeutral" style="width:0%"></div>
+                    <div class="jk-influence-seg jackal" id="barJackal" style="width:0%"></div>
                 </div>
                 <div style="font-size:9.5px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">
-                    🏰 <span id="statBeaconsFreedomCount">1</span> Freedom &nbsp;|&nbsp;
-                    🔴 <span id="statBeaconsJackalCount">2</span> Jackal &nbsp;|&nbsp;
-                    ⚪ <span id="statBeaconsNeutralCount">1</span> <span data-i18n="lblNeutro">Neutro</span>
+                    🏰 <span id="statBeaconsFreedomCount">0</span> Freedom &nbsp;|&nbsp;
+                    🔴 <span id="statBeaconsJackalCount">0</span> Jackal &nbsp;|&nbsp;
+                    ⚪ <span id="statBeaconsNeutralCount">0</span> <span data-i18n="lblNeutro">Neutro</span>
                 </div>
             </div>
 
@@ -555,10 +555,10 @@
                         <div style="font-weight:700; color:var(--sw-text-main);" data-i18n="primeiroMarco">Primeiro Marco</div>
                         <div style="font-size:9.5px; color:var(--sw-text-muted);" data-i18n="marcoIdols">Desbloqueia Idols &amp; Plinths</div>
                     </div>
-                    <span style="font-size:9px; color:var(--jk-accent); font-family:'JetBrains Mono'; font-weight:700;">25% / 20%</span>
+                    <span id="milestonePctText" style="font-size:9px; color:var(--jk-accent); font-family:'JetBrains Mono'; font-weight:700;">0% / 20%</span>
                 </div>
-                <div style="font-size:9.5px; color:var(--jk-freedom); padding:5px 7px; background:var(--jk-freedom-dim); border-radius:4px; border:1px solid rgba(0,230,118,0.3); margin-top:6px;" data-i18n="marcoAlcancado">
-                    ✓ <strong>Alcançado!</strong> Idols e Plinths liberados para uso.
+                <div id="milestoneBox" style="font-size:9.5px; color:var(--sw-text-muted); padding:5px 7px; background:var(--sw-bg-subtle); border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;">
+                    🔒 <strong>Em progresso</strong> (Requer 20% de controle territorial Freedom)
                 </div>
             </div>
 
@@ -591,20 +591,8 @@
                     <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';" data-i18n="aoVivo">ao vivo</span>
                 </div>
                 <div id="eventLogList">
-                    <div class="jk-event-log-item">
-                        <div class="jk-event-dot freedom"></div>
-                        <div class="jk-event-text"><strong>Jotasiete7</strong> converteu <strong>Beacon Central</strong> para Freedom</div>
-                        <div class="jk-event-time">19:42</div>
-                    </div>
-                    <div class="jk-event-log-item">
-                        <div class="jk-event-dot jackal"></div>
-                        <div class="jk-event-text"><strong>Beacon Sul</strong> está <strong>sob ataque Jackal</strong></div>
-                        <div class="jk-event-time">19:35</div>
-                    </div>
-                    <div class="jk-event-log-item">
-                        <div class="jk-event-dot info"></div>
-                        <div class="jk-event-text"><strong>Kira</strong> reforçou <strong>Beacon Central</strong> (reforço 2x máx)</div>
-                        <div class="jk-event-time">19:21</div>
+                    <div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">
+                        📡 Nenhum evento registrado ainda. Relate ações ao selecionar beacons no mapa.
                     </div>
                 </div>
             </div>
@@ -776,6 +764,11 @@
             topographic: 'tiles_topo/{z}/{x}/{y}.png'
         }
     };
+
+    // Inicialização do cliente Supabase
+    const supabase = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
+        ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey)
+        : null;
 
     // ==============================================================
     // SEGURANÇA — Sanitização de dados do banco inseridos via innerHTML
@@ -988,12 +981,8 @@
     let currentUser = null;
     let currentProfile = null;
 
-    let beaconsData = [
-        { id: 'b1', x: 1500, y: 1296, faccao: 'jackal',  nome: 'Beacon do Norte', reforco: 0, p: 'p1', marker: null, circle: null },
-        { id: 'b2', x: 2600, y: 1896, faccao: 'freedom', nome: 'Beacon Central', reforco: 2, p: null, marker: null, circle: null },
-        { id: 'b3', x: 1800, y: 2496, faccao: 'jackal',  nome: 'Beacon do Sul',   reforco: 0, p: 'p2', marker: null, circle: null },
-        { id: 'b4', x: 2900, y: 1496, faccao: 'neutral', nome: 'Beacon Leste',   reforco: 0, p: null, marker: null, circle: null }
-    ];
+    let beaconsData = [];
+    let outrosPontos = [];
 
     function criarPinBeacon(beacon) {
         const lat = mapSize - beacon.y;
@@ -1004,7 +993,7 @@
             className: '',
             iconAnchor: [12, 24],
             html: `
-                <div style="position:relative; cursor:pointer;" title="${beacon.nome} (${beacon.faccao.toUpperCase()})">
+                <div style="position:relative; cursor:pointer;" title="${sanitize(beacon.nome)} (${sanitize(beacon.faccao).toUpperCase()})">
                     <div style="width:24px; height:24px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
                                 background:${cores[beacon.faccao] || cores.unknown}; border:2px solid rgba(0,0,0,0.5);
                                 box-shadow:0 2px 8px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;">
@@ -1012,7 +1001,7 @@
                     </div>
                     ${beacon.reforco > 0 ? `<span style="position:absolute; bottom:-4px; right:-4px; font-size:8px; font-weight:900; background:#38bdf8; color:#000; padding:1px 3px; border-radius:3px;">+${beacon.reforco}</span>` : ''}
                     ${beacon.p ? `<span style="position:absolute; top:-6px; right:-6px; font-size:8px; font-weight:900; background:#fff; color:#000; padding:1px 3px; border-radius:3px;">${beacon.p.toUpperCase()}</span>` : ''}
-                    <div style="font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.95); margin-top:2px; white-space:nowrap; font-family:'Inter', sans-serif;">${beacon.nome}</div>
+                    <div style="font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.95); margin-top:2px; white-space:nowrap; font-family:'Inter', sans-serif;">${sanitize(beacon.nome)}</div>
                 </div>
             `
         });
@@ -1048,7 +1037,7 @@
             }
 
             // Círculo de influência
-            const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 180 : 120);
+            const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 160 : 100);
             const cor = b.faccao === 'freedom' ? '#00e676' : (b.faccao === 'jackal' ? '#ff4444' : '#607d8b');
             const circle = L.circle([mapSize - b.y, b.x], {
                 radius: radius,
@@ -1070,10 +1059,10 @@
         document.getElementById('statBeaconsJackalCount').textContent = countJackal;
         document.getElementById('statBeaconsNeutralCount').textContent = countNeutral;
 
-        const total = countJackal + countFreedom + countNeutral || 1;
-        const pctF = Math.round((countFreedom / total) * 100);
-        const pctJ = Math.round((countJackal / total) * 100);
-        const pctN = 100 - pctF - pctJ;
+        const total = countJackal + countFreedom + countNeutral;
+        const pctF = total > 0 ? Math.round((countFreedom / total) * 100) : 0;
+        const pctJ = total > 0 ? Math.round((countJackal / total) * 100) : 0;
+        const pctN = total > 0 ? Math.max(0, 100 - pctF - pctJ) : 0;
 
         document.getElementById('statFreedomPct').textContent = `${pctF}%`;
         document.getElementById('statJackalPct').textContent = `${pctJ}%`;
@@ -1082,14 +1071,74 @@
         document.getElementById('barFreedom').style.width = `${pctF}%`;
         document.getElementById('barJackal').style.width = `${pctJ}%`;
         document.getElementById('barNeutral').style.width = `${pctN}%`;
+
+        // Marcos Comunitários
+        const msText = document.getElementById('milestonePctText');
+        const msBox = document.getElementById('milestoneBox');
+        if (msText && msBox) {
+            msText.textContent = `${pctF}% / 20%`;
+            if (pctF >= 20) {
+                msBox.innerHTML = `✓ <strong style="color:var(--jk-freedom);">Alcançado!</strong> Idols e Plinths liberados para uso.`;
+                msBox.style.color = 'var(--jk-freedom)';
+                msBox.style.background = 'var(--jk-freedom-dim)';
+                msBox.style.borderColor = 'rgba(0,230,118,0.3)';
+            } else {
+                msBox.innerHTML = `🔒 <strong>Em progresso</strong> (${20 - pctF}% restante para desbloquear Idols & Plinths)`;
+                msBox.style.color = 'var(--sw-text-muted)';
+                msBox.style.background = 'var(--sw-bg-subtle)';
+                msBox.style.borderColor = 'var(--sw-border-subtle)';
+            }
+        }
+    }
+
+    // Renderizar outros tipos de pontos (lodestones, vilas, cavernas, recursos, idols, supply)
+    function renderizarOutrosPontos(pontos) {
+        if (!pontos) return;
+        layers.lodestones.clearLayers();
+        layers.villages.clearLayers();
+        layers.caves.clearLayers();
+        layers.resource_nodes.clearLayers();
+        layers.idols.clearLayers();
+        layers.supply_points.clearLayers();
+
+        let counts = { lodestone:0, village:0, cave:0, resource_node:0, idol:0, supply_point:0 };
+
+        const iconConfig = {
+            lodestone: { icon:'🪨', layer: layers.lodestones },
+            village: { icon:'🏘️', layer: layers.villages },
+            cave: { icon:'🕳️', layer: layers.caves },
+            resource_node: { icon:'⛏️', layer: layers.resource_nodes },
+            idol: { icon:'✨', layer: layers.idols },
+            idol_plinth: { icon:'✨', layer: layers.idols },
+            supply_point: { icon:'📦', layer: layers.supply_points }
+        };
+
+        pontos.forEach(p => {
+            const conf = iconConfig[p.kind];
+            if (!conf) return;
+            const x = Number(p.x);
+            const y = Number(p.y);
+            const m = L.marker([mapSize - y, x], {
+                icon: L.divIcon({
+                    className: '',
+                    iconAnchor: [10, 10],
+                    html: `<div style="font-size:16px; cursor:pointer;" title="${sanitize(p.name || p.kind)}">${conf.icon}</div>`
+                })
+            });
+            m.bindPopup(`<strong>${sanitize(p.name || p.kind.toUpperCase())}</strong><br><span style="font-size:10px; color:#999;">X: ${x} • Y: ${y}</span>`);
+            m.addTo(conf.layer);
+            if (counts[p.kind] !== undefined) counts[p.kind]++;
+        });
+
+        document.getElementById('cntLodestones').textContent = `(${counts.lodestone})`;
+        document.getElementById('cntVillages').textContent = `(${counts.village})`;
+        document.getElementById('cntCaves').textContent = `(${counts.cave})`;
+        document.getElementById('cntNodes').textContent = `(${counts.resource_node})`;
+        document.getElementById('cntIdols').textContent = `(${counts.idol})`;
+        document.getElementById('cntSupply').textContent = `(${counts.supply_point})`;
     }
 
     renderizarTodosBeacons();
-
-    // Estradas e Pontes de Exemplo
-    L.polyline([[mapSize - 1896, 2600], [mapSize - 2048, 2048], [mapSize - 2496, 1800]], {
-        color: '#f5a623', weight: 3, dashArray: '6 4', opacity: 0.8
-    }).addTo(layers.roads_planned);
 
     // ==============================================================
     // SELEÇÃO & AÇÕES RÁPIDAS
@@ -1103,7 +1152,7 @@
         if (sbRight.classList.contains('recolhida')) toggleSidebarDireita();
     }
 
-    function reportarEvento(tipo) {
+    async function reportarEvento(tipo) {
         if (!pontoSelecionado) {
             alert('Selecione primeiro um beacon no mapa clicando no marcador.');
             return;
@@ -1112,26 +1161,31 @@
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const actor = sanitize(currentProfile ? (currentProfile.nick || 'Batedor') : 'Você');
         const nomeBeacon = sanitize(pontoSelecionado.nome);
-        let logItemHtml = '';
 
+        if (supabase && pontoSelecionado.id && !String(pontoSelecionado.id).startsWith('local_')) {
+            try {
+                const { error } = await supabase.from('point_events').insert({
+                    point_id: pontoSelecionado.id,
+                    event_type: tipo
+                });
+                if (error) throw error;
+                alert(`✓ Evento "${tipo}" reportado com sucesso! Se você for Officer/Admin, foi aplicado imediatamente.`);
+                await carregarPontosDoBanco();
+                await carregarEventosDoBanco();
+                return;
+            } catch (err) {
+                alert(`Erro ao registrar evento no Supabase: ${err.message}`);
+                return;
+            }
+        }
+
+        // Modo offline
         if (tipo === 'cleared') {
             pontoSelecionado.faccao = 'neutral';
             pontoSelecionado.reforco = 0;
-            logItemHtml = `
-                <div class="jk-event-log-item">
-                    <div class="jk-event-dot note"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> limpou <strong>${nomeBeacon}</strong> (agora Neutro)</div>
-                    <div class="jk-event-time">${hora}</div>
-                </div>`;
         } else if (tipo === 'converted_freedom') {
             pontoSelecionado.faccao = 'freedom';
             pontoSelecionado.reforco = 0;
-            logItemHtml = `
-                <div class="jk-event-log-item">
-                    <div class="jk-event-dot freedom"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> converteu <strong>${nomeBeacon}</strong> para Freedom!</div>
-                    <div class="jk-event-time">${hora}</div>
-                </div>`;
         } else if (tipo === 'reinforced') {
             if (pontoSelecionado.faccao !== 'freedom') {
                 alert('Apenas beacons sob controle da Freedom podem ser reforçados.');
@@ -1142,28 +1196,10 @@
                 return;
             }
             pontoSelecionado.reforco += 1;
-            logItemHtml = `
-                <div class="jk-event-log-item">
-                    <div class="jk-event-dot info"></div>
-                    <div class="jk-event-text"><strong>${actor}</strong> reforçou <strong>${nomeBeacon}</strong> (nível ${pontoSelecionado.reforco}x)</div>
-                    <div class="jk-event-time">${hora}</div>
-                </div>`;
-        } else if (tipo === 'attacked') {
-            logItemHtml = `
-                <div class="jk-event-log-item">
-                    <div class="jk-event-dot jackal"></div>
-                    <div class="jk-event-text">🚨 <strong>${nomeBeacon}</strong> está <strong>sob ataque das forças Jackal!</strong></div>
-                    <div class="jk-event-time">${hora}</div>
-                </div>`;
         }
 
         renderizarTodosBeacons();
         selecionarBeacon(pontoSelecionado);
-
-        const feed = document.getElementById('eventLogList');
-        if (feed && logItemHtml) {
-            feed.insertAdjacentHTML('afterbegin', logItemHtml);
-        }
     }
 
     // ==============================================================
@@ -1244,47 +1280,71 @@
     });
 
     // ==============================================================
-    // OBJETIVOS P1 / P2 / P3
+    // OBJETIVOS P1 / P2 / P3 (INTEGRADO AO SUPABASE)
     // ==============================================================
-    let mockObjetivos = [
-        { id: '1', prioridade: 'p1', icone: '💥', titulo: 'Limpar Beacon do Norte', desc: 'beacon_clear • em andamento', x: 1500, y: 1296 },
-        { id: '2', prioridade: 'p1', icone: '🛣️', titulo: 'Estrada Central → Spawn', desc: 'road • planejado', x: 2048, y: 2048 },
-        { id: '3', prioridade: 'p2', icone: '🌉', titulo: 'Ponte sobre Lago Sul', desc: 'bridge • planejado', x: 1800, y: 2496 },
-        { id: '4', prioridade: 'p3', icone: '🕳️', titulo: 'Explorar Caverna Noroeste', desc: 'explore • planejado', x: 1100, y: 1100 }
-    ];
+    let objetivosData = [];
 
-    function renderizarObjetivos(filtro) {
+    async function carregarObjetivosDoBanco(filtro) {
         const container = document.getElementById('listaObjetivosContainer');
-        container.innerHTML = '';
+        if (!container) return;
 
-        const filtrados = (filtro === 'all' || !filtro)
-            ? mockObjetivos
-            : mockObjetivos.filter(o => o.prioridade === filtro);
+        if (!supabase) {
+            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+            return;
+        }
 
-        filtrados.forEach(obj => {
-            const item = document.createElement('div');
-            item.className = 'jk-obj-item';
-            item.onclick = () => {
-                map.flyTo([mapSize - obj.y, obj.x], 4, { duration: 1 });
-            };
-            item.innerHTML = `
-                <span class="jk-p-badge ${obj.prioridade}">${obj.prioridade.toUpperCase()}</span>
-                <span>${obj.icone}</span>
-                <div style="flex:1;">
-                    <div class="jk-obj-name">${obj.titulo}</div>
-                    <div class="jk-obj-kind">${obj.desc}</div>
-                </div>
-                <span class="jk-obj-locate" title="Focar no mapa">📌</span>
-            `;
-            container.appendChild(item);
-        });
+        try {
+            let query = supabase.from('objectives').select('*').order('created_at', { ascending: false });
+            if (filtro && filtro !== 'all') {
+                query = query.eq('priority', filtro);
+            }
+            const { data, error } = await query;
+            if (error) throw error;
+
+            objetivosData = data || [];
+            container.innerHTML = '';
+
+            if (objetivosData.length === 0) {
+                container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+                return;
+            }
+
+            const icones = { beacon_clear: '💥', beacon_hold: '🛡️', road: '🛣️', bridge: '🌉', explore: '🕳️', supply: '📦', custom: '🎯' };
+
+            objetivosData.forEach(obj => {
+                const item = document.createElement('div');
+                item.className = 'jk-obj-item';
+                const prio = obj.priority || 'p2';
+                const ico = icones[obj.kind] || '🎯';
+                const pathPoint = (Array.isArray(obj.path) && obj.path.length > 0) ? obj.path[0] : null;
+
+                item.onclick = () => {
+                    if (pathPoint) {
+                        map.flyTo([mapSize - pathPoint[1], pathPoint[0]], 4, { duration: 1 });
+                    }
+                };
+
+                item.innerHTML = `
+                    <span class="jk-p-badge ${prio}">${prio.toUpperCase()}</span>
+                    <span>${ico}</span>
+                    <div style="flex:1;">
+                        <div class="jk-obj-name">${sanitize(obj.title)}</div>
+                        <div class="jk-obj-kind">${sanitize(obj.kind)} • ${sanitize(obj.status)}</div>
+                    </div>
+                    ${pathPoint ? '<span class="jk-obj-locate" title="Focar no mapa">📌</span>' : ''}
+                `;
+                container.appendChild(item);
+            });
+        } catch (err) {
+            console.error('Erro ao carregar objetivos:', err);
+            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+        }
     }
-    renderizarObjetivos('all');
 
     function filtrarPrioridadeObj(prioridade, btn) {
         document.querySelectorAll('#accObjetivos .sw-base-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        renderizarObjetivos(prioridade);
+        carregarObjetivosDoBanco(prioridade);
     }
 
     let prioridadeSelecionadaModal = 'p1';
@@ -1298,7 +1358,7 @@
         document.getElementById('modalNovoObjetivo').classList.add('open');
     }
 
-    function salvarNovoObjetivo() {
+    async function salvarNovoObjetivo() {
         const titulo = document.getElementById('inputObjTitulo').value.trim();
         if (!titulo) {
             alert('Por favor, informe o título do objetivo.');
@@ -1306,21 +1366,30 @@
         }
 
         const tipo = document.getElementById('selectObjTipo').value;
-        const icones = { beacon_clear: '💥', road: '🛣️', bridge: '🌉', explore: '🕳️', supply: '📦' };
 
-        mockObjetivos.unshift({
-            id: String(Date.now()),
-            prioridade: prioridadeSelecionadaModal,
-            icone: icones[tipo] || '🎯',
-            titulo: titulo,
-            desc: `${tipo} • planejado`,
-            x: 2048, y: 2048
-        });
+        if (supabase) {
+            try {
+                const { error } = await supabase.from('objectives').insert({
+                    title: titulo,
+                    kind: tipo,
+                    priority: prioridadeSelecionadaModal,
+                    status: 'planned'
+                });
+                if (error) throw error;
+                alert(`✓ Objetivo "${titulo}" criado com sucesso!`);
+                fecharModal('modalNovoObjetivo');
+                document.getElementById('inputObjTitulo').value = '';
+                await carregarObjetivosDoBanco('all');
+                return;
+            } catch (e) {
+                alert(`Erro ao salvar objetivo no Supabase: ${e.message}`);
+                return;
+            }
+        }
 
-        renderizarObjetivos('all');
+        alert(`✓ Objetivo "${titulo}" registrado localmente.`);
         fecharModal('modalNovoObjetivo');
         document.getElementById('inputObjTitulo').value = '';
-        alert(`✓ Objetivo "${titulo}" criado com sucesso!`);
     }
 
     // ==============================================================
@@ -1492,11 +1561,37 @@
         faccaoSelecionada = f;
     }
 
-    function salvarPontoSubmissao() {
+    async function salvarPontoSubmissao() {
         const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
-        
-        const novoBeacon = {
-            id: 'p_' + Date.now(),
+        const dificuldade = document.getElementById('selectDificuldade')?.value;
+
+        if (supabase) {
+            try {
+                const { data, error } = await supabase.from('points').insert({
+                    kind: kindSelecionado,
+                    name: nome,
+                    x: clickCoords.x,
+                    y: clickCoords.y,
+                    faction: faccaoSelecionada,
+                    attrs: dificuldade ? { dificuldade: Number(dificuldade) } : {}
+                }).select().single();
+
+                if (error) throw error;
+
+                alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente.`);
+                fecharModal('modalAddPonto');
+                document.getElementById('inputNomePonto').value = '';
+                await carregarPontosDoBanco();
+                return;
+            } catch (err) {
+                alert(`Erro ao salvar ponto no Supabase: ${err.message}`);
+                return;
+            }
+        }
+
+        // Modo offline
+        const novoPonto = {
+            id: 'local_' + Date.now(),
             x: clickCoords.x,
             y: clickCoords.y,
             faccao: faccaoSelecionada,
@@ -1507,11 +1602,13 @@
             circle: null
         };
 
-        beaconsData.push(novoBeacon);
-        renderizarTodosBeacons();
-        selecionarBeacon(novoBeacon);
+        if (kindSelecionado === 'beacon') {
+            beaconsData.push(novoPonto);
+            renderizarTodosBeacons();
+            selecionarBeacon(novoPonto);
+        }
 
-        alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente.`);
+        alert(`✓ Ponto "${nome}" registrado localmente.`);
         fecharModal('modalAddPonto');
         document.getElementById('inputNomePonto').value = '';
     }
@@ -1664,7 +1761,7 @@
     trocarIdioma(idiomaAtual);
 
     // ==============================================================
-    // SESSÃO SUPABASE
+    // SESSÃO SUPABASE & SINCRONIZAÇÃO EM TEMPO REAL
     // ==============================================================
     async function checarSessao() {
         if (!supabase) return;
@@ -1695,7 +1792,151 @@
         }
     }
 
-    checarSessao();
+    // ==============================================================
+    // CARREGAMENTO DE DADOS REAIS DO SUPABASE
+    // ==============================================================
+    async function carregarPontosDoBanco() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase.from('points').select('*');
+            if (error) throw error;
+            if (data) {
+                beaconsData = data.filter(p => p.kind === 'beacon').map(p => ({
+                    id: p.id,
+                    x: Number(p.x),
+                    y: Number(p.y),
+                    faccao: p.faction || 'neutral',
+                    nome: p.name || 'Beacon',
+                    reforco: Number(p.reinforcement || 0),
+                    p: p.priority || null,
+                    status: p.status,
+                    confirmed: p.confirmed,
+                    marker: null,
+                    circle: null
+                }));
+                renderizarTodosBeacons();
+                renderizarOutrosPontos(data.filter(p => p.kind !== 'beacon'));
+            }
+        } catch (e) {
+            console.error('Falha ao sincronizar pontos do banco:', e);
+        }
+    }
+
+    async function carregarEventosDoBanco() {
+        const feed = document.getElementById('eventLogList');
+        if (!feed) return;
+        if (!supabase) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('point_events')
+                .select('id, event_type, created_at, confirmed, points(name, kind)')
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                feed.innerHTML = `<div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">📡 Nenhum evento registrado ainda. Relate ações ao selecionar beacons no mapa.</div>`;
+                return;
+            }
+
+            feed.innerHTML = data.map(ev => {
+                const hora = new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const pontoNome = sanitize(ev.points?.name || 'Ponto');
+                let dotClass = 'info';
+                let msg = '';
+
+                switch (ev.event_type) {
+                    case 'cleared':
+                        dotClass = 'note';
+                        msg = `Beacon <strong>${pontoNome}</strong> limpo (agora Neutro)`;
+                        break;
+                    case 'converted_freedom':
+                        dotClass = 'freedom';
+                        msg = `Beacon <strong>${pontoNome}</strong> convertido para Freedom!`;
+                        break;
+                    case 'reinforced':
+                        dotClass = 'info';
+                        msg = `Beacon <strong>${pontoNome}</strong> reforçado (+1)`;
+                        break;
+                    case 'attacked':
+                        dotClass = 'jackal';
+                        msg = `🚨 Beacon <strong>${pontoNome}</strong> está <strong>sob ataque Jackal!</strong>`;
+                        break;
+                    default:
+                        msg = `Ação registrada em <strong>${pontoNome}</strong> (${ev.event_type})`;
+                }
+
+                return `
+                    <div class="jk-event-log-item">
+                        <div class="jk-event-dot ${dotClass}"></div>
+                        <div class="jk-event-text">${msg}</div>
+                        <div class="jk-event-time">${hora}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            console.error('Erro ao carregar eventos:', e);
+        }
+    }
+
+    async function carregarRotasDoBanco() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase.from('routes').select('*');
+            if (error) throw error;
+            if (!data) return;
+
+            layers.roads_planned.clearLayers();
+            layers.roads_built.clearLayers();
+            layers.bridges_planned.clearLayers();
+            layers.bridges_built.clearLayers();
+
+            data.forEach(r => {
+                if (!Array.isArray(r.path) || r.path.length < 2) return;
+                const latlngs = r.path.map(pt => [mapSize - pt[1], pt[0]]);
+                const isBuilt = r.kind.endsWith('_built');
+                const isBridge = r.kind.startsWith('bridge');
+                const cor = isBuilt ? '#00e676' : (isBridge ? '#38bdf8' : '#f5a623');
+                const targetLayer = isBridge
+                    ? (isBuilt ? layers.bridges_built : layers.bridges_planned)
+                    : (isBuilt ? layers.roads_built : layers.roads_planned);
+
+                const line = L.polyline(latlngs, {
+                    color: cor,
+                    weight: Number(r.width) || 3,
+                    dashArray: isBuilt ? null : '6 4',
+                    opacity: 0.85
+                });
+                line.bindPopup(`<strong>${sanitize(r.name)}</strong><br><span style="font-size:10px; color:#999;">${r.kind}</span>`);
+                line.addTo(targetLayer);
+            });
+        } catch (e) {
+            console.error('Erro ao carregar rotas:', e);
+        }
+    }
+
+    // Inicialização geral de dados
+    async function inicializarDados() {
+        await checarSessao();
+        await carregarPontosDoBanco();
+        await carregarObjetivosDoBanco('all');
+        await carregarEventosDoBanco();
+        await carregarRotasDoBanco();
+
+        // Escuta em tempo real (Realtime WebSocket)
+        if (supabase) {
+            supabase.channel('jackal_live_sync')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'points' }, () => carregarPontosDoBanco())
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'point_events' }, () => { carregarPontosDoBanco(); carregarEventosDoBanco(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco('all'))
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => carregarRotasDoBanco())
+                .subscribe();
+        }
+    }
+
+    inicializarDados();
     </script>
 </body>
 </html>
