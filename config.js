@@ -15,6 +15,7 @@ window.JACKAL_CONFIG = {
 
     // URLs dos tiles locais / offline
     tiles: {
+        custom: 'tiles_custom/{z}/{x}/{y}.png',
         terrain: 'tiles_terrain/{z}/{x}/{y}.png',
         isometric: 'tiles_iso/{z}/{x}/{y}.png',
         topographic: 'tiles_topo/{z}/{x}/{y}.png'

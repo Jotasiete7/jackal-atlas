@@ -924,20 +924,23 @@
     // ==============================================================
     // CONFIGURAÇÕES DO JACKAL ATLAS & SUPABASE
     // ==============================================================
-    const CFG = window.JACKAL_CONFIG || {
+    const defaultTiles = {
+        custom: 'tiles_custom/{z}/{x}/{y}.png',
+        terrain: 'tiles_terrain/{z}/{x}/{y}.png',
+        isometric: 'tiles_iso/{z}/{x}/{y}.png',
+        topographic: 'tiles_topo/{z}/{x}/{y}.png'
+    };
+
+    const CFG = Object.assign({
         supabaseUrl: 'https://grkqxztxxelebdflhnlv.supabase.co',
         supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdya3F4enR4eGVsZWJkZmxobmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjA0NjQsImV4cCI6MjA5NDA5NjQ2NH0.hR_DpTLuZYAlvdIBNfG9yk4wFW6mCwxsU9PvwPta94w',
         mapSize: 4096,
         maxNativeZoom: 4,
         maxZoom: 6,
-        minZoom: 0,
-        tiles: {
-            custom: 'tiles_custom/{z}/{x}/{y}.png',
-            terrain: 'tiles_terrain/{z}/{x}/{y}.png',
-            isometric: 'tiles_iso/{z}/{x}/{y}.png',
-            topographic: 'tiles_topo/{z}/{x}/{y}.png'
-        }
-    };
+        minZoom: 0
+    }, window.JACKAL_CONFIG || {});
+
+    CFG.tiles = Object.assign({}, defaultTiles, (window.JACKAL_CONFIG && window.JACKAL_CONFIG.tiles) || {});
 
     // Inicialização do cliente Supabase
     const supabaseClient = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
@@ -988,7 +991,8 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    const tileLayer = L.tileLayer(CFG.tiles.custom, {
+    const initialTileUrl = (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png';
+    const tileLayer = L.tileLayer(initialTileUrl, {
         minZoom: 0,
         maxZoom: 6,
         maxNativeZoom: 4,
@@ -2284,10 +2288,10 @@
 
     function trocarBase(tipo, btn) {
         const urls = {
-            custom:  'tiles_custom/{z}/{x}/{y}.png',
-            terrain: 'tiles_terrain/{z}/{x}/{y}.png',
-            iso:     'tiles_iso/{z}/{x}/{y}.png',
-            topo:    'tiles_topo/{z}/{x}/{y}.png'
+            custom:  (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png',
+            terrain: (CFG.tiles && CFG.tiles.terrain) || 'tiles_terrain/{z}/{x}/{y}.png',
+            iso:     (CFG.tiles && (CFG.tiles.isometric || CFG.tiles.iso)) || 'tiles_iso/{z}/{x}/{y}.png',
+            topo:    (CFG.tiles && (CFG.tiles.topographic || CFG.tiles.topo)) || 'tiles_topo/{z}/{x}/{y}.png'
         };
         tileLayer.setUrl(urls[tipo] || urls.custom);
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
