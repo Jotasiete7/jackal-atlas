@@ -322,6 +322,27 @@ body {
     display: block;
 }
 
+/* LINK DE APOIO KO-FI (DISCRETO / ELEGANTE NO RODAPÉ DA SIDEBAR) */
+.sw-kofi-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    background: var(--sw-bg-subtle);
+    color: var(--sw-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    border-top: 1px solid var(--sw-border-subtle);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.sw-kofi-link:hover {
+    color: #ff5f5f;
+    background: rgba(255, 95, 95, 0.08);
+}
+
 /* BOTÃO DE FECHAR MENU ESTILO ADMIN.CH (▲ CLOSE MENU) */
 .sw-btn-close-menu {
     background: #202428;
