@@ -1045,15 +1045,18 @@ body.swiss-theme-dark .yaga-grid-label {
     top: 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     background: rgba(22, 26, 34, 0.98);
     border: 1px solid var(--sw-border-strong);
-    padding: 7px 16px;
+    padding: 6px 14px;
     border-radius: 8px;
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.85);
     z-index: 100001;
     font-family: 'Inter', -apple-system, sans-serif;
     user-select: none;
+    max-width: 98vw;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .tactical-tool-group {

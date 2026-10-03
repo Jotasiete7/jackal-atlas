@@ -930,34 +930,47 @@
     <div id="tacticalPrintOverlay" class="tactical-print-overlay">
         <!-- HUD DE FERRAMENTAS -->
         <div class="tactical-print-toolbar">
+            <!-- FERRAMENTAS TÁTICAS BÁSICAS -->
             <div class="tactical-tool-group">
-                <button id="toolPencil" class="tactical-tool-btn active" onclick="definirFerramentaPrint('pencil')">✏️ Caneta</button>
-                <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')">➡️ Seta</button>
-                <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')">⭕ Alvo</button>
-                <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')">🔤 Texto</button>
+                <button id="toolPencil" class="tactical-tool-btn active" onclick="definirFerramentaPrint('pencil')" data-i18n="toolPencil" title="Caneta Livre">✏️ Caneta</button>
+                <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')" data-i18n="toolArrow" title="Seta Tática">➡️ Seta</button>
+                <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')" data-i18n="toolCircle" title="Círculo de Alvo / Perímetro">⭕ Alvo</button>
+                <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')" data-i18n="toolText" title="Texto">🔤 Texto</button>
+            </div>
 
-                <!-- MENU DROPDOWN DE ÍCONES TÁTICOS -->
-                <div class="tactical-stamp-container" style="position:relative; display:inline-block;">
-                    <button id="toolStamp" class="tactical-tool-btn" onclick="toggleMenuCarimbos(event)" title="Carimbar Ícones Táticos (Deed, Pontes, Projetos)">
-                        <span id="stampCurrentIcon">🏰</span> Ícones ▼
-                    </button>
-                    <div id="tacticalStampMenu" class="tactical-stamp-menu" style="display:none;">
-                        <div class="stamp-item" onclick="selecionarCarimbo('🏰', 'Deed')">🏰 Deed / Vila</div>
-                        <div class="stamp-item" onclick="selecionarCarimbo('🌉', 'Ponte Pronta')">🌉 Ponte Pronta</div>
-                        <div class="stamp-item" onclick="selecionarCarimbo('🏗️', 'Ponte Projeto')">🏗️ Ponte Projeto / Obra</div>
-                        <div class="stamp-item" onclick="selecionarCarimbo('🚩', 'Ponto Reunião')">🚩 Ponto de Reunião</div>
-                        <div class="stamp-item" onclick="selecionarCarimbo('⚔️', 'Alvo / Combate')">⚔️ Alvo de Ataque</div>
-                        <div class="stamp-item" onclick="selecionarCarimbo('⛏️', 'Mina / Túnel')">⛏️ Mina / Prospecção</div>
-                    </div>
+            <div class="tactical-separator"></div>
+
+            <!-- ENGENHARIA DE VIAS (TRAÇADOS CARTOGRÁFICOS) -->
+            <div class="tactical-tool-group">
+                <button id="toolRoad" class="tactical-tool-btn" onclick="definirFerramentaPrint('road')" data-i18n="toolRoad" title="Estrada Feita (Contínua)">🛣️ Estrada</button>
+                <button id="toolRoadPlan" class="tactical-tool-btn" onclick="definirFerramentaPrint('road_plan')" data-i18n="toolRoadPlan" title="Estrada Projeto (Tracejada)">🚧 Projeto</button>
+                <button id="toolBridge" class="tactical-tool-btn" onclick="definirFerramentaPrint('bridge')" data-i18n="toolBridge" title="Ponte (Madeira / Estrutura)">🌉 Ponte</button>
+                <button id="toolTunnel" class="tactical-tool-btn" onclick="definirFerramentaPrint('tunnel')" data-i18n="toolTunnel" title="Túnel Subterrâneo">🚇 Túnel</button>
+            </div>
+
+            <div class="tactical-separator"></div>
+
+            <!-- MARCADORES CLEAN (SEM TEXTO) -->
+            <div class="tactical-stamp-container" style="position:relative; display:inline-block;">
+                <button id="toolStamp" class="tactical-tool-btn" onclick="toggleMenuCarimbos(event)" title="Carimbos Táticos Clean">
+                    <span id="stampCurrentIcon">🏰</span> <span data-i18n="toolStamp">Ícones</span> ▼
+                </button>
+                <div id="tacticalStampMenu" class="tactical-stamp-menu" style="display:none;">
+                    <div class="stamp-item" onclick="selecionarCarimbo('🏰', 'Deed')">🏰 <span data-i18n="stampDeed">Deed / Assentamento</span></div>
+                    <div class="stamp-item" onclick="selecionarCarimbo('⛏️', 'Mina')">⛏️ <span data-i18n="stampMine">Entrada de Mina</span></div>
+                    <div class="stamp-item" onclick="selecionarCarimbo('🚩', 'Rally')">🚩 <span data-i18n="stampRally">Ponto de Reunião</span></div>
+                    <div class="stamp-item" onclick="selecionarCarimbo('⚔️', 'Alvo')">⚔️ <span data-i18n="stampAttack">Objetivo de Ataque</span></div>
+                    <div class="stamp-item" onclick="selecionarCarimbo('⚓', 'Porto')">⚓ <span data-i18n="stampPort">Porto / Saída Naval</span></div>
                 </div>
             </div>
 
             <div class="tactical-separator"></div>
 
+            <!-- PALETA DE ALTO CONTRASTE -->
             <div class="tactical-color-picker">
                 <div class="tactical-color-dot" style="background:#000000; border:1px solid #777;" onclick="definirCorPrint('#000000', this)" title="Preto Tático"></div>
                 <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco Puro"></div>
-                <div class="tactical-color-dot" style="background:#ffee00;" onclick="definirCorPrint('#ffee00', this)" title="Amarelo Neon (Super Contraste)"></div>
+                <div class="tactical-color-dot" style="background:#ffee00;" onclick="definirCorPrint('#ffee00', this)" title="Amarelo Neon"></div>
                 <div class="tactical-color-dot" style="background:#ff007f;" onclick="definirCorPrint('#ff007f', this)" title="Rosa / Magenta Neon"></div>
                 <div class="tactical-color-dot" style="background:#00ff66;" onclick="definirCorPrint('#00ff66', this)" title="Verde Neon"></div>
                 <div class="tactical-color-dot" style="background:#00f0ff;" onclick="definirCorPrint('#00f0ff', this)" title="Ciano Elétrico"></div>
@@ -966,17 +979,17 @@
             </div>
 
             <div class="tactical-tool-group">
-                <button class="tactical-tool-btn" onclick="desfazerPrint()" title="Desfazer último traço">↩️</button>
-                <button class="tactical-tool-btn" onclick="limparAnotacoesPrint()" title="Limpar todos os rabiscos">🗑️</button>
+                <button class="tactical-tool-btn" onclick="desfazerPrint()" title="Desfazer">↩️</button>
+                <button class="tactical-tool-btn" onclick="limparAnotacoesPrint()" title="Limpar">🗑️</button>
             </div>
 
             <div class="tactical-separator"></div>
 
             <div class="tactical-tool-group">
-                <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" title="Upload instantâneo para link direto de imagem">🔗 Gerar Link</button>
-                <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" title="Copiar para colar no Discord com Ctrl+V">📋 Copiar Imagem</button>
-                <button class="tactical-btn-action" onclick="baixarPrintPNG()" title="Baixar arquivo PNG">💾 Salvar</button>
-                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" title="Fechar Modo Print (ou pressione ESC)">✕ (Esc)</button>
+                <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" data-i18n="btnUploadLink" title="Upload instantâneo para link direto de imagem">🔗 Gerar Link</button>
+                <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" data-i18n="btnCopyImg" title="Copiar para colar no Discord com Ctrl+V">📋 Copiar Imagem</button>
+                <button class="tactical-btn-action" onclick="baixarPrintPNG()" data-i18n="btnSavePng" title="Baixar arquivo PNG">💾 Salvar</button>
+                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" data-i18n="btnClosePrint" title="Fechar Modo Print (ou pressione ESC)">✕ (Esc)</button>
             </div>
         </div>
 
@@ -2360,11 +2373,21 @@
         content.classList.toggle('open', !isOpen);
     }
 
-    function toggleSidebarEsquerda() {
+    function toggleSidebarEsquerda(forcarAberto = null) {
         const sb = document.getElementById('sidebarLeft');
         const tab = document.getElementById('tabAbrirEsquerda');
-        sb.classList.toggle('recolhida');
-        tab.style.display = sb.classList.contains('recolhida') ? 'block' : 'none';
+        if (!sb) return;
+        const estaAberto = !sb.classList.contains('recolhida');
+        const novoEstadoAberto = (forcarAberto !== null) ? forcarAberto : !estaAberto;
+
+        if (novoEstadoAberto) {
+            sb.classList.remove('recolhida');
+            if (tab) tab.style.display = 'none';
+        } else {
+            sb.classList.add('recolhida');
+            if (tab) tab.style.display = 'block';
+        }
+        localStorage.setItem('jackal_sidebar_left_open', novoEstadoAberto ? 'true' : 'false');
     }
 
     function toggleSidebarDireita(forcarAberto = null) {
@@ -2384,7 +2407,7 @@
         localStorage.setItem('jackal_sidebar_right_open', novoEstadoAberto ? 'true' : 'false');
     }
 
-    function trocarBase(tipo, btn) {
+    function trocarBase(tipo, btn = null) {
         const urls = {
             custom:  (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png',
             terrain: (CFG.tiles && CFG.tiles.terrain) || 'tiles_terrain/{z}/{x}/{y}.png',
@@ -2393,7 +2416,18 @@
         };
         tileLayer.setUrl(urls[tipo] || urls.custom);
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if (btn) {
+            btn.classList.add('active');
+        } else {
+            const bMap = {
+                custom: document.getElementById('btnCustom'),
+                terrain: document.getElementById('btnTerrain'),
+                iso: document.getElementById('btnIso'),
+                topo: document.getElementById('btnTopo')
+            };
+            if (bMap[tipo]) bMap[tipo].classList.add('active');
+        }
+        localStorage.setItem('jackal_base_map', tipo);
     }
 
     // ==============================================================
@@ -2562,6 +2596,8 @@
         }
     });
 
+    let printCurrentPath = [];
+
     function definirFerramentaPrint(ferramenta) {
         printFerramentaAtual = ferramenta;
         document.querySelectorAll('.tactical-print-toolbar .tactical-tool-btn').forEach(b => {
@@ -2572,6 +2608,10 @@
             arrow: 'toolArrow',
             circle: 'toolCircle',
             text: 'toolText',
+            road: 'toolRoad',
+            road_plan: 'toolRoadPlan',
+            bridge: 'toolBridge',
+            tunnel: 'toolTunnel',
             stamp: 'toolStamp'
         }[ferramenta];
         if (idBtn && document.getElementById(idBtn)) {
@@ -2621,6 +2661,7 @@
             startPrintX = p.x;
             startPrintY = p.y;
             isDrawingPrint = true;
+            printCurrentPath = [p];
 
             snapshotImageData = printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height);
 
@@ -2631,7 +2672,6 @@
                 printCtx.lineWidth = 5;
                 printCtx.lineCap = 'round';
                 printCtx.lineJoin = 'round';
-                // Halo de alto contraste (sombra branca para traços pretos, sombra preta para traços coloridos/claros)
                 printCtx.shadowColor = (printCorAtual === '#000000') ? 'rgba(255, 255, 255, 0.95)' : '#000000';
                 printCtx.shadowBlur = 5;
             } else if (printFerramentaAtual === 'stamp') {
@@ -2660,6 +2700,20 @@
             if (printFerramentaAtual === 'pencil') {
                 printCtx.lineTo(p.x, p.y);
                 printCtx.stroke();
+            } else if (printFerramentaAtual === 'road') {
+                printCurrentPath.push(p);
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharEstradaContinua(printCtx, printCurrentPath, printCorAtual);
+            } else if (printFerramentaAtual === 'road_plan') {
+                printCurrentPath.push(p);
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharEstradaProjeto(printCtx, printCurrentPath, printCorAtual);
+            } else if (printFerramentaAtual === 'bridge') {
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharPonteTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual);
+            } else if (printFerramentaAtual === 'tunnel') {
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharTunelTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual);
             } else if (printFerramentaAtual === 'arrow') {
                 printCtx.putImageData(snapshotImageData, 0, 0);
                 desenharSetaTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, 4);
@@ -2674,41 +2728,185 @@
             isDrawingPrint = false;
             if (printCtx) printCtx.shadowBlur = 0;
             printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+            printCurrentPath = [];
         });
     }
 
+    // Carimbo Tático Clean (Sem texto para não poluir o mapa)
     function desenharCarimboTatico(ctx, x, y, carimbo, cor) {
         ctx.save();
         // Badge circular tático escuro
         ctx.beginPath();
-        ctx.arc(x, y, 22, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(13, 17, 23, 0.92)';
+        ctx.arc(x, y, 19, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
         ctx.fill();
 
         // Borda viva na cor selecionada com halo de contraste
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.strokeStyle = cor || '#ffee00';
         ctx.shadowColor = (cor === '#000000') ? '#ffffff' : '#000000';
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur = 5;
         ctx.stroke();
 
-        // Emoji nítido centralizado
+        // Emoji nítido centralizado SEM texto embaixo para máxima clareza
         ctx.shadowBlur = 0;
-        ctx.font = '22px sans-serif';
+        ctx.font = '20px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(carimbo.emoji, x, y + 1);
+        ctx.restore();
+    }
 
-        // Legenda / Rótulo abaixo do ícone com borda preta
-        if (carimbo.label) {
-            ctx.font = 'bold 12px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = '#000000';
-            ctx.strokeText(carimbo.label, x, y + 36);
-            ctx.fillStyle = (cor === '#000000') ? '#ffffff' : (cor || '#ffffff');
-            ctx.fillText(carimbo.label, x, y + 36);
+    // Traçado de Estrada Feita / Pavimentada (Estilo Mapa Wurm)
+    function desenharEstradaContinua(ctx, path, color) {
+        if (!path || path.length < 2) return;
+        ctx.save();
+        // 1. Contorno externo escuro
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // 2. Miolo pavimentado da estrada
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // Traçado de Estrada Projeto / Obra (Tracejado)
+    function desenharEstradaProjeto(ctx, path, color) {
+        if (!path || path.length < 2) return;
+        ctx.save();
+        // 1. Contorno tracejado escuro
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+        ctx.setLineDash([12, 7]);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'butt';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // 2. Miolo tracejado na cor escolhida
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
+    // Traçado de Ponte Tática (Com tabuleiro e vigas)
+    function desenharPonteTatica(ctx, fromX, fromY, toX, toY, color) {
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const len = Math.hypot(dx, dy);
+        if (len < 5) return;
+        const angle = Math.atan2(dy, dx);
+        const normalX = -Math.sin(angle);
+        const normalY = Math.cos(angle);
+        const halfWidth = 7;
+
+        ctx.save();
+        // Assoalho / Tabuleiro da ponte
+        ctx.beginPath();
+        ctx.moveTo(fromX + normalX * halfWidth, fromY + normalY * halfWidth);
+        ctx.lineTo(toX + normalX * halfWidth, toY + normalY * halfWidth);
+        ctx.lineTo(toX - normalX * halfWidth, toY - normalY * halfWidth);
+        ctx.lineTo(fromX - normalX * halfWidth, fromY - normalY * halfWidth);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fill();
+
+        // Travessas transversais (pranchas de madeira / ferro)
+        const step = 14;
+        const count = Math.floor(len / step);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 2;
+        for (let i = 1; i <= count; i++) {
+            const t = (i * step) / len;
+            const px = fromX + dx * t;
+            const py = fromY + dy * t;
+            ctx.beginPath();
+            ctx.moveTo(px + normalX * halfWidth, py + normalY * halfWidth);
+            ctx.lineTo(px - normalX * halfWidth, py - normalY * halfWidth);
+            ctx.stroke();
         }
+
+        // Vigas / Guarda-corpos laterais
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(fromX + normalX * halfWidth, fromY + normalY * halfWidth);
+        ctx.lineTo(toX + normalX * halfWidth, toY + normalY * halfWidth);
+        ctx.moveTo(fromX - normalX * halfWidth, fromY - normalY * halfWidth);
+        ctx.lineTo(toX - normalX * halfWidth, toY - normalY * halfWidth);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fromX + normalX * halfWidth, fromY + normalY * halfWidth);
+        ctx.lineTo(toX + normalX * halfWidth, toY + normalY * halfWidth);
+        ctx.moveTo(fromX - normalX * halfWidth, fromY - normalY * halfWidth);
+        ctx.lineTo(toX - normalX * halfWidth, toY - normalY * halfWidth);
+        ctx.stroke();
+
+        // Apoios de cabeceira de ponte
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        [ {x: fromX, y: fromY}, {x: toX, y: toY} ].forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+        ctx.restore();
+    }
+
+    // Traçado de Túnel Tático (Galeria subterrânea)
+    function desenharTunelTatico(ctx, fromX, fromY, toX, toY, color) {
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const len = Math.hypot(dx, dy);
+        if (len < 5) return;
+
+        ctx.save();
+        // Linha pontilhada subterrânea
+        ctx.setLineDash([5, 6]);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Portais de entrada e saída
+        [ {x: fromX, y: fromY}, {x: toX, y: toY} ].forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        });
         ctx.restore();
     }
 
@@ -2900,13 +3098,15 @@
     }
 
 
-    function alternarTemaVisual() {
-        document.body.classList.toggle('swiss-theme-light');
-        document.body.classList.toggle('swiss-theme-dark');
+    function alternarTemaVisual(tema = null) {
+        const isDark = (tema !== null) ? (tema === 'dark') : !document.body.classList.contains('swiss-theme-dark');
+        document.body.classList.toggle('swiss-theme-dark', isDark);
+        document.body.classList.toggle('swiss-theme-light', !isDark);
         const btn = document.querySelector('.sw-theme-toggle');
         if (btn) {
-            btn.textContent = document.body.classList.contains('swiss-theme-dark') ? '🌙 Dark' : '☀️ Light';
+            btn.textContent = isDark ? '🌙 Dark' : '☀️ Light';
         }
+        localStorage.setItem('jackal_theme', isDark ? 'dark' : 'light');
     }
 
     let tempClickMarker = null;
@@ -3382,7 +3582,25 @@
             feedGuerra: '📡 Feed de Eventos',
             recolherAtlas: '▲ Recolher Atlas',
             recolherHud: 'Recolher ▶',
-            discordBtn: 'Entrar com Discord'
+            discordBtn: 'Entrar com Discord',
+            toolPencil: '✏️ Caneta',
+            toolArrow: '➡️ Seta',
+            toolCircle: '⭕ Alvo',
+            toolText: '🔤 Texto',
+            toolRoad: '🛣️ Estrada',
+            toolRoadPlan: '🚧 Projeto',
+            toolBridge: '🌉 Ponte',
+            toolTunnel: '🚇 Túnel',
+            toolStamp: 'Ícones',
+            stampDeed: 'Deed / Assentamento',
+            stampMine: 'Entrada de Mina',
+            stampRally: 'Ponto de Reunião',
+            stampAttack: 'Objetivo de Ataque',
+            stampPort: 'Porto / Saída Naval',
+            btnUploadLink: '🔗 Gerar Link',
+            btnCopyImg: '📋 Copiar Imagem',
+            btnSavePng: '💾 Salvar',
+            btnClosePrint: '✕ (Esc)'
         },
         en: {
             subTitle: 'Community Tactical Map • Wurm Online',
@@ -3447,7 +3665,25 @@
             feedGuerra: '📡 Activity Feed',
             recolherAtlas: '▲ Collapse Atlas',
             recolherHud: 'Collapse ▶',
-            discordBtn: 'Sign In with Discord'
+            discordBtn: 'Sign In with Discord',
+            toolPencil: '✏️ Pen',
+            toolArrow: '➡️ Arrow',
+            toolCircle: '⭕ Target',
+            toolText: '🔤 Text',
+            toolRoad: '🛣️ Road',
+            toolRoadPlan: '🚧 Planned Road',
+            toolBridge: '🌉 Bridge',
+            toolTunnel: '🚇 Tunnel',
+            toolStamp: 'Icons',
+            stampDeed: 'Deed / Settlement',
+            stampMine: 'Mine Entrance',
+            stampRally: 'Rally Point',
+            stampAttack: 'Attack Target',
+            stampPort: 'Harbor / Naval Port',
+            btnUploadLink: '🔗 Generate Link',
+            btnCopyImg: '📋 Copy Image',
+            btnSavePng: '💾 Save',
+            btnClosePrint: '✕ (Esc)'
         }
     };
 
@@ -3750,12 +3986,33 @@
         }
     }
 
-    // Inicialização geral de dados
+    // Inicialização geral de dados e preferências persistentes do usuário
     async function inicializarDados() {
+        // 1. Restaurar Estado da Barra Lateral Esquerda
+        const sidebarLeftSalva = localStorage.getItem('jackal_sidebar_left_open');
+        if (sidebarLeftSalva !== null) {
+            toggleSidebarEsquerda(sidebarLeftSalva === 'true');
+        }
+
+        // 2. Restaurar Estado da Barra Lateral Direita
         const sidebarRightSalva = localStorage.getItem('jackal_sidebar_right_open');
         toggleSidebarDireita(sidebarRightSalva === 'true');
 
+        // 3. Restaurar Base do Mapa (Goldfish, Terrain, Iso, Topo)
+        const baseSalva = localStorage.getItem('jackal_base_map');
+        if (baseSalva) {
+            trocarBase(baseSalva);
+        }
+
+        // 4. Restaurar Tema Visual (Dark / Light)
+        const temaSalvo = localStorage.getItem('jackal_theme');
+        if (temaSalvo) {
+            alternarTemaVisual(temaSalvo);
+        }
+
+        // 5. Restaurar Camadas do Mapa e Grade Yaga
         restaurarEstadoCamadas();
+
         await checarSessao();
         await carregarPontosDoBanco();
         await carregarObjetivosDoBanco('all');
