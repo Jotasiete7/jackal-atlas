@@ -355,17 +355,17 @@
 
     <!-- BARRA FLUTUANTE DE MODOS / MULTITAREFAS -->
     <div id="floatingModesBar" class="sw-floating-modes-bar">
-        <button id="btnModoNavegar" class="sw-mode-btn active" onclick="definirModoInteracao('navegar')">
-            <span>👁️</span> <span>Navegar</span>
+        <button id="modeBtnNavegar" class="sw-mode-btn active" onclick="definirModoInteracao('navegar')">
+            <span>👁️</span> <span data-i18n="modoNavegar">Navegar</span>
         </button>
-        <button id="btnModoMarcar" class="sw-mode-btn" onclick="definirModoInteracao('marcar')">
-            <span>📍</span> <span>Anotar Ponto</span>
+        <button id="modeBtnPonto" class="sw-mode-btn" onclick="definirModoInteracao('ponto')">
+            <span>📍</span> <span data-i18n="modoPonto">Anotar Ponto</span>
         </button>
-        <button id="btnModoEstrada" class="sw-mode-btn" onclick="definirModoInteracao('estrada')">
-            <span>🛣️</span> <span>Traçar Estrada</span>
+        <button id="modeBtnEstrada" class="sw-mode-btn" onclick="definirModoInteracao('estrada')">
+            <span>🛣️</span> <span data-i18n="modoEstrada">Traçar Estrada</span>
         </button>
-        <button id="btnModoPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
-            <span>🌉</span> <span>Traçar Ponte</span>
+        <button id="modeBtnPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
+            <span>🌉</span> <span data-i18n="modoPonte">Traçar Ponte</span>
         </button>
     </div>
 
@@ -470,12 +470,26 @@
                 <div class="sw-acc-content open">
                     <label class="sw-filter-row" style="color:#fbbf24;">
                         <input type="checkbox" data-layer="villages" checked onchange="toggleCamada('villages', this.checked)">
-                        <span data-i18n="vilas">🏘️ Deeds & Vilas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
+                        <span data-i18n="vilas">🏘️ Deeds</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#38bdf8;">
-                        <input type="checkbox" data-layer="towers" checked onchange="toggleCamada('towers', this.checked)">
-                        <span>🏰 Torres de Guarda (Raio 50t)</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntTowers">(0)</span>
+                        <input type="checkbox" id="chkFilterTorres" data-layer="towers" checked onchange="toggleCamada('towers', this.checked); renderizarCoberturaTorres();">
+                        <span data-i18n="torres">🏰 Torres de Guarda</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntTowers">(0)</span>
                     </label>
+                    <div id="subOpcoesTorresContainer" style="margin-left:20px; margin-top:-3px; margin-bottom:5px; display:flex; flex-direction:column; gap:3px;">
+                        <label class="sw-filter-row" style="font-size:10px; color:#38bdf8; cursor:pointer;" title="Atalho: tecla [Y]">
+                            <input type="checkbox" id="chkFilterCoberturaTorres" onchange="toggleCoberturaTorres(this.checked)">
+                            <span data-i18n="coberturaTorres">📐 Cobertura (100x100 tiles)</span>
+                            <span style="font-size:8.5px; font-family:'JetBrains Mono'; margin-left:auto; border:1px solid rgba(56,189,248,0.4); padding:0 4px; border-radius:3px; color:#38bdf8; background:rgba(56,189,248,0.1);">Y</span>
+                        </label>
+                        <div id="containerSliderCoberturaTorres" style="display:none; align-items:center; justify-content:space-between; margin-top:2px; padding:2px 2px 4px 6px; font-size:9.5px; color:var(--sw-text-muted); background:rgba(255,255,255,0.03); border-radius:4px; border:1px solid var(--sw-border-subtle);">
+                            <span data-i18n="opacidade">Opacidade:</span>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <input type="range" id="sliderCoberturaTorres" min="10" max="65" value="22" step="2" oninput="ajustarOpacidadeCoberturaTorres(this.value)" style="width:70px; height:4px; accent-color:#2563eb; cursor:pointer;">
+                                <span id="labelCoberturaTorresOpacity" style="font-family:'JetBrains Mono'; font-size:9px; color:#38bdf8; font-weight:700; min-width:24px; text-align:right;">22%</span>
+                            </div>
+                        </div>
+                    </div>
                     <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:var(--jk-jackal);">
                         <input type="checkbox" data-layer="beacons_jackal" checked onchange="toggleCamada('beacons_jackal', this.checked)">
@@ -484,10 +498,6 @@
                     <label class="sw-filter-row" style="color:var(--jk-freedom);">
                         <input type="checkbox" data-layer="beacons_freedom" checked onchange="toggleCamada('beacons_freedom', this.checked)">
                         <span data-i18n="beaconsFreedom">🟢 Beacons Freedom</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
-                    </label>
-                    <label class="sw-filter-row" style="color:var(--jk-neutral);">
-                        <input type="checkbox" data-layer="beacons_neutral" checked onchange="toggleCamada('beacons_neutral', this.checked)">
-                        <span data-i18n="beaconsNeutral">⚪ Beacons Neutros</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsNeutral">(0)</span>
                     </label>
                     <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:#a78bfa;">
@@ -603,19 +613,22 @@
                     Selecione um ponto no mapa para visualizar ações e detalhes.
                 </div>
                 <div class="jk-quick-grid" id="boxQuickActionsBeacon" style="display:none;">
-                    <button class="jk-quick-btn freedom" onclick="reportarEvento('cleared')">
-                        <span class="qb-icon">💥</span><span>Limpei!</span>
-                    </button>
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('converted_freedom')">
-                        <span class="qb-icon">🏳️</span><span>Converti</span>
+                        <span class="qb-icon">🏳️</span><span data-i18n="btnConverti">Converti</span>
                     </button>
                     <button class="jk-quick-btn reinforce" onclick="reportarEvento('reinforced')">
-                        <span class="qb-icon">⬆️</span><span>Reforcei (+1)</span>
+                        <span class="qb-icon">⬆️</span><span data-i18n="btnReforcei">Reforcei (+1)</span>
                     </button>
                     <button class="jk-quick-btn jackal" onclick="reportarEvento('attacked')">
-                        <span class="qb-icon">🚨</span><span>Sob Ataque!</span>
+                        <span class="qb-icon">🚨</span><span data-i18n="btnAtaque">Sob Ataque!</span>
+                    </button>
+                    <button class="jk-quick-btn jackal" onclick="reportarEvento('lost')">
+                        <span class="qb-icon">🔻</span><span data-i18n="btnPerdido">Perdido p/ Jackal</span>
                     </button>
                 </div>
+                <button id="btnTornarMetaPonto" class="sw-btn-action jk-accent-btn" style="display:none; margin-top:8px;" onclick="abrirModalObjetivoVinculado('point')">
+                    🎯 <span data-i18n="tornarMeta">Tornar Meta da Guilda</span>
+                </button>
             </div>
 
             <!-- FEED DE ATIVIDADES RECENTES -->
@@ -650,6 +663,7 @@
         <div id="hudBottomFoco" class="sw-focus-bar" style="display:none; align-items:center; gap:10px;">
             <span id="hudFocoTitulo" style="color:var(--jk-accent); font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;">🛣️ Traçar Obra:</span>
             <span id="hudLiveDistancia" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;">0 tiles (0 pts)</span>
+            <span style="font-size:9.5px; font-weight:800; color:#38bdf8; border:1px solid rgba(56,189,248,0.4); background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:3px; font-family:'JetBrains Mono';" title="Somente 0°/45°/90°. Botão direito ou Espaço + arrastar = mover o mapa">⊞ Snap 45°</span>
             <button onclick="desfazerUltimoPontoTracado()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Desfazer último nó">↩ Desfazer</button>
             <button onclick="abrirModalSalvarRota()" style="background:var(--jk-accent); color:#000; border:none; padding:6px 14px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">✓ Salvar Obra</button>
             <button onclick="cancelarTracado()" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Cancelar</button>
@@ -676,8 +690,8 @@
             <div class="sw-form-group">
                 <label class="sw-form-label">Tipo de Ponto / Anotação</label>
                 <div class="jk-kind-chips" id="kindChipsContainer">
-                    <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed / Vila</span>
-                    <span class="jk-kind-chip" data-kind="tower">🏰 Torre (Raio 50t)</span>
+                    <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed</span>
+                    <span class="jk-kind-chip" data-kind="tower">🏰 Torre de Guarda</span>
                     <span class="jk-kind-chip" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
                     <span class="jk-kind-chip" data-kind="cave">🕳️ Caverna</span>
@@ -694,7 +708,6 @@
                 <div class="jk-faction-row">
                     <button class="jk-faction-btn jackal" onclick="selecionarFaccao('jackal', this)">🔴 Jackal</button>
                     <button class="jk-faction-btn freedom selected" onclick="selecionarFaccao('freedom', this)">🟢 Freedom</button>
-                    <button class="jk-faction-btn neutral" onclick="selecionarFaccao('neutral', this)">⚪ Neutro</button>
                     <button class="jk-faction-btn unknown" onclick="selecionarFaccao('unknown', this)">❓ Desc.</button>
                 </div>
             </div>
@@ -737,32 +750,41 @@
     <div id="modalNovoObjetivo" class="jk-modal-overlay">
         <div class="sw-modal-window" style="width:400px; max-width:92vw;">
             <div class="sw-modal-header">
-                <div class="sw-modal-title">🎯 Criar Objetivo da Guilda</div>
+                <div class="sw-modal-title">🎯 <span data-i18n="criarMeta">Criar Meta da Guilda</span></div>
                 <button class="sw-modal-close" onclick="fecharModal('modalNovoObjetivo')">✕</button>
             </div>
 
+            <div id="boxObjVinculo" style="display:none; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.35); border-radius:6px; padding:8px 10px; margin-bottom:12px; font-size:11px; color:#cbd5e1;">
+                🔗 <span data-i18n="vinculadoA">Vinculado a</span>: <strong id="txtObjVinculo" style="color:#38bdf8;">—</strong>
+            </div>
+
             <div class="sw-form-group">
-                <label class="sw-form-label">Título da Missão / Obra</label>
+                <label class="sw-form-label">Título 🇧🇷 (PT)</label>
                 <input type="text" class="sw-form-input" id="inputObjTitulo" placeholder="Ex: Pavimentar Estrada do Vale Norte...">
+            </div>
+            <div class="sw-form-group">
+                <label class="sw-form-label">Title 🇺🇸 (EN) — opcional</label>
+                <input type="text" class="sw-form-input" id="inputObjTituloEn" placeholder="Ex: Pave the North Valley Road...">
             </div>
 
             <div class="sw-form-group">
                 <label class="sw-form-label">Nível de Prioridade</label>
                 <div class="jk-faction-row">
-                    <button class="jk-faction-btn jackal selected" id="btnP1" onclick="selecionarPrioridadeModal('p1', this)">🔴 P1 Crítico</button>
-                    <button class="jk-faction-btn neutral" id="btnP2" onclick="selecionarPrioridadeModal('p2', this)">🟡 P2 Alta</button>
-                    <button class="jk-faction-btn freedom" id="btnP3" onclick="selecionarPrioridadeModal('p3', this)">🟢 P3 Normal</button>
+                    <button class="jk-faction-btn jackal selected" id="btnP1" onclick="selecionarPrioridadeModal('p1', this)">🔴 P1</button>
+                    <button class="jk-faction-btn neutral" id="btnP2" onclick="selecionarPrioridadeModal('p2', this)">🟡 P2</button>
+                    <button class="jk-faction-btn freedom" id="btnP3" onclick="selecionarPrioridadeModal('p3', this)">🟢 P3</button>
                 </div>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Categoria de Operação</label>
+                <label class="sw-form-label">Categoria</label>
                 <select class="sw-form-select" id="selectObjTipo">
-                    <option value="beacon_clear">💥 Limpeza de Beacon Hostil</option>
-                    <option value="road">🛣️ Construção de Estrada</option>
-                    <option value="bridge">🌉 Engenharia de Ponte</option>
-                    <option value="explore">🕳️ Exploração de Caverna</option>
-                    <option value="supply">📦 Linha de Suprimento</option>
+                    <option value="beacon_hold">🔴 Beacon</option>
+                    <option value="road">🛣️ Estrada / Road</option>
+                    <option value="bridge">🌉 Ponte / Bridge</option>
+                    <option value="explore">🕳️ Exploração / Explore</option>
+                    <option value="supply">📦 Suprimento / Supply</option>
+                    <option value="custom">🎯 Outro / Other</option>
                 </select>
             </div>
 
@@ -815,8 +837,8 @@
             <div class="sw-form-group">
                 <label class="sw-form-label">Tipo de Ponto</label>
                 <select class="sw-form-select" id="selectEditKind" onchange="alternarCamposEdicao(this.value)">
-                    <option value="village">🏘️ Deed / Vila</option>
-                    <option value="tower">🏰 Torre de Guarda (Raio 50t)</option>
+                    <option value="village">🏘️ Deed</option>
+                    <option value="tower">🏰 Torre de Guarda</option>
                     <option value="beacon">🔴 Beacon</option>
                     <option value="lodestone">🪨 Lodestone</option>
                     <option value="cave">🕳️ Caverna</option>
@@ -833,7 +855,6 @@
                 <select class="sw-form-select" id="selectEditFaccao">
                     <option value="jackal">🔴 Jackal</option>
                     <option value="freedom">🟢 Freedom</option>
-                    <option value="neutral">⚪ Neutro</option>
                     <option value="unknown">❓ Desconhecido</option>
                 </select>
             </div>
@@ -1182,9 +1203,9 @@
     const layers = {
         villages:         L.layerGroup().addTo(map),
         towers:           L.layerGroup().addTo(map),
+        towers_coverage:  L.layerGroup().addTo(map),
         beacons_jackal:   L.layerGroup().addTo(map),
         beacons_freedom:  L.layerGroup().addTo(map),
-        beacons_neutral:  L.layerGroup().addTo(map),
         lodestones:       L.layerGroup().addTo(map),
         caves:            L.layerGroup().addTo(map),
         resource_nodes:   L.layerGroup().addTo(map),
@@ -1286,27 +1307,23 @@
     function renderizarTodosBeacons() {
         layers.beacons_jackal.clearLayers();
         layers.beacons_freedom.clearLayers();
-        layers.beacons_neutral.clearLayers();
         layers.influencia.clearLayers();
 
-        let countJackal = 0, countFreedom = 0, countNeutral = 0;
+        let countJackal = 0, countFreedom = 0;
 
         beaconsData.forEach(b => {
             const m = criarPinBeacon(b);
             if (b.faccao === 'jackal') {
                 m.addTo(layers.beacons_jackal);
                 countJackal++;
-            } else if (b.faccao === 'freedom') {
+            } else {
                 m.addTo(layers.beacons_freedom);
                 countFreedom++;
-            } else {
-                m.addTo(layers.beacons_neutral);
-                countNeutral++;
             }
 
             // Círculo de influência
             const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 160 : 100);
-            const cor = b.faccao === 'freedom' ? '#00e676' : (b.faccao === 'jackal' ? '#ff4444' : '#607d8b');
+            const cor = b.faccao === 'freedom' ? '#00e676' : '#ff4444';
             const circle = L.circle([mapSize - b.y, b.x], {
                 radius: radius,
                 color: cor,
@@ -1319,10 +1336,78 @@
         });
 
         // Contadores nos menus
-        document.getElementById('cntBeaconsJackal').textContent = `(${countJackal})`;
-        document.getElementById('cntBeaconsFreedom').textContent = `(${countFreedom})`;
-        document.getElementById('cntBeaconsNeutral').textContent = `(${countNeutral})`;
+        if (document.getElementById('cntBeaconsJackal')) document.getElementById('cntBeaconsJackal').textContent = `(${countJackal})`;
+        if (document.getElementById('cntBeaconsFreedom')) document.getElementById('cntBeaconsFreedom').textContent = `(${countFreedom})`;
+    }
 
+    // ==============================================================
+    // COBERTURA DE TORRES DE GUARDA (ESTILO HARMONY ATLAS - 100x100 TILES)
+    // ==============================================================
+    let exibirCoberturaTorres = false;
+    let towerCoverageOpacity = 0.22;
+
+    function ajustarOpacidadeCoberturaTorres(val) {
+        const num = Math.max(10, Math.min(80, parseInt(val, 10) || 22));
+        towerCoverageOpacity = num / 100;
+        const lbl = document.getElementById('labelCoberturaTorresOpacity');
+        if (lbl) lbl.textContent = `${num}%`;
+        const slider = document.getElementById('sliderCoberturaTorres');
+        if (slider) slider.value = num;
+        renderizarCoberturaTorres();
+    }
+
+    function toggleCoberturaTorres(ativo) {
+        exibirCoberturaTorres = (typeof ativo === 'boolean') ? ativo : !exibirCoberturaTorres;
+        const chk = document.getElementById('chkFilterCoberturaTorres');
+        if (chk) chk.checked = exibirCoberturaTorres;
+        const slider = document.getElementById('containerSliderCoberturaTorres');
+        if (slider) slider.style.display = exibirCoberturaTorres ? 'flex' : 'none';
+
+        // Se ativou a cobertura mas a camada de torres estava desligada, liga a camada
+        const chkTorres = document.getElementById('chkFilterTorres');
+        if (exibirCoberturaTorres && chkTorres && !chkTorres.checked) {
+            chkTorres.checked = true;
+            toggleCamada('towers', true);
+        }
+
+        renderizarCoberturaTorres();
+        mostrarToastCartografico(exibirCoberturaTorres 
+            ? '🏰 Cobertura de Torres (50t): <strong style="color:#38bdf8;">Ativa (100x100 tiles)</strong>' 
+            : '🏰 Cobertura de Torres: <strong style="color:var(--sw-text-muted);">Oculta</strong>'
+        );
+    }
+
+    function renderizarCoberturaTorres() {
+        if (!layers.towers_coverage) return;
+        layers.towers_coverage.clearLayers();
+        if (!exibirCoberturaTorres) return;
+
+        const torres = (todosPontosCache && Array.isArray(todosPontosCache))
+            ? todosPontosCache.filter(p => p.kind === 'tower')
+            : [];
+
+        if (torres.length === 0) return;
+
+        const estilo = {
+            color: '#1d4ed8',
+            weight: 1.5,
+            dashArray: '5, 4',
+            opacity: 0.85,
+            fillColor: '#2563eb',
+            fillOpacity: towerCoverageOpacity,
+            interactive: false
+        };
+
+        torres.forEach(t => {
+            const x = Number(t.x);
+            const y = Number(t.y);
+            const yMin = mapSize - (y + 50);
+            const yMax = mapSize - (y - 50);
+            const xMin = x - 50;
+            const xMax = x + 50;
+            const rect = L.rectangle([[yMin, xMin], [yMax, xMax]], estilo);
+            rect.addTo(layers.towers_coverage);
+        });
     }
 
     // Renderizar outros tipos de pontos (lodestones, vilas, torres, cavernas, recursos, idols, supply, fauna, landmarks)
@@ -1377,23 +1462,18 @@
                 selecionarPontoGenerico(p);
             });
 
-            // Se for Torre de Guarda, desenhar raio de influência de 50 tiles
-            if (isTower) {
-                L.circle([mapSize - y, x], {
-                    radius: 50,
-                    color: '#38bdf8',
-                    fillColor: '#38bdf8',
-                    fillOpacity: 0.08,
-                    weight: 1.5,
-                    dashArray: '4 4',
-                    interactive: false
-                }).addTo(layers.towers);
-            }
+            // Se for Torre de Guarda, a cobertura de 100x100 tiles é renderizada na camada dinâmica renderizarCoberturaTorres()
 
             const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
                               (currentUser && p.created_by === currentUser.id);
 
             const safePointName = sanitize(p.name || p.kind).replace(/'/g, "\\'");
+            const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
+                <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('point', ${JSON.stringify({id: p.id, name: p.name || p.kind, kind: p.kind, x: p.x, y: p.y}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    🎯 Tornar Meta da Guilda
+                </button>
+            ` : '';
+
             const actionBtns = canManage ? `
                 <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #30363d; padding-top:6px;">
                     <button onclick="event.stopPropagation(); abrirModalEditarPonto('${p.id}')" style="flex:1; background:rgba(245,166,35,0.12); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
@@ -1420,6 +1500,7 @@
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${adminMetaBtn}
                         ${actionBtns}
                     </div>
                 `;
@@ -1430,12 +1511,13 @@
                             <span>🏰</span> <span>${sanitize(p.name || 'Torre de Guarda')}</span>
                         </div>
                         <div style="font-size:10px; color:${faccaoCor}; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
-                            🚩 Facção: ${faccaoNome} &bull; <span style="color:#38bdf8;">Raio 50t</span>
+                            🚩 Facção: ${faccaoNome} &bull; <span style="color:#38bdf8;">Cobertura 100x100t [Y]</span>
                         </div>
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${adminMetaBtn}
                         ${actionBtns}
                     </div>
                 `;
@@ -1449,6 +1531,7 @@
                             <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${adminMetaBtn}
                         ${actionBtns}
                     </div>
                 `;
@@ -1468,6 +1551,8 @@
         if (document.getElementById('cntSupply')) document.getElementById('cntSupply').textContent = `(${counts.supply_point})`;
         if (document.getElementById('cntFauna')) document.getElementById('cntFauna').textContent = `(${counts.fauna})`;
         if (document.getElementById('cntLandmarks')) document.getElementById('cntLandmarks').textContent = `(${counts.landmark})`;
+
+        renderizarCoberturaTorres();
     }
 
     renderizarTodosBeacons();
@@ -1481,6 +1566,8 @@
         pontoSelecionado = b;
         const boxQuick = document.getElementById('boxQuickActionsBeacon');
         if (boxQuick) boxQuick.style.display = 'grid';
+        const btnMeta = document.getElementById('btnTornarMetaPonto');
+        if (btnMeta) btnMeta.style.display = (currentProfile && currentProfile.role === 'admin') ? 'block' : 'none';
         document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${sanitize(b.nome)}</strong> (${sanitize(b.faccao).toUpperCase()}) em X: ${sanitizeCoord(b.x)}, Y: ${sanitizeCoord(b.y)}`;
         const sbRight = document.getElementById('sidebarRight');
         if (sbRight && sbRight.classList.contains('recolhida')) toggleSidebarDireita();
@@ -1490,6 +1577,8 @@
         pontoSelecionado = p;
         const boxQuick = document.getElementById('boxQuickActionsBeacon');
         if (boxQuick) boxQuick.style.display = 'none';
+        const btnMeta = document.getElementById('btnTornarMetaPonto');
+        if (btnMeta) btnMeta.style.display = (currentProfile && currentProfile.role === 'admin') ? 'block' : 'none';
         const quad = obterQuadranteWurm(p.y, p.x);
         document.getElementById('acoTargetDesc').innerHTML = `📍 <strong>${sanitize(p.name || p.kind)}</strong> em X: ${sanitizeCoord(p.x)}, Y: ${sanitizeCoord(p.y)} &bull; ${quad}`;
     }
@@ -1709,11 +1798,21 @@
                     }
                 };
 
+                let titleDisplay = obj.title;
+                try {
+                    if (obj.description && obj.description.startsWith('{')) {
+                        const parsed = JSON.parse(obj.description);
+                        if (currentLang === 'en' && parsed.title_en) {
+                            titleDisplay = parsed.title_en;
+                        }
+                    }
+                } catch(e) {}
+
                 item.innerHTML = `
                     <span class="jk-p-badge ${prio}">${prio.toUpperCase()}</span>
                     <span>${ico}</span>
                     <div style="flex:1;">
-                        <div class="jk-obj-name">${sanitize(obj.title)}</div>
+                        <div class="jk-obj-name">${sanitize(titleDisplay)}</div>
                         <div class="jk-obj-kind">${sanitize(obj.kind)} • ${sanitize(obj.status)}</div>
                     </div>
                     ${pathPoint ? '<span class="jk-obj-locate" title="Focar no mapa">📌</span>' : ''}
@@ -1739,11 +1838,87 @@
         prioridadeSelecionadaModal = p;
     }
 
+    let objetivoVinculoPendente = null;
+
     function abrirModalObjetivo() {
         if (!currentProfile || currentProfile.role !== 'admin') {
             alert('Apenas Administradores têm permissão para criar metas da guilda.');
             return;
         }
+        objetivoVinculoPendente = null;
+        const boxVinculo = document.getElementById('boxObjVinculo');
+        if (boxVinculo) boxVinculo.style.display = 'none';
+        const inputPt = document.getElementById('inputObjTitulo');
+        const inputEn = document.getElementById('inputObjTituloEn');
+        if (inputPt) inputPt.value = '';
+        if (inputEn) inputEn.value = '';
+        document.getElementById('modalNovoObjetivo').classList.add('open');
+    }
+
+    function abrirModalObjetivoVinculado(tipo, item) {
+        if (!currentProfile || currentProfile.role !== 'admin') {
+            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            return;
+        }
+
+        if (!item && pontoSelecionado) {
+            item = {
+                id: pontoSelecionado.id,
+                name: pontoSelecionado.nome || pontoSelecionado.name,
+                kind: pontoSelecionado.kind || 'beacon',
+                x: pontoSelecionado.x,
+                y: pontoSelecionado.y
+            };
+        }
+        if (!item) return;
+
+        objetivoVinculoPendente = { tipo, item };
+
+        const inputPt = document.getElementById('inputObjTitulo');
+        const inputEn = document.getElementById('inputObjTituloEn');
+        const selectTipo = document.getElementById('selectObjTipo');
+        const boxVinculo = document.getElementById('boxObjVinculo');
+        const descVinculo = document.getElementById('objVinculoDesc');
+
+        let defaultTitlePt = item.name || '';
+        let defaultTitleEn = item.name || '';
+
+        if (tipo === 'point') {
+            if (item.kind === 'beacon') {
+                defaultTitlePt = `Capturar Beacon ${item.name || ''}`;
+                defaultTitleEn = `Capture Beacon ${item.name || ''}`;
+                if (selectTipo) selectTipo.value = 'beacon_hold';
+            } else if (item.kind === 'tower') {
+                defaultTitlePt = `Erguer Torre ${item.name || ''}`;
+                defaultTitleEn = `Erect Guard Tower ${item.name || ''}`;
+                if (selectTipo) selectTipo.value = 'beacon_hold';
+            } else if (item.kind === 'village') {
+                defaultTitlePt = `Desenvolver Deed ${item.name || ''}`;
+                defaultTitleEn = `Develop Deed ${item.name || ''}`;
+                if (selectTipo) selectTipo.value = 'custom';
+            } else {
+                defaultTitlePt = `Explorar ${item.name || item.kind}`;
+                defaultTitleEn = `Explore ${item.name || item.kind}`;
+                if (selectTipo) selectTipo.value = 'explore';
+            }
+            if (descVinculo) {
+                const quad = obterQuadranteWurm(item.y, item.x);
+                descVinculo.innerHTML = `📍 Vinculado a: <strong>${sanitize(item.name || item.kind)}</strong> (${item.kind}) em X:${item.x} Y:${item.y} [${quad}]`;
+            }
+        } else if (tipo === 'route') {
+            const isBridge = item.kind && item.kind.startsWith('bridge');
+            defaultTitlePt = isBridge ? `Construir Ponte ${item.name || ''}` : `Pavimentar Estrada ${item.name || ''}`;
+            defaultTitleEn = isBridge ? `Build Bridge ${item.name || ''}` : `Pave Road ${item.name || ''}`;
+            if (selectTipo) selectTipo.value = isBridge ? 'bridge' : 'road';
+            if (descVinculo) {
+                descVinculo.innerHTML = `🛣️ Vinculado a: <strong>${sanitize(item.name)}</strong> (${item.kind}) • ~${Math.round(item.distance || 0)} tiles`;
+            }
+        }
+
+        if (inputPt) inputPt.value = defaultTitlePt.trim();
+        if (inputEn) inputEn.value = defaultTitleEn.trim();
+        if (boxVinculo) boxVinculo.style.display = 'block';
+
         document.getElementById('modalNovoObjetivo').classList.add('open');
     }
 
@@ -1753,26 +1928,49 @@
             return;
         }
 
-        const titulo = document.getElementById('inputObjTitulo').value.trim();
-        if (!titulo) {
-            alert('Por favor, informe o título do objetivo.');
+        const tituloPt = document.getElementById('inputObjTitulo').value.trim();
+        const tituloEn = document.getElementById('inputObjTituloEn') ? document.getElementById('inputObjTituloEn').value.trim() : '';
+        if (!tituloPt) {
+            alert('Por favor, informe o título do objetivo em Português.');
             return;
         }
 
         const tipo = document.getElementById('selectObjTipo').value;
+        let pathCoords = null;
+        let vinculoInfo = null;
+
+        if (objetivoVinculoPendente) {
+            const { tipo: tipoV, item } = objetivoVinculoPendente;
+            if (tipoV === 'point') {
+                pathCoords = [[Number(item.x), Number(item.y)]];
+                vinculoInfo = { point_id: item.id, kind: item.kind, x: item.x, y: item.y };
+            } else if (tipoV === 'route') {
+                pathCoords = item.path;
+                vinculoInfo = { route_id: item.id, kind: item.kind };
+            }
+        }
+
+        const metaData = {
+            title_en: tituloEn || tituloPt,
+            vinculo: vinculoInfo
+        };
 
         if (supabaseClient) {
             try {
                 const { error } = await supabaseClient.from('objectives').insert({
-                    title: titulo,
+                    title: tituloPt,
+                    description: JSON.stringify(metaData),
                     kind: tipo,
                     priority: prioridadeSelecionadaModal,
-                    status: 'planned'
+                    status: 'planned',
+                    path: pathCoords
                 });
                 if (error) throw error;
-                alert(`✓ Objetivo "${titulo}" criado com sucesso!`);
+                mostrarToastCartografico(`✓ Objetivo <strong>${sanitize(tituloPt)}</strong> criado com sucesso!`);
                 fecharModal('modalNovoObjetivo');
                 document.getElementById('inputObjTitulo').value = '';
+                if (document.getElementById('inputObjTituloEn')) document.getElementById('inputObjTituloEn').value = '';
+                objetivoVinculoPendente = null;
                 await carregarObjetivosDoBanco('all');
                 return;
             } catch (e) {
@@ -1781,7 +1979,7 @@
             }
         }
 
-        alert(`✓ Objetivo "${titulo}" registrado localmente.`);
+        mostrarToastCartografico(`✓ Objetivo "${tituloPt}" registrado localmente.`);
         fecharModal('modalNovoObjetivo');
         document.getElementById('inputObjTitulo').value = '';
     }
@@ -1826,10 +2024,43 @@
         mostrarToastCartografico(`📍 Traçado de <strong>${tipo === 'road' ? 'Estrada' : 'Ponte'}</strong> iniciado. Clique no mapa para adicionar nós.`);
     }
 
+    let previewPolylineTemp = null;
+
+    function calcularSnapWurm(x1, y1, x2, y2, freeMode = false) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 0.001) return { angle: 0, x2, y2, dist: 0 };
+
+        let theta = Math.atan2(dy, dx) * 180 / Math.PI;
+
+        if (!freeMode) {
+            const snapped = Math.round(theta / 45) * 45;
+            const rad = snapped * Math.PI / 180;
+            return {
+                angle: (snapped + 360) % 360,
+                x2: Math.round(x1 + dist * Math.cos(rad)),
+                y2: Math.round(y1 + dist * Math.sin(rad)),
+                dist: Math.round(dist)
+            };
+        } else {
+            return {
+                angle: Math.round((theta + 360) % 360),
+                x2: Math.round(x2),
+                y2: Math.round(y2),
+                dist: Math.round(dist)
+            };
+        }
+    }
+
     function limparDesenhoTracadoTemp() {
         if (polylineTemp) {
             map.removeLayer(polylineTemp);
             polylineTemp = null;
+        }
+        if (previewPolylineTemp) {
+            map.removeLayer(previewPolylineTemp);
+            previewPolylineTemp = null;
         }
         markersTempTracado.forEach(m => map.removeLayer(m));
         markersTempTracado = [];
@@ -1844,6 +2075,35 @@
             dist += Math.hypot(dx, dy);
         }
         return dist;
+    }
+
+    function atualizarPreviewTracado(curX, curY) {
+        if (!modoTracado || pontosTracado.length === 0) return;
+        const lastPt = pontosTracado[pontosTracado.length - 1];
+        const snap = calcularSnapWurm(lastPt.x, lastPt.y, curX, curY, isShiftPressed);
+        const snappedLatLng = L.latLng(mapSize - snap.y2, snap.x2);
+
+        const cor = (modoTracado === 'road') ? '#f5a623' : '#38bdf8';
+        const previewPoints = [lastPt.latlng, snappedLatLng];
+
+        if (!previewPolylineTemp) {
+            previewPolylineTemp = L.polyline(previewPoints, {
+                color: cor,
+                weight: 3,
+                dashArray: '4 4',
+                opacity: 0.7,
+                interactive: false
+            }).addTo(map);
+        } else {
+            previewPolylineTemp.setLatLngs(previewPoints);
+        }
+
+        const distAcumulada = calcularDistanciaRota(pontosTracado);
+        const distTotal = Math.round(distAcumulada + snap.dist);
+        const distEl = document.getElementById('hudLiveDistancia');
+        if (distEl) {
+            distEl.textContent = `${distTotal} tiles (${snap.angle}° • ${snap.dist}t)`;
+        }
     }
 
     function atualizarDesenhoTracado() {
@@ -2031,9 +2291,6 @@
         btn.classList.add('active');
     }
 
-    function toggleGridTiles(ativo) {
-        // Reservado para overlay de grade
-    }
 
     function alternarTemaVisual() {
         document.body.classList.toggle('swiss-theme-light');
@@ -2044,16 +2301,23 @@
         }
     }
 
+    let tempClickMarker = null;
     function fecharModal(id) {
         const modal = document.getElementById(id);
         if (modal) modal.classList.remove('open');
+        if (id === 'modalAddPonto' && tempClickMarker) {
+            map.removeLayer(tempClickMarker);
+            tempClickMarker = null;
+        }
     }
 
     let modoAdicionar = false;
     let clickCoords = { x: 0, y: 0 };
     let faccaoSelecionada = 'jackal';
     let kindSelecionado = 'beacon';
-    let ctxMenuCoords = { x: 0, y: 0, latlng: null };
+    let isRightMouseDown = false;
+    let panStartPoint = null;
+    let isShiftPressed = false;
 
     // ==============================================================
     // CONTROLE UNIFICADO DE MODOS DE INTERAÇÃO (BARRA SUPERIOR)
@@ -2106,7 +2370,7 @@
         if (tt) tt.style.display = 'block';
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('modeBtnPonto')?.classList.add('active');
-        mostrarToastCartografico('📍 Modo <strong>Anotar Ponto</strong>: clique no mapa para posicionar.');
+        mostrarToastCartografico('📍 Modo <strong>Anotar Ponto</strong>: clique no mapa com o botão esquerdo.');
     }
 
     function desativarModoAdicionarPonto() {
@@ -2119,97 +2383,129 @@
     }
 
     // ==============================================================
-    // MENU DE CONTEXTO TÁTICO (BOTÃO DIREITO NO MAPA)
+    // SISTEMA DE INTERAÇÃO DE MOUSE & ARRASTO (PADRÃO HARMONY ATLAS)
+    // Botão Direito e Botão do Meio: Arrastam o mapa suavemente (Pan)
+    // Botão Esquerdo: Insere pontos e nós de estrada com Snap 45°
     // ==============================================================
-    map.on('contextmenu', function(e) {
-        e.originalEvent.preventDefault();
-        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-        const quad = obterQuadranteWurm(y, x);
-        ctxMenuCoords = { x, y, latlng: e.latlng };
-
-        const menu = document.getElementById('customContextMenu');
-        if (!menu) return;
-
-        const hdr = document.getElementById('ctxCoordHeader');
-        if (hdr) hdr.innerHTML = `📍 X: ${x} • Y: ${y} &bull; <span style="color:var(--jk-accent); font-weight:800;">${quad}</span>`;
-
-        menu.style.display = 'block';
-        const menuW = menu.offsetWidth || 210;
-        const menuH = menu.offsetHeight || 130;
-        const winW = window.innerWidth;
-        const winH = window.innerHeight;
-
-        let posX = e.originalEvent.clientX;
-        let posY = e.originalEvent.clientY;
-        if (posX + menuW > winW - 10) posX = winW - menuW - 10;
-        if (posY + menuH > winH - 10) posY = winH - menuH - 10;
-
-        menu.style.left = `${posX}px`;
-        menu.style.top = `${posY}px`;
+    map.getContainer().addEventListener('contextmenu', function(e) {
+        e.preventDefault(); // Elimina menu nativo ou contextmenu
     });
 
-    function fecharContextMenu() {
-        const menu = document.getElementById('customContextMenu');
-        if (menu) menu.style.display = 'none';
-    }
+    map.on('mousedown', function(e) {
+        // Botão direito (2) ou botão do meio (1): pan suave do mapa
+        if (e.originalEvent.button === 2 || e.originalEvent.button === 1) {
+            isRightMouseDown = true;
+            panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
+            map.getContainer().style.cursor = 'grabbing';
+            return;
+        }
+    });
 
-    function executarAcaoContexto(acao) {
-        fecharContextMenu();
-        if (!ctxMenuCoords) return;
+    map.on('mousemove', function(e) {
+        // 1. Pan do mapa por arraste com botão direito ou meio
+        if (isRightMouseDown && panStartPoint) {
+            const dx = panStartPoint.x - e.originalEvent.clientX;
+            const dy = panStartPoint.y - e.originalEvent.clientY;
+            panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
+            map.panBy([dx, dy], { animate: false });
+            return;
+        }
 
-        if (acao === 'adicionar') {
-            clickCoords = { x: ctxMenuCoords.x, y: ctxMenuCoords.y };
-            document.getElementById('modalCoordStrong').textContent = `X: ${clickCoords.x} • Y: ${clickCoords.y}`;
-            document.getElementById('modalAddPonto').classList.add('open');
-        } else if (acao === 'vamp') {
-            copiarVamp(ctxMenuCoords.x, ctxMenuCoords.y);
-        } else if (acao === 'centralizar') {
-            if (ctxMenuCoords.latlng) {
-                map.panTo(ctxMenuCoords.latlng, { animate: true });
-                mostrarToastCartografico(`Centralizado em X: ${ctxMenuCoords.x} • Y: ${ctxMenuCoords.y}`);
+        const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+
+        // 2. Atualizar crosshair tooltip quando em modo de adicionar ponto
+        if (modoAdicionar) {
+            const tt = document.getElementById('crosshairTooltip');
+            const cc = document.getElementById('crosshairCoords');
+            if (tt && cc) {
+                tt.style.left = `${e.originalEvent.clientX}px`;
+                tt.style.top = `${e.originalEvent.clientY}px`;
+                const quad = obterQuadranteWurm(curY, curX);
+                cc.textContent = `X: ${curX} • Y: ${curY} [${quad}]`;
+            }
+        }
+
+        // 3. Traçado com Snap 45° em tempo real
+        if (modoTracado && pontosTracado.length > 0) {
+            atualizarPreviewTracado(curX, curY);
+        }
+    });
+
+    function finalizarArrastoMouse() {
+        if (isRightMouseDown) {
+            isRightMouseDown = false;
+            panStartPoint = null;
+            if (modoAdicionar || modoTracado) {
+                map.getContainer().style.cursor = 'crosshair';
+            } else {
+                map.getContainer().style.cursor = '';
             }
         }
     }
+    map.on('mouseup', finalizarArrastoMouse);
+    window.addEventListener('mouseup', finalizarArrastoMouse);
+    window.addEventListener('blur', finalizarArrastoMouse);
 
-    // Clique unificado no mapa
+    // Clique com botão esquerdo no mapa
     map.on('click', function(e) {
-        fecharContextMenu();
+        if (e.originalEvent && e.originalEvent.button !== 0) return;
 
         // 1. Se estiver no modo de adicionar ponto
         if (modoAdicionar) {
             const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
             const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
             clickCoords = { x, y };
+
+            if (tempClickMarker) {
+                map.removeLayer(tempClickMarker);
+            }
+            tempClickMarker = L.circleMarker(e.latlng, {
+                radius: 8,
+                color: '#f5a623',
+                fillColor: '#f5a623',
+                fillOpacity: 0.45,
+                weight: 2
+            }).addTo(map);
+
             document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
             document.getElementById('modalAddPonto').classList.add('open');
             desativarModoAdicionarPonto();
             return;
         }
 
-        // 2. Se estiver traçando rota de infraestrutura
+        // 2. Se estiver traçando rota de infraestrutura (Snap 45°)
         if (modoTracado) {
-            const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-            const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-            pontosTracado.push({ x, y, latlng: e.latlng });
+            const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+            const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+
+            let ptToAdd;
+            if (pontosTracado.length === 0) {
+                ptToAdd = { x: curX, y: curY, latlng: L.latLng(MAP_SIZE - curY, curX) };
+            } else {
+                const lastPt = pontosTracado[pontosTracado.length - 1];
+                const snap = calcularSnapWurm(lastPt.x, lastPt.y, curX, curY, isShiftPressed);
+                ptToAdd = { x: snap.x2, y: snap.y2, latlng: L.latLng(MAP_SIZE - snap.y2, snap.x2) };
+            }
+
+            pontosTracado.push(ptToAdd);
             atualizarDesenhoTracado();
             return;
         }
     });
 
-    map.on('movestart', fecharContextMenu);
+    // Teclado unificado: [Y] para cobertura de torres, Shift para Snap livre, ESC para cancelar
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Shift') isShiftPressed = true;
 
-    // Fechar context menu ao clicar fora
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#customContextMenu')) {
-            fecharContextMenu();
+        if (e.key === 'y' || e.key === 'Y') {
+            const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+            if (tag !== 'input' && tag !== 'textarea') {
+                toggleCoberturaTorres();
+            }
         }
-    });
 
-    // Tecla ESC unificada
-    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            fecharContextMenu();
             if (modoAdicionar) {
                 desativarModoAdicionarPonto();
                 mostrarToastCartografico('Modo adição cancelado.');
@@ -2222,6 +2518,10 @@
             const dd = document.getElementById('buscaDropdown');
             if (dd) dd.style.display = 'none';
         }
+    });
+
+    window.addEventListener('keyup', function(e) {
+        if (e.key === 'Shift') isShiftPressed = false;
     });
 
     // Seletor de Tipo
@@ -2424,16 +2724,18 @@
             filtros: 'Filtros',
             beaconsJackal: '🔴 Beacons Jackal',
             beaconsFreedom: '🟢 Beacons Freedom',
-            beaconsNeutral: '⚪ Beacons Neutros',
             lodestones: '🪨 Lodestones',
-            vilas: '🏘️ Deeds & Vilas',
+            vilas: '🏘️ Deeds',
+            torres: '🏰 Torres de Guarda',
+            coberturaTorres: '🏰 Cobertura (100x100 tiles)',
+            opacidade: 'Opacidade:',
             cavernas: '🕳️ Cavernas Naturais',
             recursos: '⛏️ Recursos Minerais',
             idols: '✨ Idols & Plinths',
             supply: '📦 Pontos de Suprimento',
-            objetivos: '🎯 Projetos Comunitários',
+            objetivos: '🎯 Metas da Guilda',
             todos: 'Todos',
-            novoObjetivo: '➕ Novo Objetivo',
+            novoObjetivo: '➕ Nova Meta',
             infra: '🛣️ Infraestrutura',
             estradas: 'Estradas',
             estradasPlan: '🛣️ Estradas Planejadas',
@@ -2442,29 +2744,34 @@
             pontesConc: '🌉 Pontes Concluídas',
             tracarEstrada: '🛣️ Traçar Estrada',
             tracarPonte: '🌉 Traçar Ponte',
+            modoNavegar: 'Navegar',
+            modoPonto: 'Anotar Ponto',
+            modoEstrada: 'Traçar Estrada',
+            modoPonte: 'Traçar Ponte',
             fauna: '🦎 Montarias & Criaturas',
             faunaSub: 'Fauna',
             weta: '🦗 Spots de Weta (Montaria Inicial)',
             octopede: '🐙 Spots de Octopede (Maior Slope)',
             ferropod: '🐌 Ferropods (Dropam Ferro)',
             mountsNote: 'ℹ️ Limites de slope de cada montaria serão atualizados no primeiro dia de Jackal.',
-            centralTatica: 'CENTRAL TÁTICA',
-            tacticalSub: 'Inteligência de Campo • Jackal R2',
+            centralTatica: 'OPERAÇÕES',
+            tacticalSub: 'Monitoramento de Campo • Jackal R2',
             radarInfluencia: '⭕ Influência do Mapa',
             tempoReal: 'tempo real',
             aoVivo: 'ao vivo',
             lblNeutro: 'Neutro',
-            marcos: '🏆 Marcos Comunitários',
+            marcos: '🏆 Marcos da Guilda',
             primeiroMarco: 'Primeiro Marco',
             marcoIdols: 'Desbloqueia Idols & Plinths',
             marcoAlcancado: '✓ Alcançado! Idols e Plinths liberados para uso.',
             acoesRapidas: '⚡ Ações Rápidas de Campo',
             selecioneBeacon: 'Selecione um beacon no mapa para registrar eventos:',
-            btnLimpei: 'Limpei!',
             btnConverti: 'Converti',
             btnReforcei: 'Reforcei (+1)',
             btnAtaque: 'Sob Ataque!',
-            feedGuerra: '📡 Linha do Tempo de Guerra',
+            btnPerdido: 'Perdido p/ Jackal',
+            tornarMeta: 'Tornar Meta da Guilda',
+            feedGuerra: '📡 Feed de Eventos',
             recolherAtlas: '▲ Recolher Atlas',
             recolherHud: 'Recolher ▶',
             discordBtn: 'Entrar com Discord'
@@ -2482,14 +2789,16 @@
             filtros: 'Filters',
             beaconsJackal: '🔴 Jackal Beacons',
             beaconsFreedom: '🟢 Freedom Beacons',
-            beaconsNeutral: '⚪ Neutral Beacons',
             lodestones: '🪨 Lodestones',
-            vilas: '🏘️ Deeds & Villages',
+            vilas: '🏘️ Deeds',
+            torres: '🏰 Guard Towers',
+            coberturaTorres: '🏰 Tower Coverage (100x100 tiles)',
+            opacidade: 'Opacity:',
             cavernas: '🕳️ Natural Caves',
             recursos: '⛏️ Resource Nodes',
             idols: '✨ Idols & Plinths',
             supply: '📦 Supply Points',
-            objetivos: '🎯 Community Projects',
+            objetivos: '🎯 Guild Objectives',
             todos: 'All',
             novoObjetivo: '➕ New Objective',
             infra: '🛣️ Infrastructure',
@@ -2500,29 +2809,34 @@
             pontesConc: '🌉 Finished Bridges',
             tracarEstrada: '🛣️ Trace Road',
             tracarPonte: '🌉 Trace Bridge',
+            modoNavegar: 'Navigate',
+            modoPonto: 'Add Marker',
+            modoEstrada: 'Trace Road',
+            modoPonte: 'Trace Bridge',
             fauna: '🦎 Mounts & Creatures',
             faunaSub: 'Fauna',
             weta: '🦗 Weta Spots (Starter Mount)',
             octopede: '🐙 Octopede Spots (High Slope)',
             ferropod: '🐌 Ferropods (Iron Drop)',
             mountsNote: 'ℹ️ Mount slope limits will be updated on day 1 of Jackal.',
-            centralTatica: 'TACTICAL COMMAND',
-            tacticalSub: 'Field Intelligence • Jackal R2',
+            centralTatica: 'OPERATIONS',
+            tacticalSub: 'Field Operations • Jackal R2',
             radarInfluencia: '⭕ Territory Influence',
             tempoReal: 'live',
             aoVivo: 'live stream',
             lblNeutro: 'Neutral',
-            marcos: '🏆 Community Milestones',
+            marcos: '🏆 Guild Milestones',
             primeiroMarco: 'First Milestone',
             marcoIdols: 'Unlocks Idols & Plinths',
             marcoAlcancado: '✓ Achieved! Idols and Plinths unlocked for use.',
             acoesRapidas: '⚡ Field Quick Actions',
             selecioneBeacon: 'Select a beacon on map to register events:',
-            btnLimpei: 'Cleared!',
             btnConverti: 'Converted',
             btnReforcei: 'Reinforced (+1)',
             btnAtaque: 'Under Attack!',
-            feedGuerra: '📡 Live War Timeline',
+            btnPerdido: 'Lost to Jackal',
+            tornarMeta: 'Set Guild Objective',
+            feedGuerra: '📡 Activity Feed',
             recolherAtlas: '▲ Collapse Atlas',
             recolherHud: 'Collapse ▶',
             discordBtn: 'Sign In with Discord'
@@ -2713,6 +3027,35 @@
         }
     }
 
+    async function alternarStatusRota(id, novoKind) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient.from('routes').update({ kind: novoKind }).eq('id', id);
+            if (error) throw error;
+            await carregarRotasDoBanco();
+            mostrarToastCartografico(`✓ Obra atualizada para: <strong>${novoKind.endsWith('_built') ? 'Pavimentada / Concluída' : 'Planejada'}</strong>`);
+            return;
+        } catch (err) {
+            alert('Erro ao atualizar status da obra: ' + err.message);
+            return;
+        }
+    }
+
+    async function excluirRota(id, nome) {
+        if (!confirm(`Deseja realmente excluir a obra "${nome}"?`)) return;
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient.from('routes').delete().eq('id', id);
+            if (error) throw error;
+            await carregarRotasDoBanco();
+            mostrarToastCartografico(`✓ Obra "${sanitize(nome)}" excluída.`);
+            return;
+        } catch (err) {
+            alert('Erro ao excluir obra: ' + err.message);
+            return;
+        }
+    }
+
     async function carregarRotasDoBanco() {
         if (!supabaseClient) return;
         try {
@@ -2737,11 +3080,61 @@
 
                 const line = L.polyline(latlngs, {
                     color: cor,
-                    weight: Number(r.width) || 3,
+                    weight: Number(r.width) || 3.5,
                     dashArray: isBuilt ? null : '6 4',
-                    opacity: 0.85
+                    opacity: 0.9
                 });
-                line.bindPopup(`<strong>${sanitize(r.name)}</strong><br><span style="font-size:10px; color:#999;">${r.kind}</span>`);
+
+                let dist = 0;
+                for (let i = 1; i < r.path.length; i++) {
+                    dist += Math.hypot(r.path[i][0] - r.path[i-1][0], r.path[i][1] - r.path[i-1][1]);
+                }
+                const distRound = Math.round(dist);
+                const safeName = sanitize(r.name).replace(/'/g, "\\'");
+
+                const statusBadge = isBuilt
+                    ? `<span style="background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">✓ CONCLUÍDA</span>`
+                    : `<span style="background:rgba(245,166,35,0.15); color:#f5a623; border:1px solid rgba(245,166,35,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">⏳ PLANEJADA</span>`;
+
+                const nextKind = isBridge
+                    ? (isBuilt ? 'bridge_planned' : 'bridge_built')
+                    : (isBuilt ? 'road_planned' : 'road_built');
+                const flipText = isBuilt ? '📋 Reverter para Planejada' : '🔨 Marcar como Concluída';
+
+                const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
+                    <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('route', ${JSON.stringify({id: r.id, name: r.name, kind: r.kind, path: r.path, distance: distRound}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        🎯 Tornar Meta da Guilda
+                    </button>
+                ` : '';
+
+                const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
+                                  (currentUser && r.created_by === currentUser.id);
+
+                const actionBtns = canManage ? `
+                    <div style="display:flex; gap:6px; margin-top:6px;">
+                        <button onclick="alternarStatusRota('${r.id}', '${nextKind}')" style="flex:1; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
+                            ${flipText}
+                        </button>
+                        <button onclick="excluirRota('${r.id}', '${safeName}')" style="background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:#ff4444; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
+                            🗑️
+                        </button>
+                    </div>
+                ` : '';
+
+                line.bindPopup(`
+                    <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
+                        <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+                            <span>${isBridge ? '🌉' : '🛣️'} ${sanitize(r.name)}</span>
+                            ${statusBadge}
+                        </div>
+                        <div style="font-size:10px; color:#94a3b8; margin-bottom:4px;">
+                            Distância: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nós)
+                        </div>
+                        ${adminMetaBtn}
+                        ${actionBtns}
+                    </div>
+                `);
+
                 line.addTo(targetLayer);
             });
         } catch (e) {
@@ -2772,23 +3165,7 @@
     inicializarDados();
     </script>
 
-    <!-- ================================================================
-         MENU DE CONTEXTO TÁTICO (BOTÃO DIREITO NO MAPA)
-         ================================================================ -->
-    <div id="customContextMenu" style="display:none; position:fixed; z-index:99999; background:rgba(18, 20, 28, 0.98); border:1px solid #30363d; border-radius:8px; box-shadow:0 12px 36px rgba(0,0,0,0.85); backdrop-filter:blur(12px); min-width:210px; padding:5px 0; font-family:'Inter', sans-serif;">
-        <div id="ctxCoordHeader" style="padding:6px 14px; font-size:10px; font-weight:800; color:var(--sw-text-muted); border-bottom:1px solid #232738; letter-spacing:0.5px;">
-            COORDENADAS WURM
-        </div>
-        <div class="ctx-item" onclick="executarAcaoContexto('adicionar')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <span>📍</span> <span>Adicionar Ponto / Deed aqui</span>
-        </div>
-        <div class="ctx-item" onclick="executarAcaoContexto('vamp')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <span>📋</span> <span>Copiar comando /vamp</span>
-        </div>
-        <div class="ctx-item" onclick="executarAcaoContexto('centralizar')" style="padding:8px 14px; font-size:12px; font-weight:600; color:#f0f6fc; cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <span>🔍</span> <span>Centralizar Mapa aqui</span>
-        </div>
-    </div>
+
 
     <!-- ================================================================
          TOOLTIP FLUTUANTE DE ADIÇÃO DE PONTO (CROSSHAIR TRACKER)
