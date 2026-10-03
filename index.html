@@ -2551,6 +2551,7 @@
     function fecharModoPrint() {
         const overlay = document.getElementById('tacticalPrintOverlay');
         if (overlay) overlay.classList.remove('open');
+        cancelarTraçadoVia(false);
         restaurarInterfacesPosPrint();
     }
 
@@ -2597,8 +2598,109 @@
     });
 
     let printCurrentPath = [];
+    let waypointPath = [];
+    let basePolylineSnapshot = null;
+    let isHoldingShift = false;
+
+    // Detectar tecla Shift para habilitar ângulo livre temporário
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift') isHoldingShift = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'Shift') isHoldingShift = false;
+    });
+
+    // Função de Snap Ortogonal e 45 Graus (8 direções do grid do Wurm Online)
+    function snapToOctilinear(fromX, fromY, toX, toY, free = false) {
+        if (free) return { x: Math.round(toX), y: Math.round(toY) };
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 4) return { x: Math.round(fromX), y: Math.round(fromY) };
+        const angle = Math.atan2(dy, dx);
+        // Multiplos exatos de 45 graus (PI / 4): 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
+        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+        return {
+            x: Math.round(fromX + dist * Math.cos(snapAngle)),
+            y: Math.round(fromY + dist * Math.sin(snapAngle))
+        };
+    }
+
+    function cancelarTraçadoVia(showToast = true) {
+        if (basePolylineSnapshot && printCtx) {
+            printCtx.putImageData(basePolylineSnapshot, 0, 0);
+        }
+        waypointPath = [];
+        basePolylineSnapshot = null;
+        if (showToast) {
+            mostrarToastCartografico(idiomaAtual === 'en' ? 'Route drafting cancelled.' : 'Traçado cancelado.');
+        }
+    }
+
+    function finalizarTraçadoVia() {
+        if (!printCtx || waypointPath.length < 2) {
+            cancelarTraçadoVia(false);
+            return;
+        }
+
+        // Remove ponto duplicado no final se gerado pelo clique de encerramento
+        if (waypointPath.length >= 2) {
+            const last = waypointPath[waypointPath.length - 1];
+            const prev = waypointPath[waypointPath.length - 2];
+            if (Math.hypot(last.x - prev.x, last.y - prev.y) < 6) {
+                waypointPath.pop();
+            }
+        }
+
+        if (waypointPath.length < 2) {
+            cancelarTraçadoVia(false);
+            return;
+        }
+
+        // Restaura a imagem base e desenha a versão final e limpa sem nós guias
+        printCtx.putImageData(basePolylineSnapshot, 0, 0);
+        if (printFerramentaAtual === 'road') {
+            desenharEstradaContinua(printCtx, waypointPath, printCorAtual);
+        } else if (printFerramentaAtual === 'road_plan') {
+            desenharEstradaProjeto(printCtx, waypointPath, printCorAtual);
+        }
+
+        printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+        waypointPath = [];
+        basePolylineSnapshot = null;
+        mostrarToastCartografico(idiomaAtual === 'en' ? 'Route finalized!' : 'Traçado de estrada concluído!');
+    }
+
+    function desenharNosGuias(ctx, path, currentSnapped) {
+        ctx.save();
+        path.forEach((pt, idx) => {
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, idx === 0 ? 5.5 : 4, 0, Math.PI * 2);
+            ctx.fillStyle = idx === 0 ? '#10b981' : '#ffffff';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.fill();
+            ctx.stroke();
+        });
+        if (currentSnapped) {
+            ctx.beginPath();
+            ctx.arc(currentSnapped.x, currentSnapped.y, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.fill();
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
 
     function definirFerramentaPrint(ferramenta) {
+        if (waypointPath.length >= 2) {
+            finalizarTraçadoVia();
+        } else if (waypointPath.length > 0) {
+            cancelarTraçadoVia(false);
+        }
+
         printFerramentaAtual = ferramenta;
         document.querySelectorAll('.tactical-print-toolbar .tactical-tool-btn').forEach(b => {
             if (b.id && b.id.startsWith('tool')) b.classList.remove('active');
@@ -2617,6 +2719,21 @@
         if (idBtn && document.getElementById(idBtn)) {
             document.getElementById(idBtn).classList.add('active');
         }
+
+        // Orientações contextuais para o usuário
+        if (ferramenta === 'road' || ferramenta === 'road_plan') {
+            mostrarToastCartografico(
+                idiomaAtual === 'en'
+                    ? 'Waypoints Mode: Click points (45°/90°). Double-click or Enter to finish. Shift for free angle.'
+                    : 'Modo Traçado: Clique nos pontos (45°/90°). Duplo clique ou Enter para concluir. Shift para livre.'
+            );
+        } else if (ferramenta === 'bridge' || ferramenta === 'tunnel') {
+            mostrarToastCartografico(
+                idiomaAtual === 'en'
+                    ? 'Click start point and then end point (snap 45°/90°). Shift for free angle.'
+                    : 'Clique no ponto inicial e depois no final (snap 45°/90°). Shift para livre.'
+            );
+        }
     }
 
     function definirCorPrint(cor, el) {
@@ -2626,6 +2743,10 @@
     }
 
     function desfazerPrint() {
+        if (waypointPath.length > 0) {
+            cancelarTraçadoVia(false);
+            return;
+        }
         if (!printCtx || printHistory.length <= 1) return;
         printHistory.pop();
         const prevState = printHistory[printHistory.length - 1];
@@ -2633,11 +2754,14 @@
     }
 
     function limparAnotacoesPrint() {
+        if (waypointPath.length > 0) {
+            cancelarTraçadoVia(false);
+        }
         if (!printCtx || printHistory.length === 0) return;
         const baseState = printHistory[0];
         printCtx.putImageData(baseState, 0, 0);
         printHistory = [baseState];
-        mostrarToastCartografico('Anotações limpas!');
+        mostrarToastCartografico(idiomaAtual === 'en' ? 'Annotations cleared!' : 'Anotações limpas!');
     }
 
     function getCanvasCoords(e) {
@@ -2658,6 +2782,55 @@
         printCanvas.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
             const p = getCanvasCoords(e);
+
+            // MODO B: Traçado ortogonal/45° por Waypoints (Estradas, Pontes e Túneis)
+            if (['road', 'road_plan', 'bridge', 'tunnel'].includes(printFerramentaAtual)) {
+                if (waypointPath.length === 0) {
+                    basePolylineSnapshot = printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height);
+                    waypointPath = [p];
+                    if (printFerramentaAtual === 'bridge' || printFerramentaAtual === 'tunnel') {
+                        mostrarToastCartografico(
+                            idiomaAtual === 'en'
+                                ? 'Click the endpoint (snap 45°/90°). Hold Shift for free angle.'
+                                : 'Clique no ponto final (snap 45°/90°). Segure Shift para ângulo livre.'
+                        );
+                    } else {
+                        mostrarToastCartografico(
+                            idiomaAtual === 'en'
+                                ? 'Click next corner (45°/90°). Double-click or Enter to finish.'
+                                : 'Clique na próxima esquina (45°/90°). Duplo clique ou Enter conclui.'
+                        );
+                    }
+                } else {
+                    const lastPt = waypointPath[waypointPath.length - 1];
+                    const snapped = snapToOctilinear(lastPt.x, lastPt.y, p.x, p.y, isHoldingShift);
+
+                    // Evita adicionar ponto se muito próximo do anterior
+                    if (Math.hypot(snapped.x - lastPt.x, snapped.y - lastPt.y) < 4) return;
+
+                    if (printFerramentaAtual === 'bridge') {
+                        printCtx.putImageData(basePolylineSnapshot, 0, 0);
+                        desenharPonteTatica(printCtx, waypointPath[0].x, waypointPath[0].y, snapped.x, snapped.y, printCorAtual);
+                        printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+                        waypointPath = [];
+                        basePolylineSnapshot = null;
+                        mostrarToastCartografico(idiomaAtual === 'en' ? 'Bridge placed!' : 'Ponte traçada!');
+                    } else if (printFerramentaAtual === 'tunnel') {
+                        printCtx.putImageData(basePolylineSnapshot, 0, 0);
+                        desenharTunelTatico(printCtx, waypointPath[0].x, waypointPath[0].y, snapped.x, snapped.y, printCorAtual);
+                        printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+                        waypointPath = [];
+                        basePolylineSnapshot = null;
+                        mostrarToastCartografico(idiomaAtual === 'en' ? 'Tunnel placed!' : 'Túnel traçado!');
+                    } else {
+                        // road ou road_plan: grava novo vértice do trajeto
+                        waypointPath.push(snapped);
+                    }
+                }
+                return;
+            }
+
+            // Ferramentas contínuas de arrastar (Caneta, Seta, Círculo, Texto, Carimbo)
             startPrintX = p.x;
             startPrintY = p.y;
             isDrawingPrint = true;
@@ -2680,7 +2853,7 @@
                 printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
             } else if (printFerramentaAtual === 'text') {
                 isDrawingPrint = false;
-                const texto = prompt('Digite a anotação tática:');
+                const texto = prompt(idiomaAtual === 'en' ? 'Enter tactical note:' : 'Digite a anotação tática:');
                 if (texto && texto.trim()) {
                     printCtx.font = 'bold 16px Inter, sans-serif';
                     printCtx.lineWidth = 4;
@@ -2694,32 +2867,48 @@
         });
 
         window.addEventListener('mousemove', (e) => {
+            // 1. Preview em tempo real de traçado por waypoints (snap 45°/90°)
+            if (['road', 'road_plan', 'bridge', 'tunnel'].includes(printFerramentaAtual) && waypointPath.length > 0 && basePolylineSnapshot) {
+                const p = getCanvasCoords(e);
+                const lastPt = waypointPath[waypointPath.length - 1];
+                const snapped = snapToOctilinear(lastPt.x, lastPt.y, p.x, p.y, isHoldingShift);
+
+                printCtx.putImageData(basePolylineSnapshot, 0, 0);
+
+                if (printFerramentaAtual === 'bridge') {
+                    desenharPonteTatica(printCtx, waypointPath[0].x, waypointPath[0].y, snapped.x, snapped.y, printCorAtual);
+                } else if (printFerramentaAtual === 'tunnel') {
+                    desenharTunelTatico(printCtx, waypointPath[0].x, waypointPath[0].y, snapped.x, snapped.y, printCorAtual);
+                } else if (printFerramentaAtual === 'road') {
+                    desenharEstradaContinua(printCtx, [...waypointPath, snapped], printCorAtual);
+                    desenharNosGuias(printCtx, waypointPath, snapped);
+                } else if (printFerramentaAtual === 'road_plan') {
+                    desenharEstradaProjeto(printCtx, [...waypointPath, snapped], printCorAtual);
+                    desenharNosGuias(printCtx, waypointPath, snapped);
+                }
+                return;
+            }
+
+            // 2. Traçado contínuo convencional por arrasto
             if (!isDrawingPrint) return;
             const p = getCanvasCoords(e);
 
             if (printFerramentaAtual === 'pencil') {
                 printCtx.lineTo(p.x, p.y);
                 printCtx.stroke();
-            } else if (printFerramentaAtual === 'road') {
-                printCurrentPath.push(p);
-                printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharEstradaContinua(printCtx, printCurrentPath, printCorAtual);
-            } else if (printFerramentaAtual === 'road_plan') {
-                printCurrentPath.push(p);
-                printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharEstradaProjeto(printCtx, printCurrentPath, printCorAtual);
-            } else if (printFerramentaAtual === 'bridge') {
-                printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharPonteTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual);
-            } else if (printFerramentaAtual === 'tunnel') {
-                printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharTunelTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual);
             } else if (printFerramentaAtual === 'arrow') {
                 printCtx.putImageData(snapshotImageData, 0, 0);
                 desenharSetaTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, 4);
             } else if (printFerramentaAtual === 'circle') {
                 printCtx.putImageData(snapshotImageData, 0, 0);
                 desenharCirculoTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, 4);
+            }
+        });
+
+        printCanvas.addEventListener('dblclick', (e) => {
+            if (['road', 'road_plan'].includes(printFerramentaAtual) && waypointPath.length >= 2) {
+                e.preventDefault();
+                finalizarTraçadoVia();
             }
         });
 
@@ -2971,12 +3160,23 @@
         ctx.restore();
     }
 
-    // Atalho ESC para sair do Modo Print Tático a qualquer momento
+    // Atalho ESC e ENTER para Modo Print Tático
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'Enter') {
+            if (['road', 'road_plan'].includes(printFerramentaAtual) && waypointPath.length >= 2) {
+                e.preventDefault();
+                finalizarTraçadoVia();
+            }
+        } else if (e.key === 'Escape') {
             const overlay = document.getElementById('tacticalPrintOverlay');
             if (overlay && overlay.classList.contains('open')) {
-                fecharModoPrint();
+                // Se houver traçado em andamento, cancela apenas o traçado sem fechar o overlay
+                if (waypointPath.length > 0) {
+                    e.preventDefault();
+                    cancelarTraçadoVia(true);
+                } else {
+                    fecharModoPrint();
+                }
             }
         }
     });
