@@ -450,7 +450,7 @@
                 </div>
                 <div class="sw-acc-content open">
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
-                        <button id="btnCustom" class="sw-base-btn active" onclick="trocarBase('custom', this)">Swisstopo</button>
+                        <button id="btnCustom" class="sw-base-btn active" onclick="trocarBase('custom', this)">Goldfish®</button>
                         <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
                         <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)">Isométrico</button>
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
@@ -592,7 +592,7 @@
     <!-- ================================================================
          SIDEBAR DIREITA — PAINEL DE ATIVIDADES
          ================================================================ -->
-    <div id="sidebarRight" class="sw-sidebar-right">
+    <div id="sidebarRight" class="sw-sidebar-right recolhida">
         <!-- HEADER -->
         <div style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--sw-border-subtle); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -2279,11 +2279,21 @@
         tab.style.display = sb.classList.contains('recolhida') ? 'block' : 'none';
     }
 
-    function toggleSidebarDireita() {
+    function toggleSidebarDireita(forcarAberto = null) {
         const sb = document.getElementById('sidebarRight');
         const tab = document.getElementById('hudTab');
-        sb.classList.toggle('recolhida');
-        tab.style.display = sb.classList.contains('recolhida') ? 'flex' : 'none';
+        if (!sb || !tab) return;
+        const estaAberto = !sb.classList.contains('recolhida');
+        const novoEstadoAberto = (forcarAberto !== null) ? forcarAberto : !estaAberto;
+
+        if (novoEstadoAberto) {
+            sb.classList.remove('recolhida');
+            tab.style.display = 'none';
+        } else {
+            sb.classList.add('recolhida');
+            tab.style.display = 'flex';
+        }
+        localStorage.setItem('jackal_sidebar_right_open', novoEstadoAberto ? 'true' : 'false');
     }
 
     function trocarBase(tipo, btn) {
@@ -3151,6 +3161,9 @@
 
     // Inicialização geral de dados
     async function inicializarDados() {
+        const sidebarRightSalva = localStorage.getItem('jackal_sidebar_right_open');
+        toggleSidebarDireita(sidebarRightSalva === 'true');
+
         restaurarEstadoCamadas();
         await checarSessao();
         await carregarPontosDoBanco();
