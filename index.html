@@ -915,9 +915,54 @@
         </div>
     </div>
 
+    <!-- ================================================================
+         OVERLAY - MODO PRINT TÁTICO (GOLDFISH® IN-APP CAPTURE)
+         ================================================================ -->
+    <div id="tacticalPrintOverlay" class="tactical-print-overlay">
+        <!-- HUD DE FERRAMENTAS -->
+        <div class="tactical-print-toolbar">
+            <div class="tactical-tool-group">
+                <button id="toolPencil" class="tactical-tool-btn active" onclick="definirFerramentaPrint('pencil')">✏️ Caneta</button>
+                <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')">➡️ Seta</button>
+                <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')">⭕ Alvo</button>
+                <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')">🔤 Texto</button>
+            </div>
+
+            <div class="tactical-separator"></div>
+
+            <div class="tactical-color-picker">
+                <div class="tactical-color-dot active" style="background:#ff4444;" onclick="definirCorPrint('#ff4444', this)" title="Vermelho Jackal"></div>
+                <div class="tactical-color-dot" style="background:#f5a623;" onclick="definirCorPrint('#f5a623', this)" title="Amarelo Alerta"></div>
+                <div class="tactical-color-dot" style="background:#00e676;" onclick="definirCorPrint('#00e676', this)" title="Verde Beacon"></div>
+                <div class="tactical-color-dot" style="background:#38bdf8;" onclick="definirCorPrint('#38bdf8', this)" title="Ciano Rota"></div>
+                <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco"></div>
+            </div>
+
+            <div class="tactical-tool-group">
+                <button class="tactical-tool-btn" onclick="desfazerPrint()" title="Desfazer último traço">↩️</button>
+                <button class="tactical-tool-btn" onclick="limparAnotacoesPrint()" title="Limpar todos os rabiscos">🗑️</button>
+            </div>
+
+            <div class="tactical-separator"></div>
+
+            <div class="tactical-tool-group">
+                <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" title="Upload instantâneo para link direto de imagem">🔗 Gerar Link</button>
+                <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" title="Copiar para colar no Discord com Ctrl+V">📋 Copiar Imagem</button>
+                <button class="tactical-btn-action" onclick="baixarPrintPNG()" title="Baixar arquivo PNG">💾 Salvar</button>
+                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" title="Fechar">✕</button>
+            </div>
+        </div>
+
+        <!-- WRAPPER DO CANVAS -->
+        <div class="tactical-canvas-wrapper" id="tacticalCanvasWrapper">
+            <canvas id="tacticalCombinedCanvas"></canvas>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="config.js" onerror="console.warn('config.js ausente, operando em modo demonstrativo.');"></script>
 
     <script>
@@ -989,6 +1034,26 @@
         maxBounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
     });
 
+    // Controle de Captura Tática (Modo Print Goldfish®)
+    const TacticalPrintControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function() {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-print');
+            container.innerHTML = `
+                <a href="javascript:void(0)" title="Captura Tática / Print (Goldfish®)" role="button" aria-label="Captura Tática">
+                    📷
+                </a>
+            `;
+            L.DomEvent.disableClickPropagation(container);
+            container.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                iniciarModoPrint();
+            };
+            return container;
+        }
+    });
+    map.addControl(new TacticalPrintControl());
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     const initialTileUrl = (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png';
@@ -2306,6 +2371,373 @@
         tileLayer.setUrl(urls[tipo] || urls.custom);
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+    }
+
+    // ==============================================================
+    // MODO PRINT TÁTICO — GOLDFISH® IN-APP CAPTURE & ANNOTATION
+    // ==============================================================
+    let printCanvas = null;
+    let printCtx = null;
+    let printHistory = [];
+    let printFerramentaAtual = 'pencil';
+    let printCorAtual = '#ff4444';
+    let printEspessura = 3;
+    let isDrawingPrint = false;
+    let startPrintX = 0, startPrintY = 0;
+    let snapshotImageData = null;
+    let estadoSidebarEsquerdaAntesPrint = false;
+    let estadoSidebarDireitaAntesPrint = false;
+
+    async function iniciarModoPrint() {
+        const sbLeft = document.getElementById('sidebarLeft');
+        const sbRight = document.getElementById('sidebarRight');
+        const tabEsquerda = document.getElementById('tabAbrirEsquerda');
+        const tabDireita = document.getElementById('hudTab');
+        const crosshair = document.getElementById('crosshairTooltip');
+
+        estadoSidebarEsquerdaAntesPrint = sbLeft && !sbLeft.classList.contains('recolhida');
+        estadoSidebarDireitaAntesPrint = sbRight && !sbRight.classList.contains('recolhida');
+
+        if (sbLeft) sbLeft.classList.add('recolhida');
+        if (sbRight) sbRight.classList.add('recolhida');
+        if (tabEsquerda) tabEsquerda.style.display = 'none';
+        if (tabDireita) tabDireita.style.display = 'none';
+        if (crosshair) crosshair.style.display = 'none';
+
+        mostrarToastCartografico('📸 Capturando visualização tática do mapa...');
+        await new Promise(r => setTimeout(r, 260));
+
+        try {
+            const mapEl = document.getElementById('map');
+            const capturedCanvas = await html2canvas(mapEl, {
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                ignoreElements: (el) => {
+                    return el.classList.contains('leaflet-control-zoom') ||
+                           el.classList.contains('leaflet-control-custom-print') ||
+                           el.id === 'crosshairTooltip' ||
+                           el.classList.contains('sw-hud-trigger-tab') ||
+                           el.classList.contains('sw-tab-open-left');
+                }
+            });
+
+            // Estampar Watermark Tática no rodapé do canvas
+            const ctxCap = capturedCanvas.getContext('2d');
+            const center = map.getCenter();
+            const posX = Math.round(center.lng || 2048);
+            const posY = Math.round(center.lat || 2048);
+            const qWurm = obterQuadranteWurm(posY, posX);
+            const dataStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+            const barH = 28;
+            ctxCap.fillStyle = 'rgba(12, 15, 22, 0.92)';
+            ctxCap.fillRect(0, capturedCanvas.height - barH, capturedCanvas.width, barH);
+            ctxCap.strokeStyle = 'rgba(255, 68, 68, 0.5)';
+            ctxCap.lineWidth = 1;
+            ctxCap.strokeRect(0, capturedCanvas.height - barH, capturedCanvas.width, barH);
+
+            ctxCap.font = 'bold 12px Inter, sans-serif';
+            ctxCap.fillStyle = '#ff4444';
+            ctxCap.fillText('🗺️ JACKAL ATLAS • GOLDFISH®', 14, capturedCanvas.height - 9);
+
+            ctxCap.font = '11.5px "JetBrains Mono", monospace';
+            ctxCap.fillStyle = '#cbd5e1';
+            const infoText = `Posição: X ${posX} · Y ${posY} | Quadrante: ${qWurm} | ${dataStr}`;
+            const textW = ctxCap.measureText(infoText).width;
+            ctxCap.fillText(infoText, capturedCanvas.width - textW - 14, capturedCanvas.height - 9);
+
+            abrirOverlayPrint(capturedCanvas);
+        } catch (err) {
+            console.error('Erro na captura do print:', err);
+            mostrarToastCartografico('[-] Erro ao capturar mapa: ' + err.message);
+            restaurarInterfacesPosPrint();
+        }
+    }
+
+    function abrirOverlayPrint(capturedCanvas) {
+        const overlay = document.getElementById('tacticalPrintOverlay');
+        const mainCanvas = document.getElementById('tacticalCombinedCanvas');
+        if (!overlay || !mainCanvas) return;
+
+        const maxW = window.innerWidth * 0.94;
+        const maxH = (window.innerHeight - 80) * 0.92;
+        const ratio = Math.min(maxW / capturedCanvas.width, maxH / capturedCanvas.height, 1);
+
+        mainCanvas.width = capturedCanvas.width;
+        mainCanvas.height = capturedCanvas.height;
+        mainCanvas.style.width = Math.round(capturedCanvas.width * ratio) + 'px';
+        mainCanvas.style.height = Math.round(capturedCanvas.height * ratio) + 'px';
+
+        printCanvas = mainCanvas;
+        printCtx = mainCanvas.getContext('2d');
+        printCtx.drawImage(capturedCanvas, 0, 0);
+
+        printHistory = [printCtx.getImageData(0, 0, mainCanvas.width, mainCanvas.height)];
+
+        overlay.classList.add('open');
+        inicializarEventosCanvasPrint();
+    }
+
+    function fecharModoPrint() {
+        const overlay = document.getElementById('tacticalPrintOverlay');
+        if (overlay) overlay.classList.remove('open');
+        restaurarInterfacesPosPrint();
+    }
+
+    function restaurarInterfacesPosPrint() {
+        const sbLeft = document.getElementById('sidebarLeft');
+        const tabEsquerda = document.getElementById('tabAbrirEsquerda');
+
+        if (estadoSidebarEsquerdaAntesPrint && sbLeft) {
+            sbLeft.classList.remove('recolhida');
+            if (tabEsquerda) tabEsquerda.style.display = 'none';
+        } else if (tabEsquerda) {
+            tabEsquerda.style.display = 'block';
+        }
+
+        toggleSidebarDireita(estadoSidebarDireitaAntesPrint);
+    }
+
+    function definirFerramentaPrint(ferramenta) {
+        printFerramentaAtual = ferramenta;
+        document.querySelectorAll('.tactical-print-toolbar .tactical-tool-btn').forEach(b => {
+            if (b.id && b.id.startsWith('tool')) b.classList.remove('active');
+        });
+        const idBtn = {
+            pencil: 'toolPencil',
+            arrow: 'toolArrow',
+            circle: 'toolCircle',
+            text: 'toolText'
+        }[ferramenta];
+        if (idBtn && document.getElementById(idBtn)) {
+            document.getElementById(idBtn).classList.add('active');
+        }
+    }
+
+    function definirCorPrint(cor, el) {
+        printCorAtual = cor;
+        document.querySelectorAll('.tactical-color-dot').forEach(d => d.classList.remove('active'));
+        if (el) el.classList.add('active');
+    }
+
+    function desfazerPrint() {
+        if (!printCtx || printHistory.length <= 1) return;
+        printHistory.pop();
+        const prevState = printHistory[printHistory.length - 1];
+        printCtx.putImageData(prevState, 0, 0);
+    }
+
+    function limparAnotacoesPrint() {
+        if (!printCtx || printHistory.length === 0) return;
+        const baseState = printHistory[0];
+        printCtx.putImageData(baseState, 0, 0);
+        printHistory = [baseState];
+        mostrarToastCartografico('Anotações limpas!');
+    }
+
+    function getCanvasCoords(e) {
+        const rect = printCanvas.getBoundingClientRect();
+        const scaleX = printCanvas.width / rect.width;
+        const scaleY = printCanvas.height / rect.height;
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+
+    let printCanvasEventosAtivos = false;
+    function inicializarEventosCanvasPrint() {
+        if (printCanvasEventosAtivos || !printCanvas) return;
+        printCanvasEventosAtivos = true;
+
+        printCanvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            const p = getCanvasCoords(e);
+            startPrintX = p.x;
+            startPrintY = p.y;
+            isDrawingPrint = true;
+
+            snapshotImageData = printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height);
+
+            if (printFerramentaAtual === 'pencil') {
+                printCtx.beginPath();
+                printCtx.moveTo(p.x, p.y);
+                printCtx.strokeStyle = printCorAtual;
+                printCtx.lineWidth = printEspessura;
+                printCtx.lineCap = 'round';
+                printCtx.lineJoin = 'round';
+            } else if (printFerramentaAtual === 'text') {
+                isDrawingPrint = false;
+                const texto = prompt('Digite a anotação tática:');
+                if (texto && texto.trim()) {
+                    printCtx.font = 'bold 16px Inter, sans-serif';
+                    printCtx.shadowColor = '#000000';
+                    printCtx.shadowBlur = 6;
+                    printCtx.lineWidth = 4;
+                    printCtx.strokeStyle = '#000000';
+                    printCtx.strokeText(texto.trim(), p.x, p.y);
+                    printCtx.fillStyle = printCorAtual;
+                    printCtx.fillText(texto.trim(), p.x, p.y);
+                    printCtx.shadowBlur = 0;
+                    printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+                }
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDrawingPrint) return;
+            const p = getCanvasCoords(e);
+
+            if (printFerramentaAtual === 'pencil') {
+                printCtx.lineTo(p.x, p.y);
+                printCtx.stroke();
+            } else if (printFerramentaAtual === 'arrow') {
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharSetaTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, printEspessura);
+            } else if (printFerramentaAtual === 'circle') {
+                printCtx.putImageData(snapshotImageData, 0, 0);
+                desenharCirculoTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, printEspessura);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDrawingPrint) return;
+            isDrawingPrint = false;
+            printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
+        });
+    }
+
+    function desenharSetaTatica(ctx, fromX, fromY, toX, toY, color, width) {
+        const headLength = 18;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const angle = Math.atan2(dy, dx);
+
+        ctx.save();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = width + 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+
+        // Ponta da seta
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 4;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function desenharCirculoTatico(ctx, fromX, fromY, toX, toY, color, width) {
+        const radiusX = Math.abs(toX - fromX) / 2;
+        const radiusY = Math.abs(toY - fromY) / 2;
+        const centerX = fromX + (toX - fromX) / 2;
+        const centerY = fromY + (toY - fromY) / 2;
+
+        ctx.save();
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 4;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, Math.max(1, radiusX), Math.max(1, radiusY), 0, 0, 2 * Math.PI);
+        ctx.fillStyle = color.startsWith('#') ? color + '22' : 'rgba(255,255,255,0.15)';
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    async function uploadPrintLink() {
+        const btn = document.getElementById('btnUploadLink');
+        const txtOriginal = btn.innerHTML;
+        btn.innerHTML = '⏳ Enviando...';
+        btn.disabled = true;
+
+        try {
+            printCanvas.toBlob(async (blob) => {
+                if (!blob) throw new Error('Falha ao processar canvas');
+
+                const formData = new FormData();
+                formData.append('reqtype', 'fileupload');
+                formData.append('time', '72h');
+                formData.append('fileToUpload', blob, 'jackal_tatical_print.png');
+
+                const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const url = (await res.text()).trim();
+
+                if (url.startsWith('http')) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(url);
+                    }
+                    mostrarToastCartografico(`✓ Link gerado e copiado! Cole no Discord: ${url}`);
+                    btn.innerHTML = '✓ Copiado!';
+                    setTimeout(() => { btn.innerHTML = txtOriginal; btn.disabled = false; }, 3500);
+                } else {
+                    throw new Error(url || 'Resposta inesperada do serviço');
+                }
+            }, 'image/png');
+        } catch (err) {
+            console.error('Erro no upload para Litterbox:', err);
+            btn.innerHTML = txtOriginal;
+            btn.disabled = false;
+            mostrarToastCartografico(`[-] Falha ao subir link: ${err.message}. Use "Copiar Imagem"!`);
+        }
+    }
+
+    async function copiarPrintClipboard() {
+        const btn = document.getElementById('btnCopyImg');
+        const txtOriginal = btn.innerHTML;
+        try {
+            printCanvas.toBlob(async (blob) => {
+                if (!blob) throw new Error('Falha ao gerar imagem');
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    mostrarToastCartografico('✓ Imagem copiada! Cole no Discord ou WhatsApp com Ctrl+V');
+                    btn.innerHTML = '✓ Copiado!';
+                    setTimeout(() => { btn.innerHTML = txtOriginal; }, 2500);
+                } else {
+                    baixarPrintPNG();
+                }
+            }, 'image/png');
+        } catch (err) {
+            console.error('Erro ao copiar imagem:', err);
+            mostrarToastCartografico('[-] Navegador não suporta cópia direta. Baixando arquivo...');
+            baixarPrintPNG();
+        }
+    }
+
+    function baixarPrintPNG() {
+        const center = map.getCenter();
+        const posX = Math.round(center.lng || 2048);
+        const posY = Math.round(center.lat || 2048);
+        const qWurm = obterQuadranteWurm(posY, posX);
+        const a = document.createElement('a');
+        a.download = `Jackal_Print_${qWurm}_X${posX}_Y${posY}.png`;
+        a.href = printCanvas.toDataURL('image/png');
+        a.click();
+        mostrarToastCartografico(`✓ Arquivo salvo: ${a.download}`);
     }
 
 
