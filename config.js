@@ -14,7 +14,7 @@ window.JACKAL_CONFIG = {
     publishableKey: 'sb_publishable_y44HqaybQIc7KhldlxAEeg_pXP2wNQP',
 
     // Chave de API ImgBB (obtenha gratuitamente em https://api.imgbb.com para links que viram imagem no Discord)
-    imgbbApiKey: '',
+    imgbbApiKey: 'ea391a78c4c3c286593571423f9e279a',
 
     // URLs dos tiles locais / offline
     tiles: {

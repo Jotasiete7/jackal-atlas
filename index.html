@@ -935,16 +935,34 @@
                 <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')">➡️ Seta</button>
                 <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')">⭕ Alvo</button>
                 <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')">🔤 Texto</button>
+
+                <!-- MENU DROPDOWN DE ÍCONES TÁTICOS -->
+                <div class="tactical-stamp-container" style="position:relative; display:inline-block;">
+                    <button id="toolStamp" class="tactical-tool-btn" onclick="toggleMenuCarimbos(event)" title="Carimbar Ícones Táticos (Deed, Pontes, Projetos)">
+                        <span id="stampCurrentIcon">🏰</span> Ícones ▼
+                    </button>
+                    <div id="tacticalStampMenu" class="tactical-stamp-menu" style="display:none;">
+                        <div class="stamp-item" onclick="selecionarCarimbo('🏰', 'Deed')">🏰 Deed / Vila</div>
+                        <div class="stamp-item" onclick="selecionarCarimbo('🌉', 'Ponte Pronta')">🌉 Ponte Pronta</div>
+                        <div class="stamp-item" onclick="selecionarCarimbo('🏗️', 'Ponte Projeto')">🏗️ Ponte Projeto / Obra</div>
+                        <div class="stamp-item" onclick="selecionarCarimbo('🚩', 'Ponto Reunião')">🚩 Ponto de Reunião</div>
+                        <div class="stamp-item" onclick="selecionarCarimbo('⚔️', 'Alvo / Combate')">⚔️ Alvo de Ataque</div>
+                        <div class="stamp-item" onclick="selecionarCarimbo('⛏️', 'Mina / Túnel')">⛏️ Mina / Prospecção</div>
+                    </div>
+                </div>
             </div>
 
             <div class="tactical-separator"></div>
 
             <div class="tactical-color-picker">
-                <div class="tactical-color-dot active" style="background:#ff4444;" onclick="definirCorPrint('#ff4444', this)" title="Vermelho Jackal"></div>
-                <div class="tactical-color-dot" style="background:#f5a623;" onclick="definirCorPrint('#f5a623', this)" title="Amarelo Alerta"></div>
-                <div class="tactical-color-dot" style="background:#00e676;" onclick="definirCorPrint('#00e676', this)" title="Verde Beacon"></div>
-                <div class="tactical-color-dot" style="background:#38bdf8;" onclick="definirCorPrint('#38bdf8', this)" title="Ciano Rota"></div>
-                <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco"></div>
+                <div class="tactical-color-dot" style="background:#000000; border:1px solid #777;" onclick="definirCorPrint('#000000', this)" title="Preto Tático"></div>
+                <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco Puro"></div>
+                <div class="tactical-color-dot" style="background:#ffee00;" onclick="definirCorPrint('#ffee00', this)" title="Amarelo Neon (Super Contraste)"></div>
+                <div class="tactical-color-dot" style="background:#ff007f;" onclick="definirCorPrint('#ff007f', this)" title="Rosa / Magenta Neon"></div>
+                <div class="tactical-color-dot" style="background:#00ff66;" onclick="definirCorPrint('#00ff66', this)" title="Verde Neon"></div>
+                <div class="tactical-color-dot" style="background:#00f0ff;" onclick="definirCorPrint('#00f0ff', this)" title="Ciano Elétrico"></div>
+                <div class="tactical-color-dot active" style="background:#ff2222;" onclick="definirCorPrint('#ff2222', this)" title="Vermelho Jackal"></div>
+                <div class="tactical-color-dot" style="background:#ff7700;" onclick="definirCorPrint('#ff7700', this)" title="Laranja Fogo"></div>
             </div>
 
             <div class="tactical-tool-group">
@@ -2516,6 +2534,34 @@
         toggleSidebarDireita(estadoSidebarDireitaAntesPrint);
     }
 
+    let carimboAtual = { emoji: '🏰', label: 'Deed' };
+
+    function toggleMenuCarimbos(e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById('tacticalStampMenu');
+        if (!menu) return;
+        const isVisible = menu.style.display === 'flex';
+        menu.style.display = isVisible ? 'none' : 'flex';
+    }
+
+    function selecionarCarimbo(emoji, label) {
+        carimboAtual = { emoji, label };
+        const labelEl = document.getElementById('stampCurrentIcon');
+        if (labelEl) labelEl.textContent = emoji;
+        const menu = document.getElementById('tacticalStampMenu');
+        if (menu) menu.style.display = 'none';
+        definirFerramentaPrint('stamp');
+        mostrarToastCartografico(`Carimbo ativo: ${emoji} ${label}. Clique no mapa para estampar!`);
+    }
+
+    // Fechar menu de carimbos ao clicar fora
+    window.addEventListener('click', (e) => {
+        const menu = document.getElementById('tacticalStampMenu');
+        if (menu && menu.style.display === 'flex' && !e.target.closest('.tactical-stamp-container')) {
+            menu.style.display = 'none';
+        }
+    });
+
     function definirFerramentaPrint(ferramenta) {
         printFerramentaAtual = ferramenta;
         document.querySelectorAll('.tactical-print-toolbar .tactical-tool-btn').forEach(b => {
@@ -2525,7 +2571,8 @@
             pencil: 'toolPencil',
             arrow: 'toolArrow',
             circle: 'toolCircle',
-            text: 'toolText'
+            text: 'toolText',
+            stamp: 'toolStamp'
         }[ferramenta];
         if (idBtn && document.getElementById(idBtn)) {
             document.getElementById(idBtn).classList.add('active');
@@ -2581,22 +2628,26 @@
                 printCtx.beginPath();
                 printCtx.moveTo(p.x, p.y);
                 printCtx.strokeStyle = printCorAtual;
-                printCtx.lineWidth = printEspessura;
+                printCtx.lineWidth = 5;
                 printCtx.lineCap = 'round';
                 printCtx.lineJoin = 'round';
+                // Halo de alto contraste (sombra branca para traços pretos, sombra preta para traços coloridos/claros)
+                printCtx.shadowColor = (printCorAtual === '#000000') ? 'rgba(255, 255, 255, 0.95)' : '#000000';
+                printCtx.shadowBlur = 5;
+            } else if (printFerramentaAtual === 'stamp') {
+                isDrawingPrint = false;
+                desenharCarimboTatico(printCtx, p.x, p.y, carimboAtual, printCorAtual);
+                printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
             } else if (printFerramentaAtual === 'text') {
                 isDrawingPrint = false;
                 const texto = prompt('Digite a anotação tática:');
                 if (texto && texto.trim()) {
                     printCtx.font = 'bold 16px Inter, sans-serif';
-                    printCtx.shadowColor = '#000000';
-                    printCtx.shadowBlur = 6;
                     printCtx.lineWidth = 4;
-                    printCtx.strokeStyle = '#000000';
+                    printCtx.strokeStyle = (printCorAtual === '#000000') ? '#ffffff' : '#000000';
                     printCtx.strokeText(texto.trim(), p.x, p.y);
                     printCtx.fillStyle = printCorAtual;
                     printCtx.fillText(texto.trim(), p.x, p.y);
-                    printCtx.shadowBlur = 0;
                     printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
                 }
             }
@@ -2611,29 +2662,66 @@
                 printCtx.stroke();
             } else if (printFerramentaAtual === 'arrow') {
                 printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharSetaTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, printEspessura);
+                desenharSetaTatica(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, 4);
             } else if (printFerramentaAtual === 'circle') {
                 printCtx.putImageData(snapshotImageData, 0, 0);
-                desenharCirculoTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, printEspessura);
+                desenharCirculoTatico(printCtx, startPrintX, startPrintY, p.x, p.y, printCorAtual, 4);
             }
         });
 
         window.addEventListener('mouseup', () => {
             if (!isDrawingPrint) return;
             isDrawingPrint = false;
+            if (printCtx) printCtx.shadowBlur = 0;
             printHistory.push(printCtx.getImageData(0, 0, printCanvas.width, printCanvas.height));
         });
     }
 
+    function desenharCarimboTatico(ctx, x, y, carimbo, cor) {
+        ctx.save();
+        // Badge circular tático escuro
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(13, 17, 23, 0.92)';
+        ctx.fill();
+
+        // Borda viva na cor selecionada com halo de contraste
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = cor || '#ffee00';
+        ctx.shadowColor = (cor === '#000000') ? '#ffffff' : '#000000';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+
+        // Emoji nítido centralizado
+        ctx.shadowBlur = 0;
+        ctx.font = '22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(carimbo.emoji, x, y + 1);
+
+        // Legenda / Rótulo abaixo do ícone com borda preta
+        if (carimbo.label) {
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText(carimbo.label, x, y + 36);
+            ctx.fillStyle = (cor === '#000000') ? '#ffffff' : (cor || '#ffffff');
+            ctx.fillText(carimbo.label, x, y + 36);
+        }
+        ctx.restore();
+    }
+
     function desenharSetaTatica(ctx, fromX, fromY, toX, toY, color, width) {
-        const headLength = 18;
+        const headLength = 20;
         const dx = toX - fromX;
         const dy = toY - fromY;
         const angle = Math.atan2(dy, dx);
 
         ctx.save();
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = width + 2;
+        // Contorno escuro para contraste garantido sobre qualquer terreno
+        ctx.strokeStyle = (color === '#000000') ? '#ffffff' : '#000000';
+        ctx.lineWidth = width + 4;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(fromX, fromY);
@@ -2654,7 +2742,7 @@
         ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
         ctx.closePath();
         ctx.fillStyle = color;
-        ctx.shadowColor = '#000';
+        ctx.shadowColor = (color === '#000000') ? '#ffffff' : '#000000';
         ctx.shadowBlur = 4;
         ctx.fill();
         ctx.restore();
@@ -2667,13 +2755,19 @@
         const centerY = fromY + (toY - fromY) / 2;
 
         ctx.save();
-        ctx.shadowColor = '#000000';
-        ctx.shadowBlur = 4;
+        // Contorno externo de contraste
+        ctx.strokeStyle = (color === '#000000') ? '#ffffff' : '#000000';
+        ctx.lineWidth = width + 3;
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, Math.max(1, radiusX), Math.max(1, radiusY), 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Linha principal com preenchimento sutil
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
         ctx.beginPath();
         ctx.ellipse(centerX, centerY, Math.max(1, radiusX), Math.max(1, radiusY), 0, 0, 2 * Math.PI);
-        ctx.fillStyle = color.startsWith('#') ? color + '22' : 'rgba(255,255,255,0.15)';
+        ctx.fillStyle = color.startsWith('#') ? color + '28' : 'rgba(255,255,255,0.18)';
         ctx.fill();
         ctx.stroke();
         ctx.restore();
