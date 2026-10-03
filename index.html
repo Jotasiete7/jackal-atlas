@@ -958,7 +958,7 @@
                 <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" title="Upload instantâneo para link direto de imagem">🔗 Gerar Link</button>
                 <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" title="Copiar para colar no Discord com Ctrl+V">📋 Copiar Imagem</button>
                 <button class="tactical-btn-action" onclick="baixarPrintPNG()" title="Baixar arquivo PNG">💾 Salvar</button>
-                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" title="Fechar">✕</button>
+                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" title="Fechar Modo Print (ou pressione ESC)">✕ (Esc)</button>
             </div>
         </div>
 
@@ -2409,15 +2409,21 @@
         if (tabDireita) tabDireita.style.display = 'none';
         if (crosshair) crosshair.style.display = 'none';
 
-        mostrarToastCartografico('📸 Capturando visualização tática do mapa...');
-        await new Promise(r => setTimeout(r, 260));
+        mostrarToastCartografico('📸 Capturando visualização tática em alta definição...');
+        // Aguarda estabilização de zoom, animações e renderização dos tiles Leaflet
+        await new Promise(r => setTimeout(r, 420));
 
         try {
             const mapEl = document.getElementById('map');
+            // Escala 2x (ou devicePixelRatio se for maior) para nitidez cristalina absoluta mesmo com zoom
+            const captureScale = Math.max(window.devicePixelRatio || 1, 2);
+
             const capturedCanvas = await html2canvas(mapEl, {
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
+                scale: captureScale,
+                imageTimeout: 15000,
                 ignoreElements: (el) => {
                     return el.classList.contains('leaflet-control-zoom') ||
                            el.classList.contains('leaflet-control-custom-print') ||
@@ -2427,7 +2433,7 @@
                 }
             });
 
-            // Estampar Watermark Tática no rodapé do canvas
+            // Estampar Watermark Tática no rodapé do canvas escalada proporcionalmente
             const ctxCap = capturedCanvas.getContext('2d');
             const center = map.getCenter();
             const posX = Math.round(center.lng || 2048);
@@ -2435,22 +2441,28 @@
             const qWurm = obterQuadranteWurm(posY, posX);
             const dataStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
-            const barH = 28;
-            ctxCap.fillStyle = 'rgba(12, 15, 22, 0.92)';
+            const scaleRatio = captureScale / 1.5;
+            const barH = Math.round(28 * scaleRatio);
+            ctxCap.fillStyle = 'rgba(12, 15, 22, 0.94)';
             ctxCap.fillRect(0, capturedCanvas.height - barH, capturedCanvas.width, barH);
-            ctxCap.strokeStyle = 'rgba(255, 68, 68, 0.5)';
-            ctxCap.lineWidth = 1;
+            ctxCap.strokeStyle = 'rgba(255, 68, 68, 0.6)';
+            ctxCap.lineWidth = Math.max(1, Math.round(1 * scaleRatio));
             ctxCap.strokeRect(0, capturedCanvas.height - barH, capturedCanvas.width, barH);
 
-            ctxCap.font = 'bold 12px Inter, sans-serif';
-            ctxCap.fillStyle = '#ff4444';
-            ctxCap.fillText('🗺️ JACKAL ATLAS • GOLDFISH®', 14, capturedCanvas.height - 9);
+            const fontTitleSize = Math.round(12 * scaleRatio);
+            const fontInfoSize = Math.round(11.5 * scaleRatio);
+            const padY = Math.round(9 * scaleRatio);
+            const padX = Math.round(14 * scaleRatio);
 
-            ctxCap.font = '11.5px "JetBrains Mono", monospace';
+            ctxCap.font = `bold ${fontTitleSize}px Inter, sans-serif`;
+            ctxCap.fillStyle = '#ff4444';
+            ctxCap.fillText('🗺️ JACKAL ATLAS • GOLDFISH®', padX, capturedCanvas.height - padY);
+
+            ctxCap.font = `${fontInfoSize}px "JetBrains Mono", monospace`;
             ctxCap.fillStyle = '#cbd5e1';
             const infoText = `Posição: X ${posX} · Y ${posY} | Quadrante: ${qWurm} | ${dataStr}`;
             const textW = ctxCap.measureText(infoText).width;
-            ctxCap.fillText(infoText, capturedCanvas.width - textW - 14, capturedCanvas.height - 9);
+            ctxCap.fillText(infoText, capturedCanvas.width - textW - padX, capturedCanvas.height - padY);
 
             abrirOverlayPrint(capturedCanvas);
         } catch (err) {
@@ -2667,6 +2679,16 @@
         ctx.restore();
     }
 
+    // Atalho ESC para sair do Modo Print Tático a qualquer momento
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const overlay = document.getElementById('tacticalPrintOverlay');
+            if (overlay && overlay.classList.contains('open')) {
+                fecharModoPrint();
+            }
+        }
+    });
+
     async function uploadPrintLink() {
         const btn = document.getElementById('btnUploadLink');
         const txtOriginal = btn.innerHTML;
@@ -2677,32 +2699,70 @@
             printCanvas.toBlob(async (blob) => {
                 if (!blob) throw new Error('Falha ao processar canvas');
 
-                const formData = new FormData();
-                formData.append('reqtype', 'fileupload');
-                formData.append('time', '72h');
-                formData.append('fileToUpload', blob, 'jackal_tatical_print.png');
-
-                const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const url = (await res.text()).trim();
-
-                if (url.startsWith('http')) {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(url);
+                // 1. Prioriza ImgBB (Solução definitiva que expande direto como imagem no Discord)
+                let apiKey = (window.JACKAL_CONFIG && window.JACKAL_CONFIG.imgbbApiKey) || localStorage.getItem('jackal_imgbb_api_key');
+                if (!apiKey) {
+                    const userInput = prompt(
+                        'Para gerar um link definitivo do ImgBB (que vira imagem grande no Discord), insira sua chave gratuita de API:\n(Obtenha gratuitamente em https://api.imgbb.com)\n\nOu clique em Cancelar para usar o link alternativo do Catbox:'
+                    );
+                    if (userInput && userInput.trim()) {
+                        apiKey = userInput.trim();
+                        localStorage.setItem('jackal_imgbb_api_key', apiKey);
                     }
-                    mostrarToastCartografico(`✓ Link gerado e copiado! Cole no Discord: ${url}`);
+                }
+
+                let directUrl = '';
+                let serviceName = '';
+
+                if (apiKey) {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'jackal_tactical_print.png');
+
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const json = await res.json();
+                    if (json && json.success && json.data) {
+                        // Formato direto https://i.ibb.co/... que o Discord exibe grande no chat!
+                        directUrl = json.data.url;
+                        serviceName = 'ImgBB';
+                    } else {
+                        const errMsg = (json && json.error && json.error.message) || 'Erro no ImgBB';
+                        localStorage.removeItem('jackal_imgbb_api_key');
+                        throw new Error(`ImgBB: ${errMsg}. Chave resetada.`);
+                    }
+                } else {
+                    // Fallback para Catbox Litterbox
+                    const formData = new FormData();
+                    formData.append('reqtype', 'fileupload');
+                    formData.append('time', '72h');
+                    formData.append('fileToUpload', blob, 'jackal_tatical_print.png');
+
+                    const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    directUrl = (await res.text()).trim();
+                    serviceName = 'Catbox';
+                }
+
+                if (directUrl && directUrl.startsWith('http')) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(directUrl);
+                    }
+                    mostrarToastCartografico(`✓ Link ${serviceName} copiado! Cole no Discord: ${directUrl}`);
                     btn.innerHTML = '✓ Copiado!';
                     setTimeout(() => { btn.innerHTML = txtOriginal; btn.disabled = false; }, 3500);
                 } else {
-                    throw new Error(url || 'Resposta inesperada do serviço');
+                    throw new Error(directUrl || 'Resposta inesperada do serviço de upload');
                 }
             }, 'image/png');
         } catch (err) {
-            console.error('Erro no upload para Litterbox:', err);
+            console.error('Erro no upload de imagem:', err);
             btn.innerHTML = txtOriginal;
             btn.disabled = false;
             mostrarToastCartografico(`[-] Falha ao subir link: ${err.message}. Use "Copiar Imagem"!`);
