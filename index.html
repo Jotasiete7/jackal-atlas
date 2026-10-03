@@ -449,8 +449,9 @@
                     <span style="font-size:9.5px; opacity:0.8;" data-i18n="camadas">Camadas</span>
                 </div>
                 <div class="sw-acc-content open">
-                    <div class="sw-base-switcher" style="grid-template-columns: repeat(3, 1fr);">
-                        <button id="btnTerrain" class="sw-base-btn active" onclick="trocarBase('terrain', this)">Terrain</button>
+                    <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
+                        <button id="btnCustom" class="sw-base-btn active" onclick="trocarBase('custom', this)">Swisstopo</button>
+                        <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
                         <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)">Isométrico</button>
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
                     </div>
@@ -931,6 +932,7 @@
         maxZoom: 6,
         minZoom: 0,
         tiles: {
+            custom: 'tiles_custom/{z}/{x}/{y}.png',
             terrain: 'tiles_terrain/{z}/{x}/{y}.png',
             isometric: 'tiles_iso/{z}/{x}/{y}.png',
             topographic: 'tiles_topo/{z}/{x}/{y}.png'
@@ -986,7 +988,7 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    const tileLayer = L.tileLayer(CFG.tiles.terrain, {
+    const tileLayer = L.tileLayer(CFG.tiles.custom, {
         minZoom: 0,
         maxZoom: 6,
         maxNativeZoom: 4,
@@ -2282,11 +2284,12 @@
 
     function trocarBase(tipo, btn) {
         const urls = {
+            custom:  'tiles_custom/{z}/{x}/{y}.png',
             terrain: 'tiles_terrain/{z}/{x}/{y}.png',
             iso:     'tiles_iso/{z}/{x}/{y}.png',
             topo:    'tiles_topo/{z}/{x}/{y}.png'
         };
-        tileLayer.setUrl(urls[tipo] || urls.terrain);
+        tileLayer.setUrl(urls[tipo] || urls.custom);
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }

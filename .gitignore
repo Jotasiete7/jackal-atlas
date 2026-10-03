@@ -13,3 +13,9 @@ scratch/
 test_tile.png
 .DS_Store
 Thumbs.db
+
+# Imagens brutas pesadas de 4096px (apenas scripts e tiles vão para produção)
+maps/raw/*.png
+maps/processed/*.png
+jackal_original_iso_4096.png
+jackal_original_topo_4096.png

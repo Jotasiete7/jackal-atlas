@@ -1,0 +1,167 @@
+{
+  "_comment": "palette_jackal_swisstopo.json — Mapeamento Cartográfico Swisstopo Adaptado para Servidor Jackal",
+  "metadata": {
+    "server": "Jackal",
+    "theme": "Swisstopo Cartographic + Jackal Corrupted Mechanics",
+    "notes": "Preserva a dualidade narrativa de Jackal: território corrompido avermelhado vs oásis de beacons verdes, com elegância cartográfica alpina."
+  },
+  "sentinels": [
+    {
+      "hex": "#000000",
+      "description": "Portas de mina (1x1 px) — preservação 1:1 intocada",
+      "action": "pass_through"
+    },
+    {
+      "hex": "#fce303",
+      "description": "Marcadores Amarelos (Tokens, Pontes, Limites de Deed)",
+      "action": "pass_through"
+    },
+    {
+      "hex": "#d7331e",
+      "description": "Marcadores Vermelhos (POIs especiais / Estruturas)",
+      "action": "pass_through"
+    }
+  ],
+  "mappings": [
+    {
+      "id": 0,
+      "name": "Água Profunda / Oceano de Jackal",
+      "category": "water",
+      "source_hex": "#3c5854",
+      "source_rgb": [60, 88, 84],
+      "target_hex": "#88b2c8",
+      "target_rgb": [136, 178, 200],
+      "note": "Azul suave acinzentado clássico Swisstopo para corpos d'água"
+    },
+    {
+      "id": 1,
+      "name": "Corrupção Avermelhada Principal de Jackal",
+      "category": "jackal_corrupted",
+      "source_hex": "#583d27",
+      "source_rgb": [88, 61, 39],
+      "target_hex": "#ba836c",
+      "target_rgb": [186, 131, 108],
+      "note": "Terracota nobre que preserva o tom avermelhado de Jackal com alta legibilidade"
+    },
+    {
+      "id": 2,
+      "name": "Corrupção Profunda / Cinzas / Solo Estéril",
+      "category": "jackal_corrupted",
+      "source_hex": "#342018",
+      "source_rgb": [52, 32, 24],
+      "target_hex": "#845e4d",
+      "target_rgb": [132, 94, 77],
+      "note": "Tom terroso escuro mineral corrompido"
+    },
+    {
+      "id": 3,
+      "name": "Rocha / Cordilheira Montanhosa / Penhascos",
+      "category": "rock",
+      "source_hex": "#706d6f",
+      "source_rgb": [112, 109, 111],
+      "target_hex": "#c7beaf",
+      "target_rgb": [199, 190, 175],
+      "note": "Cinza mineral Swisstopo para picos e afloramentos rochosos"
+    },
+    {
+      "id": 4,
+      "name": "Corrupção Jackal Arroxeada / Encosta Sombria",
+      "category": "jackal_corrupted",
+      "source_hex": "#45373e",
+      "source_rgb": [69, 55, 62],
+      "target_hex": "#9c8189",
+      "target_rgb": [156, 129, 137],
+      "note": "Malva mineral avermelhado cartográfico"
+    },
+    {
+      "id": 5,
+      "name": "Transição de Terreno / Solo Úmido",
+      "category": "transition",
+      "source_hex": "#3c564c",
+      "source_rgb": [60, 86, 76],
+      "target_hex": "#9fa68d",
+      "target_rgb": [159, 166, 141],
+      "note": "Oliva seco suave intermediário"
+    },
+    {
+      "id": 6,
+      "name": "Água Rasa / Margem Costeira",
+      "category": "water",
+      "source_hex": "#4c6662",
+      "source_rgb": [76, 102, 98],
+      "target_hex": "#a5c8d8",
+      "target_rgb": [165, 200, 216],
+      "note": "Azul celeste límpido para baixios e litorais"
+    },
+    {
+      "id": 7,
+      "name": "Beacon Conquistado — Grama / Área Liberada (Deeds permitidas)",
+      "category": "beacon_sanctuary",
+      "source_hex": "#366503",
+      "source_rgb": [54, 101, 3],
+      "target_hex": "#b8cf96",
+      "target_rgb": [184, 207, 150],
+      "note": "Verde pradaria suave Swisstopo destacando os círculos conquistados onde deeds podem ser construídas"
+    },
+    {
+      "id": 8,
+      "name": "Solo Corrompido Rosado / Areia Escória",
+      "category": "jackal_corrupted",
+      "source_hex": "#998086",
+      "source_rgb": [153, 128, 134],
+      "target_hex": "#d4b8be",
+      "target_rgb": [212, 184, 190],
+      "note": "Tom claro suave mantendo a assinatura cromática de Jackal"
+    },
+    {
+      "id": 9,
+      "name": "Beacon Conquistado — Floresta / Bosque Recuperado",
+      "category": "beacon_sanctuary",
+      "source_hex": "#293a02",
+      "source_rgb": [41, 58, 2],
+      "target_hex": "#72925a",
+      "target_rgb": [114, 146, 90],
+      "note": "Verde florestal alpino para bosques protegidos por beacons"
+    },
+    {
+      "id": 10,
+      "name": "Solo Avermelhado Médio / Encosta Jackal",
+      "category": "jackal_corrupted",
+      "source_hex": "#715958",
+      "source_rgb": [113, 89, 88],
+      "target_hex": "#b3887d",
+      "target_rgb": [179, 136, 125],
+      "note": "Tom intermediário entre solo escuro e corrupção clara"
+    },
+    {
+      "id": 11,
+      "name": "Areia / Praias / Dunas",
+      "category": "sand",
+      "source_hex": "#a0936d",
+      "source_rgb": [160, 147, 109],
+      "target_hex": "#f1e8d6",
+      "target_rgb": [241, 232, 214],
+      "note": "Creme alpino Swisstopo clássico"
+    },
+    {
+      "id": 12,
+      "name": "Água Profunda Secundária / Fossa Marinha",
+      "category": "water",
+      "source_hex": "#373f6f",
+      "source_rgb": [55, 63, 111],
+      "target_hex": "#79a3b9",
+      "target_rgb": [121, 163, 185],
+      "note": "Azul cobalto batimétrico profundo"
+    },
+    {
+      "id": 13,
+      "name": "Água Intermediária / Canal",
+      "category": "water",
+      "source_hex": "#334767",
+      "source_rgb": [51, 71, 103],
+      "target_hex": "#80a9bf",
+      "target_rgb": [128, 169, 191],
+      "note": "Gradiente batimétrico natural"
+    }
+  ]
+}
