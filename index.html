@@ -304,6 +304,48 @@
             align-items: center; justify-content: center;
         }
         .jk-modal-overlay.open { display: flex; }
+
+        /* Barra Flutuante de Modos / Multitarefas */
+        .sw-floating-modes-bar {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            gap: 4px;
+            background: rgba(18, 20, 28, 0.92);
+            border: 1px solid var(--sw-border);
+            backdrop-filter: blur(12px);
+            padding: 4px 6px;
+            border-radius: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.65);
+        }
+        .sw-mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: none;
+            color: var(--sw-text-muted);
+            font-size: 11.5px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .sw-mode-btn:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+        }
+        .sw-mode-btn.active {
+            background: var(--jk-accent);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 2px 10px rgba(245,166,35,0.3);
+        }
     </style>
 </head>
 <body class="swiss-theme-dark">
@@ -311,12 +353,28 @@
     <!-- MAPA LEAFLET -->
     <div id="map"></div>
 
+    <!-- BARRA FLUTUANTE DE MODOS / MULTITAREFAS -->
+    <div id="floatingModesBar" class="sw-floating-modes-bar">
+        <button id="btnModoNavegar" class="sw-mode-btn active" onclick="definirModoInteracao('navegar')">
+            <span>👁️</span> <span>Navegar</span>
+        </button>
+        <button id="btnModoMarcar" class="sw-mode-btn" onclick="definirModoInteracao('marcar')">
+            <span>📍</span> <span>Anotar Ponto</span>
+        </button>
+        <button id="btnModoEstrada" class="sw-mode-btn" onclick="definirModoInteracao('estrada')">
+            <span>🛣️</span> <span>Traçar Estrada</span>
+        </button>
+        <button id="btnModoPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
+            <span>🌉</span> <span>Traçar Ponte</span>
+        </button>
+    </div>
+
     <!-- ABA REABRIR SIDEBAR ESQUERDA -->
     <div id="tabAbrirEsquerda" class="sw-tab-open-left" onclick="toggleSidebarEsquerda()">▶ 🌙 Atlas</div>
 
-    <!-- LINGUETA DIREITA (HUD TÁTICO) -->
+    <!-- LINGUETA DIREITA (PAINEL DE ATIVIDADES) -->
     <div id="hudTab" class="sw-hud-trigger-tab alerta-ativo" style="display:flex;" onclick="toggleSidebarDireita()">
-        ◀ ⚔️ <span style="font-size:11px;">Tático</span>
+        ◀ 📋 <span style="font-size:11px;">Atividades</span>
     </div>
 
     <!-- ================================================================
@@ -397,16 +455,9 @@
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
                     </div>
                     <label class="sw-filter-row">
-                        <input type="checkbox" data-layer="influencia" checked onchange="toggleCamada('influencia', this.checked)">
-                        <span data-i18n="circulos">⭕ Círculos de Influência</span>
-                    </label>
-                    <label class="sw-filter-row">
                         <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
                         <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
-                    <button class="sw-btn-action jk-accent-btn" style="margin-top:6px;" onclick="ativarModoAdicionarPonto()" data-i18n="addPonto">
-                        📍 Adicionar Ponto no Mapa
-                    </button>
                 </div>
             </div>
 
@@ -417,6 +468,15 @@
                     <span style="font-size:9.5px; opacity:0.8;" data-i18n="filtros">Filtros</span>
                 </div>
                 <div class="sw-acc-content open">
+                    <label class="sw-filter-row" style="color:#fbbf24;">
+                        <input type="checkbox" data-layer="villages" checked onchange="toggleCamada('villages', this.checked)">
+                        <span data-i18n="vilas">🏘️ Deeds & Vilas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
+                    </label>
+                    <label class="sw-filter-row" style="color:#38bdf8;">
+                        <input type="checkbox" data-layer="towers" checked onchange="toggleCamada('towers', this.checked)">
+                        <span>🏰 Torres de Guarda (Raio 50t)</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntTowers">(0)</span>
+                    </label>
+                    <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:var(--jk-jackal);">
                         <input type="checkbox" data-layer="beacons_jackal" checked onchange="toggleCamada('beacons_jackal', this.checked)">
                         <span data-i18n="beaconsJackal">🔴 Beacons Jackal</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsJackal">(0)</span>
@@ -434,10 +494,6 @@
                         <input type="checkbox" data-layer="lodestones" checked onchange="toggleCamada('lodestones', this.checked)">
                         <span data-i18n="lodestones">🪨 Lodestones</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLodestones">(0)</span>
                     </label>
-                    <label class="sw-filter-row" style="color:#fbbf24;">
-                        <input type="checkbox" data-layer="villages" checked onchange="toggleCamada('villages', this.checked)">
-                        <span data-i18n="vilas">🏘️ Deeds & Vilas</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntVillages">(0)</span>
-                    </label>
                     <label class="sw-filter-row" style="color:#6ee7b7;">
                         <input type="checkbox" data-layer="caves" checked onchange="toggleCamada('caves', this.checked)">
                         <span data-i18n="cavernas">🕳️ Cavernas Naturais</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntCaves">(0)</span>
@@ -454,34 +510,18 @@
                         <input type="checkbox" data-layer="supply_points" checked onchange="toggleCamada('supply_points', this.checked)">
                         <span data-i18n="supply">📦 Pontos de Suprimento</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntSupply">(0)</span>
                     </label>
+                    <label class="sw-filter-row" style="color:#86efac;">
+                        <input type="checkbox" data-layer="fauna_spots" checked onchange="toggleCamada('fauna_spots', this.checked)">
+                        <span>🦗 Fauna & Montarias</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntFauna">(0)</span>
+                    </label>
+                    <label class="sw-filter-row" style="color:#cbd5e1;">
+                        <input type="checkbox" data-layer="landmarks" checked onchange="toggleCamada('landmarks', this.checked)">
+                        <span>🏷️ Topônimos / Regiões</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLandmarks">(0)</span>
+                    </label>
                 </div>
             </div>
 
-            <!-- 3. OBJETIVOS COMUNITÁRIOS P1/P2/P3 -->
-            <div class="sw-accordion-item" id="accObjetivos">
-                <div class="sw-acc-header active" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="objetivos">🎯 Projetos Comunitários</span></div>
-                    <span style="font-size:9.5px; opacity:0.8;">P1/P2/P3</span>
-                </div>
-                <div class="sw-acc-content open">
-                    <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr); margin-bottom:8px;">
-                        <button class="sw-base-btn active" onclick="filtrarPrioridadeObj('all', this)" data-i18n="todos">Todos</button>
-                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p1', this)" style="color:var(--jk-p1);">🔴 P1</button>
-                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p2', this)" style="color:var(--jk-p2);">🟡 P2</button>
-                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p3', this)" style="color:var(--jk-p3);">🟢 P3</button>
-                    </div>
-
-                    <div id="listaObjetivosContainer" style="display:flex; flex-direction:column; gap:5px; margin-bottom:8px;">
-                        <!-- Inserido dinamicamente via JS -->
-                    </div>
-
-                    <button class="sw-btn-action jk-accent-btn" onclick="abrirModalObjetivo()" data-i18n="novoObjetivo">
-                        ➕ Novo Objetivo
-                    </button>
-                </div>
-            </div>
-
-            <!-- 4. INFRAESTRUTURA (ESTRADAS & PONTES) -->
+            <!-- 3. INFRAESTRUTURA (ESTRADAS & PONTES) -->
             <div class="sw-accordion-item" id="accInfra">
                 <div class="sw-acc-header" onclick="toggleAccordion(this)">
                     <div><span class="sw-acc-arrow">▶</span> <span data-i18n="infra">🛣️ Infraestrutura</span></div>
@@ -504,39 +544,30 @@
                         <input type="checkbox" data-layer="bridges_built" checked onchange="toggleCamada('bridges_built', this.checked)">
                         <span data-i18n="pontesConc">🌉 Pontes Concluídas</span>
                     </label>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
-                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('road')" data-i18n="tracarEstrada">
-                            🛣️ Traçar Estrada
-                        </button>
-                        <button class="sw-btn-action" style="border-color:rgba(148,163,184,0.4); color:#94a3b8; font-size:10.5px; padding:6px;" onclick="iniciarTracado('bridge')" data-i18n="tracarPonte">
-                            🌉 Traçar Ponte
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <!-- 5. MONTARIAS & CRIATURAS -->
-            <div class="sw-accordion-item" id="accMontarias">
+            <!-- 4. METAS DA GUILDA (CRIAR = ADMIN) -->
+            <div class="sw-accordion-item" id="accObjetivos">
                 <div class="sw-acc-header" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="fauna">🦎 Montarias & Criaturas</span></div>
-                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="faunaSub">Fauna</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span>🎯 Metas da Guilda</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;">Prioridades</span>
                 </div>
                 <div class="sw-acc-content">
-                    <label class="sw-filter-row" style="color:#86efac;">
-                        <input type="checkbox" data-layer="weta_spots" checked onchange="toggleCamada('weta_spots', this.checked)">
-                        <span data-i18n="weta">🦗 Spots de Weta (Montaria Inicial)</span>
-                    </label>
-                    <label class="sw-filter-row" style="color:#f0abfc;">
-                        <input type="checkbox" data-layer="octopede_spots" checked onchange="toggleCamada('octopede_spots', this.checked)">
-                        <span data-i18n="octopede">🐙 Spots de Octopede (Maior Slope)</span>
-                    </label>
-                    <label class="sw-filter-row" style="color:#cbd5e1;">
-                        <input type="checkbox" data-layer="ferropod_spots" checked onchange="toggleCamada('ferropod_spots', this.checked)">
-                        <span data-i18n="ferropod">🐌 Ferropods (Dropam Ferro)</span>
-                    </label>
-                    <div style="font-size:10px; color:var(--sw-text-muted); background:var(--sw-bg-subtle); padding:7px 8px; border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;" data-i18n="mountsNote">
-                        ℹ️ Limites de slope de cada montaria serão atualizados no primeiro dia de Jackal.
+                    <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr); margin-bottom:8px;">
+                        <button class="sw-base-btn active" onclick="filtrarPrioridadeObj('all', this)" data-i18n="todos">Todos</button>
+                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p1', this)" style="color:var(--jk-p1);">🔴 P1</button>
+                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p2', this)" style="color:var(--jk-p2);">🟡 P2</button>
+                        <button class="sw-base-btn" onclick="filtrarPrioridadeObj('p3', this)" style="color:var(--jk-p3);">🟢 P3</button>
                     </div>
+
+                    <div id="listaObjetivosContainer" style="display:flex; flex-direction:column; gap:5px; margin-bottom:8px;">
+                        <!-- Inserido dinamicamente via JS -->
+                    </div>
+
+                    <button id="btnAdminNovoObjetivo" class="sw-btn-action jk-accent-btn" style="display:none;" onclick="abrirModalObjetivo()">
+                        ➕ Criar Meta (Admin)
+                    </button>
                 </div>
             </div>
 
@@ -548,102 +579,54 @@
     <!-- /SIDEBAR ESQUERDA -->
 
     <!-- ================================================================
-         SIDEBAR DIREITA — CENTRAL TÁTICA (HUD MILITAR)
+         SIDEBAR DIREITA — PAINEL DE ATIVIDADES
          ================================================================ -->
     <div id="sidebarRight" class="sw-sidebar-right">
-        <!-- HEADER HUD -->
-        <div style="background:rgba(255,68,68,0.1); border-bottom:1px solid rgba(255,68,68,0.2); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+        <!-- HEADER -->
+        <div style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--sw-border-subtle); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:14px;">⚔️</span>
+                <span style="font-size:14px;">📋</span>
                 <div>
-                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);" data-i18n="centralTatica">CENTRAL TÁTICA</div>
-                    <div style="font-size:9px; color:var(--sw-text-muted);" data-i18n="tacticalSub">Inteligência de Campo • Jackal R2</div>
+                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);">PAINEL DE ATIVIDADES</div>
+                    <div style="font-size:9px; color:var(--sw-text-muted);">Registros & Ocorrências de Campo</div>
                 </div>
             </div>
-            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()" data-i18n="recolherHud">Recolher ▶</button>
+            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()">Recolher ▶</button>
         </div>
 
         <div style="overflow-y:auto; overflow-x:hidden; flex:1; scrollbar-width:thin; scrollbar-color:var(--sw-border) transparent;">
 
-            <!-- RADAR DE INFLUÊNCIA -->
+            <!-- DETALHES DO PONTO SELECIONADO -->
             <div class="jk-card">
-                <div class="jk-card-title">
-                    <span data-i18n="radarInfluencia">⭕ Influência do Mapa</span>
-                    <span style="font-family:'JetBrains Mono'; font-size:9px; color:var(--sw-text-muted);" data-i18n="tempoReal">tempo real</span>
+                <div class="jk-card-title">🎯 Ponto Selecionado</div>
+                <div style="font-size:10px; color:var(--sw-text-muted); margin-bottom:8px;" id="acoTargetDesc">
+                    Selecione um ponto no mapa para visualizar ações e detalhes.
                 </div>
-                <div class="jk-stat-grid">
-                    <div class="jk-stat-cell">
-                        <div class="jk-stat-val freedom" id="statFreedomPct">0%</div>
-                        <div class="jk-stat-label">Freedom</div>
-                    </div>
-                    <div class="jk-stat-cell">
-                        <div class="jk-stat-val jackal" id="statJackalPct">0%</div>
-                        <div class="jk-stat-label">Jackal</div>
-                    </div>
-                    <div class="jk-stat-cell">
-                        <div class="jk-stat-val neutral" id="statNeutralPct">0%</div>
-                        <div class="jk-stat-label" data-i18n="lblNeutro">Neutro</div>
-                    </div>
-                </div>
-                <div class="jk-influence-bar">
-                    <div class="jk-influence-seg freedom" id="barFreedom" style="width:0%"></div>
-                    <div class="jk-influence-seg neutral" id="barNeutral" style="width:0%"></div>
-                    <div class="jk-influence-seg jackal" id="barJackal" style="width:0%"></div>
-                </div>
-                <div style="font-size:9.5px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">
-                    🏰 <span id="statBeaconsFreedomCount">0</span> Freedom &nbsp;|&nbsp;
-                    🔴 <span id="statBeaconsJackalCount">0</span> Jackal &nbsp;|&nbsp;
-                    ⚪ <span id="statBeaconsNeutralCount">0</span> <span data-i18n="lblNeutro">Neutro</span>
-                </div>
-            </div>
-
-            <!-- MARCOS COMUNITÁRIOS -->
-            <div class="jk-card">
-                <div class="jk-card-title" data-i18n="marcos">🏆 Marcos Comunitários</div>
-                <div style="display:flex; align-items:center; gap:8px; font-size:11px; padding:4px 0;">
-                    <div style="width:18px; height:18px; border-radius:50%; border:2px solid var(--jk-accent); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--jk-accent); flex-shrink:0;">1</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:700; color:var(--sw-text-main);" data-i18n="primeiroMarco">Primeiro Marco</div>
-                        <div style="font-size:9.5px; color:var(--sw-text-muted);" data-i18n="marcoIdols">Desbloqueia Idols &amp; Plinths</div>
-                    </div>
-                    <span id="milestonePctText" style="font-size:9px; color:var(--jk-accent); font-family:'JetBrains Mono'; font-weight:700;">0% / 20%</span>
-                </div>
-                <div id="milestoneBox" style="font-size:9.5px; color:var(--sw-text-muted); padding:5px 7px; background:var(--sw-bg-subtle); border-radius:4px; border:1px solid var(--sw-border-subtle); margin-top:6px;">
-                    🔒 <strong>Em progresso</strong> (Requer 20% de controle territorial Freedom)
-                </div>
-            </div>
-
-            <!-- AÇÕES RÁPIDAS NO PONTO SELECIONADO -->
-            <div class="jk-card">
-                <div class="jk-card-title" data-i18n="acoesRapidas">⚡ Ações Rápidas de Campo</div>
-                <div style="font-size:10px; color:var(--sw-text-muted); margin-bottom:8px;" id="acoTargetDesc" data-i18n="selecioneBeacon">
-                    Selecione um beacon no mapa para registrar eventos:
-                </div>
-                <div class="jk-quick-grid">
+                <div class="jk-quick-grid" id="boxQuickActionsBeacon" style="display:none;">
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('cleared')">
-                        <span class="qb-icon">💥</span><span data-i18n="btnLimpei">Limpei!</span>
+                        <span class="qb-icon">💥</span><span>Limpei!</span>
                     </button>
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('converted_freedom')">
-                        <span class="qb-icon">🏳️</span><span data-i18n="btnConverti">Converti</span>
+                        <span class="qb-icon">🏳️</span><span>Converti</span>
                     </button>
                     <button class="jk-quick-btn reinforce" onclick="reportarEvento('reinforced')">
-                        <span class="qb-icon">⬆️</span><span data-i18n="btnReforcei">Reforcei (+1)</span>
+                        <span class="qb-icon">⬆️</span><span>Reforcei (+1)</span>
                     </button>
                     <button class="jk-quick-btn jackal" onclick="reportarEvento('attacked')">
-                        <span class="qb-icon">🚨</span><span data-i18n="btnAtaque">Sob Ataque!</span>
+                        <span class="qb-icon">🚨</span><span>Sob Ataque!</span>
                     </button>
                 </div>
             </div>
 
-            <!-- FEED DE EVENTOS RECENTES -->
+            <!-- FEED DE ATIVIDADES RECENTES -->
             <div class="jk-card">
                 <div class="jk-card-title">
-                    <span data-i18n="feedGuerra">📡 Linha do Tempo de Guerra</span>
-                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';" data-i18n="aoVivo">ao vivo</span>
+                    <span>📡 Atividades da Guilda</span>
+                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">ao vivo</span>
                 </div>
                 <div id="eventLogList">
                     <div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">
-                        📡 Nenhum evento registrado ainda. Relate ações ao selecionar beacons no mapa.
+                        📡 Nenhuma atividade recente registrada.
                     </div>
                 </div>
             </div>
@@ -691,24 +674,26 @@
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Tipo de Ponto</label>
+                <label class="sw-form-label">Tipo de Ponto / Anotação</label>
                 <div class="jk-kind-chips" id="kindChipsContainer">
-                    <span class="jk-kind-chip selected" data-kind="beacon">🔴 Beacon</span>
+                    <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed / Vila</span>
+                    <span class="jk-kind-chip" data-kind="tower">🏰 Torre (Raio 50t)</span>
+                    <span class="jk-kind-chip" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
-                    <span class="jk-kind-chip" data-kind="village">🏘️ Deed / Vila</span>
                     <span class="jk-kind-chip" data-kind="cave">🕳️ Caverna</span>
-                    <span class="jk-kind-chip" data-kind="resource_node">⛏️ Resource</span>
-                    <span class="jk-kind-chip" data-kind="idol">✨ Idol</span>
-                    <span class="jk-kind-chip" data-kind="supply_point">📦 Supply</span>
-                    <span class="jk-kind-chip" data-kind="landmark">📌 Marco</span>
+                    <span class="jk-kind-chip" data-kind="resource_node">⛏️ Minério/Recurso</span>
+                    <span class="jk-kind-chip" data-kind="idol">✨ Idol / Plinth</span>
+                    <span class="jk-kind-chip" data-kind="supply_point">📦 Suprimento</span>
+                    <span class="jk-kind-chip" data-kind="fauna">🦗 Fauna / Montaria</span>
+                    <span class="jk-kind-chip" id="chipToponimo" data-kind="landmark" style="display:none;">🏷️ Topônimo (Admin)</span>
                 </div>
             </div>
 
             <div class="sw-form-group">
                 <label class="sw-form-label">Facção</label>
                 <div class="jk-faction-row">
-                    <button class="jk-faction-btn jackal selected" onclick="selecionarFaccao('jackal', this)">🔴 Jackal</button>
-                    <button class="jk-faction-btn freedom" onclick="selecionarFaccao('freedom', this)">🟢 Freedom</button>
+                    <button class="jk-faction-btn jackal" onclick="selecionarFaccao('jackal', this)">🔴 Jackal</button>
+                    <button class="jk-faction-btn freedom selected" onclick="selecionarFaccao('freedom', this)">🟢 Freedom</button>
                     <button class="jk-faction-btn neutral" onclick="selecionarFaccao('neutral', this)">⚪ Neutro</button>
                     <button class="jk-faction-btn unknown" onclick="selecionarFaccao('unknown', this)">❓ Desc.</button>
                 </div>
@@ -716,10 +701,10 @@
 
             <div class="sw-form-group">
                 <label class="sw-form-label">Nome / Descrição</label>
-                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Beacon da Garganta...">
+                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Torre Norte, Spot de Weta...">
             </div>
 
-            <div class="sw-form-group" id="rowMayor" style="display:none;">
+            <div class="sw-form-group" id="rowMayor" style="display:block;">
                 <label class="sw-form-label">👑 Prefeito / Responsável (Mayor)</label>
                 <input type="text" class="sw-form-input" id="inputMayor" placeholder="Ex: Kuropr, ShadowHunter...">
             </div>
@@ -738,10 +723,10 @@
 
             <div class="sw-modal-actions">
                 <button class="sw-btn-modal-cancel" onclick="fecharModal('modalAddPonto')">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarPontoSubmissao()">✓ Enviar para Confirmação</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarPontoSubmissao()">✓ Salvar Anotação</button>
             </div>
             <div style="font-size:9.5px; color:var(--sw-text-muted); margin-top:8px; text-align:center;">
-                Submissões são validadas por Officers ou Admins antes de ficarem públicas.
+                Anotações de membros passam pela confirmação de um Oficial ou Administrador antes de ficarem visíveis a todos.
             </div>
         </div>
     </div>
@@ -831,13 +816,15 @@
                 <label class="sw-form-label">Tipo de Ponto</label>
                 <select class="sw-form-select" id="selectEditKind" onchange="alternarCamposEdicao(this.value)">
                     <option value="village">🏘️ Deed / Vila</option>
+                    <option value="tower">🏰 Torre de Guarda (Raio 50t)</option>
                     <option value="beacon">🔴 Beacon</option>
                     <option value="lodestone">🪨 Lodestone</option>
                     <option value="cave">🕳️ Caverna</option>
                     <option value="resource_node">⛏️ Recursos Minerais</option>
-                    <option value="idol">✨ Idol</option>
+                    <option value="idol">✨ Idol / Plinth</option>
                     <option value="supply_point">📦 Ponto de Suprimento</option>
-                    <option value="landmark">📌 Marco Geral</option>
+                    <option value="fauna">🦗 Fauna / Montaria</option>
+                    <option value="landmark">🏷️ Topônimo (Admin)</option>
                 </select>
             </div>
 
@@ -1193,23 +1180,23 @@
 
     // Grupos de Camadas
     const layers = {
+        villages:         L.layerGroup().addTo(map),
+        towers:           L.layerGroup().addTo(map),
         beacons_jackal:   L.layerGroup().addTo(map),
         beacons_freedom:  L.layerGroup().addTo(map),
         beacons_neutral:  L.layerGroup().addTo(map),
         lodestones:       L.layerGroup().addTo(map),
-        villages:         L.layerGroup().addTo(map),
         caves:            L.layerGroup().addTo(map),
         resource_nodes:   L.layerGroup().addTo(map),
         idols:            L.layerGroup().addTo(map),
         supply_points:    L.layerGroup().addTo(map),
+        fauna_spots:      L.layerGroup().addTo(map),
+        landmarks:        L.layerGroup().addTo(map),
         influencia:       L.layerGroup().addTo(map),
         roads_planned:    L.layerGroup().addTo(map),
         roads_built:      L.layerGroup().addTo(map),
         bridges_planned:  L.layerGroup().addTo(map),
-        bridges_built:    L.layerGroup().addTo(map),
-        weta_spots:       L.layerGroup().addTo(map),
-        octopede_spots:   L.layerGroup().addTo(map),
-        ferropod_spots:   L.layerGroup().addTo(map)
+        bridges_built:    L.layerGroup().addTo(map)
     };
 
     function toggleCamada(nome, ativo, salvar = true) {
@@ -1336,62 +1323,34 @@
         document.getElementById('cntBeaconsFreedom').textContent = `(${countFreedom})`;
         document.getElementById('cntBeaconsNeutral').textContent = `(${countNeutral})`;
 
-        document.getElementById('statBeaconsFreedomCount').textContent = countFreedom;
-        document.getElementById('statBeaconsJackalCount').textContent = countJackal;
-        document.getElementById('statBeaconsNeutralCount').textContent = countNeutral;
-
-        const total = countJackal + countFreedom + countNeutral;
-        const pctF = total > 0 ? Math.round((countFreedom / total) * 100) : 0;
-        const pctJ = total > 0 ? Math.round((countJackal / total) * 100) : 0;
-        const pctN = total > 0 ? Math.max(0, 100 - pctF - pctJ) : 0;
-
-        document.getElementById('statFreedomPct').textContent = `${pctF}%`;
-        document.getElementById('statJackalPct').textContent = `${pctJ}%`;
-        document.getElementById('statNeutralPct').textContent = `${pctN}%`;
-
-        document.getElementById('barFreedom').style.width = `${pctF}%`;
-        document.getElementById('barJackal').style.width = `${pctJ}%`;
-        document.getElementById('barNeutral').style.width = `${pctN}%`;
-
-        // Marcos Comunitários
-        const msText = document.getElementById('milestonePctText');
-        const msBox = document.getElementById('milestoneBox');
-        if (msText && msBox) {
-            msText.textContent = `${pctF}% / 20%`;
-            if (pctF >= 20) {
-                msBox.innerHTML = `✓ <strong style="color:var(--jk-freedom);">Alcançado!</strong> Idols e Plinths liberados para uso.`;
-                msBox.style.color = 'var(--jk-freedom)';
-                msBox.style.background = 'var(--jk-freedom-dim)';
-                msBox.style.borderColor = 'rgba(0,230,118,0.3)';
-            } else {
-                msBox.innerHTML = `🔒 <strong>Em progresso</strong> (${20 - pctF}% restante para desbloquear Idols & Plinths)`;
-                msBox.style.color = 'var(--sw-text-muted)';
-                msBox.style.background = 'var(--sw-bg-subtle)';
-                msBox.style.borderColor = 'var(--sw-border-subtle)';
-            }
-        }
     }
 
-    // Renderizar outros tipos de pontos (lodestones, vilas, cavernas, recursos, idols, supply)
+    // Renderizar outros tipos de pontos (lodestones, vilas, torres, cavernas, recursos, idols, supply, fauna, landmarks)
     function renderizarOutrosPontos(pontos) {
         if (!pontos) return;
-        layers.lodestones.clearLayers();
         layers.villages.clearLayers();
+        layers.towers.clearLayers();
+        layers.lodestones.clearLayers();
         layers.caves.clearLayers();
         layers.resource_nodes.clearLayers();
         layers.idols.clearLayers();
         layers.supply_points.clearLayers();
+        layers.fauna_spots.clearLayers();
+        layers.landmarks.clearLayers();
 
-        let counts = { lodestone:0, village:0, cave:0, resource_node:0, idol:0, supply_point:0 };
+        let counts = { lodestone:0, village:0, tower:0, cave:0, resource_node:0, idol:0, supply_point:0, fauna:0, landmark:0 };
 
         const iconConfig = {
-            lodestone: { icon:'🪨', layer: layers.lodestones },
             village: { icon:'🏘️', layer: layers.villages },
+            tower: { icon:'🏰', layer: layers.towers },
+            lodestone: { icon:'🪨', layer: layers.lodestones },
             cave: { icon:'🕳️', layer: layers.caves },
             resource_node: { icon:'⛏️', layer: layers.resource_nodes },
             idol: { icon:'✨', layer: layers.idols },
             idol_plinth: { icon:'✨', layer: layers.idols },
-            supply_point: { icon:'📦', layer: layers.supply_points }
+            supply_point: { icon:'📦', layer: layers.supply_points },
+            fauna: { icon:'🦗', layer: layers.fauna_spots },
+            landmark: { icon:'🏷️', layer: layers.landmarks }
         };
 
         pontos.forEach(p => {
@@ -1401,6 +1360,7 @@
             const y = Number(p.y);
             const quad = obterQuadranteWurm(y, x);
             const isVillage = (p.kind === 'village');
+            const isTower = (p.kind === 'tower');
             const mayor = p.attrs?.mayor;
             const faccaoCor = p.faction === 'freedom' ? 'var(--jk-freedom)' : (p.faction === 'jackal' ? 'var(--jk-jackal)' : 'var(--jk-neutral)');
             const faccaoNome = p.faction === 'freedom' ? 'Freedom' : (p.faction === 'jackal' ? 'Jackal' : 'Neutro');
@@ -1412,6 +1372,23 @@
                     html: `<div style="font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}">${conf.icon}</div>`
                 })
             });
+
+            m.on('click', () => {
+                selecionarPontoGenerico(p);
+            });
+
+            // Se for Torre de Guarda, desenhar raio de influência de 50 tiles
+            if (isTower) {
+                L.circle([mapSize - y, x], {
+                    radius: 50,
+                    color: '#38bdf8',
+                    fillColor: '#38bdf8',
+                    fillOpacity: 0.08,
+                    weight: 1.5,
+                    dashArray: '4 4',
+                    interactive: false
+                }).addTo(layers.towers);
+            }
 
             const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
                               (currentUser && p.created_by === currentUser.id);
@@ -1446,6 +1423,22 @@
                         ${actionBtns}
                     </div>
                 `;
+            } else if (isTower) {
+                popupContent = `
+                    <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
+                        <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                            <span>🏰</span> <span>${sanitize(p.name || 'Torre de Guarda')}</span>
+                        </div>
+                        <div style="font-size:10px; color:${faccaoCor}; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
+                            🚩 Facção: ${faccaoNome} &bull; <span style="color:#38bdf8;">Raio 50t</span>
+                        </div>
+                        <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                            <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
+                        </div>
+                        ${actionBtns}
+                    </div>
+                `;
             } else {
                 popupContent = `
                     <div style="font-family:'Inter',sans-serif; min-width:170px; padding:2px;">
@@ -1466,12 +1459,15 @@
             if (counts[p.kind] !== undefined) counts[p.kind]++;
         });
 
-        document.getElementById('cntLodestones').textContent = `(${counts.lodestone})`;
-        document.getElementById('cntVillages').textContent = `(${counts.village})`;
-        document.getElementById('cntCaves').textContent = `(${counts.cave})`;
-        document.getElementById('cntNodes').textContent = `(${counts.resource_node})`;
-        document.getElementById('cntIdols').textContent = `(${counts.idol})`;
-        document.getElementById('cntSupply').textContent = `(${counts.supply_point})`;
+        if (document.getElementById('cntLodestones')) document.getElementById('cntLodestones').textContent = `(${counts.lodestone})`;
+        if (document.getElementById('cntVillages')) document.getElementById('cntVillages').textContent = `(${counts.village})`;
+        if (document.getElementById('cntTowers')) document.getElementById('cntTowers').textContent = `(${counts.tower})`;
+        if (document.getElementById('cntCaves')) document.getElementById('cntCaves').textContent = `(${counts.cave})`;
+        if (document.getElementById('cntNodes')) document.getElementById('cntNodes').textContent = `(${counts.resource_node})`;
+        if (document.getElementById('cntIdols')) document.getElementById('cntIdols').textContent = `(${counts.idol})`;
+        if (document.getElementById('cntSupply')) document.getElementById('cntSupply').textContent = `(${counts.supply_point})`;
+        if (document.getElementById('cntFauna')) document.getElementById('cntFauna').textContent = `(${counts.fauna})`;
+        if (document.getElementById('cntLandmarks')) document.getElementById('cntLandmarks').textContent = `(${counts.landmark})`;
     }
 
     renderizarTodosBeacons();
@@ -1483,9 +1479,19 @@
 
     function selecionarBeacon(b) {
         pontoSelecionado = b;
+        const boxQuick = document.getElementById('boxQuickActionsBeacon');
+        if (boxQuick) boxQuick.style.display = 'grid';
         document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${sanitize(b.nome)}</strong> (${sanitize(b.faccao).toUpperCase()}) em X: ${sanitizeCoord(b.x)}, Y: ${sanitizeCoord(b.y)}`;
         const sbRight = document.getElementById('sidebarRight');
-        if (sbRight.classList.contains('recolhida')) toggleSidebarDireita();
+        if (sbRight && sbRight.classList.contains('recolhida')) toggleSidebarDireita();
+    }
+
+    function selecionarPontoGenerico(p) {
+        pontoSelecionado = p;
+        const boxQuick = document.getElementById('boxQuickActionsBeacon');
+        if (boxQuick) boxQuick.style.display = 'none';
+        const quad = obterQuadranteWurm(p.y, p.x);
+        document.getElementById('acoTargetDesc').innerHTML = `📍 <strong>${sanitize(p.name || p.kind)}</strong> em X: ${sanitizeCoord(p.x)}, Y: ${sanitizeCoord(p.y)} &bull; ${quad}`;
     }
 
     async function reportarEvento(tipo) {
@@ -1734,10 +1740,19 @@
     }
 
     function abrirModalObjetivo() {
+        if (!currentProfile || currentProfile.role !== 'admin') {
+            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            return;
+        }
         document.getElementById('modalNovoObjetivo').classList.add('open');
     }
 
     async function salvarNovoObjetivo() {
+        if (!currentProfile || currentProfile.role !== 'admin') {
+            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            return;
+        }
+
         const titulo = document.getElementById('inputObjTitulo').value.trim();
         if (!titulo) {
             alert('Por favor, informe o título do objetivo.');
@@ -1780,9 +1795,19 @@
     let markersTempTracado = [];
 
     function iniciarTracado(tipo) {
+        if (modoAdicionar) {
+            modoAdicionar = false;
+            const tt = document.getElementById('crosshairTooltip');
+            if (tt) tt.style.display = 'none';
+        }
         modoTracado = tipo;
         pontosTracado = [];
         limparDesenhoTracadoTemp();
+
+        // Atualizar botões de modo superior
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        if (tipo === 'road') document.getElementById('modeBtnEstrada')?.classList.add('active');
+        if (tipo === 'bridge') document.getElementById('modeBtnPonte')?.classList.add('active');
 
         // Alternar barra inferior para Modo Foco
         const hudNormal = document.getElementById('hudBottomNormal');
@@ -1876,6 +1901,8 @@
         if (hudNormal) hudNormal.style.display = 'flex';
 
         map.getContainer().style.cursor = '';
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnNavegar')?.classList.add('active');
         mostrarToastCartografico('Traçado de obra cancelado.');
     }
 
@@ -2028,12 +2055,58 @@
     let kindSelecionado = 'beacon';
     let ctxMenuCoords = { x: 0, y: 0, latlng: null };
 
+    // ==============================================================
+    // CONTROLE UNIFICADO DE MODOS DE INTERAÇÃO (BARRA SUPERIOR)
+    // ==============================================================
+    function definirModoInteracao(modo) {
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        const btnMap = {
+            'navegar': 'modeBtnNavegar',
+            'ponto':   'modeBtnPonto',
+            'estrada': 'modeBtnEstrada',
+            'ponte':   'modeBtnPonte'
+        };
+        const el = document.getElementById(btnMap[modo]);
+        if (el) el.classList.add('active');
+
+        if (modo !== 'ponto' && modoAdicionar) {
+            modoAdicionar = false;
+            map.getContainer().style.cursor = '';
+            const tt = document.getElementById('crosshairTooltip');
+            if (tt) tt.style.display = 'none';
+        }
+
+        if ((modo !== 'estrada' && modo !== 'ponte') && modoTracado) {
+            limparDesenhoTracadoTemp();
+            modoTracado = null;
+            pontosTracado = [];
+            const hudNormal = document.getElementById('hudBottomNormal');
+            const hudFoco = document.getElementById('hudBottomFoco');
+            if (hudFoco) hudFoco.style.display = 'none';
+            if (hudNormal) hudNormal.style.display = 'flex';
+            map.getContainer().style.cursor = '';
+        }
+
+        if (modo === 'navegar') {
+            mostrarToastCartografico('👁️ Modo <strong>Navegação</strong> ativo.');
+        } else if (modo === 'ponto') {
+            ativarModoAdicionarPonto();
+        } else if (modo === 'estrada') {
+            iniciarTracado('road');
+        } else if (modo === 'ponte') {
+            iniciarTracado('bridge');
+        }
+    }
+
     function ativarModoAdicionarPonto() {
+        if (modoTracado) cancelarTracado();
         modoAdicionar = true;
         map.getContainer().style.cursor = 'crosshair';
         const tt = document.getElementById('crosshairTooltip');
         if (tt) tt.style.display = 'block';
-        mostrarToastCartografico('📍 Modo Adicionar Ponto: clique no mapa para posicionar.');
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnPonto')?.classList.add('active');
+        mostrarToastCartografico('📍 Modo <strong>Anotar Ponto</strong>: clique no mapa para posicionar.');
     }
 
     function desativarModoAdicionarPonto() {
@@ -2041,6 +2114,8 @@
         map.getContainer().style.cursor = '';
         const tt = document.getElementById('crosshairTooltip');
         if (tt) tt.style.display = 'none';
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnNavegar')?.classList.add('active');
     }
 
     // ==============================================================
@@ -2168,6 +2243,11 @@
     }
 
     async function salvarPontoSubmissao() {
+        if (kindSelecionado === 'landmark' && (!currentProfile || currentProfile.role !== 'admin')) {
+            alert('Apenas Administradores têm permissão para registrar topônimos / marcos geográficos no mapa.');
+            return;
+        }
+
         const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
         const dificuldade = document.getElementById('selectDificuldade')?.value;
         const mayor = document.getElementById('inputMayor')?.value.trim();
@@ -2500,6 +2580,12 @@
                 if (profile.role === 'admin' || profile.role === 'officer') {
                     document.getElementById('adminLinkBox').style.display = 'block';
                 }
+
+                const btnObj = document.getElementById('btnAdminNovoObjetivo');
+                if (btnObj) btnObj.style.display = (profile.role === 'admin') ? 'block' : 'none';
+
+                const chipTopo = document.getElementById('chipToponimo');
+                if (chipTopo) chipTopo.style.display = (profile.role === 'admin') ? 'inline-flex' : 'none';
             }
         } catch (err) {
             console.warn('Erro ao carregar perfil do usuário:', err);
@@ -2517,6 +2603,10 @@
                 document.getElementById('authLoggedIn').style.display = 'none';
                 currentUser = null;
                 currentProfile = null;
+                const btnObj = document.getElementById('btnAdminNovoObjetivo');
+                if (btnObj) btnObj.style.display = 'none';
+                const chipTopo = document.getElementById('chipToponimo');
+                if (chipTopo) chipTopo.style.display = 'none';
             }
         });
 
