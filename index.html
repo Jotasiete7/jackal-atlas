@@ -1103,17 +1103,53 @@
         transformation: new L.Transformation(SCALE_FACTOR, 0, SCALE_FACTOR, 0)
     });
 
+    // ==============================================================
+    // CONFIGURAÇÃO DINÂMICA VIA PARÂMETROS DE URL (TESTES & BENCHMARKS)
+    // Suporta: ?zoomSnap=, ?zoomDelta=, ?wheelDebounce=, ?wheelPx=, ?maxZoom=, ?maxNativeZoom=, ?nativePan=1
+    // Sanitização e clamping estritos: somente números dentro de limites seguros.
+    // ==============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+
+    function getClampedParam(paramName, defaultVal, minVal, maxVal) {
+        if (!urlParams.has(paramName)) return defaultVal;
+        const val = parseFloat(urlParams.get(paramName));
+        if (isNaN(val)) return defaultVal;
+        return Math.max(minVal, Math.min(maxVal, val));
+    }
+
+    const TACTICAL_CONFIG = {
+        zoomSnap: getClampedParam('zoomSnap', 1.0, 0.05, 2.0),
+        zoomDelta: getClampedParam('zoomDelta', 1.0, 0.05, 2.0),
+        wheelDebounce: Math.round(getClampedParam('wheelDebounce', 40, 0, 500)),
+        wheelPx: Math.round(getClampedParam('wheelPx', 160, 20, 1000)),
+        maxZoom: Math.round(getClampedParam('maxZoom', 6, 1, 8)),
+        maxNativeZoom: Math.round(getClampedParam('maxNativeZoom', 3, 0, 5)), // z3 = 4096px nativo sem upscale de z4
+        nativePan: urlParams.get('nativePan') === '1',
+
+        // ==========================================================
+        // CONSTANTES TÁTICAS DE ALCANCE E COBERTURA (WURM ONLINE)
+        // NOTA: Os valores base (ex: Guarda 100x100 tiles = raio 50t) vêm das mecânicas
+        // oficiais de território do Wurm Online. Verificar com post oficial do evento
+        // se o alcance de torres no Jackal Round 2 é estritamente quadrado (bounding box)
+        // ou circular euclidiano.
+        // ==========================================================
+        TOWER_COVERAGE_HALF_SIZE: 50, // Caixa quadrada de 100x100 tiles (+-50 tiles do centro)
+        BEACON_RADIUS_BASE: 100,      // Raio base circular de beacon em tiles
+        BEACON_RADIUS_BOOST_1: 160,   // Raio com 1 reforço (+1)
+        BEACON_RADIUS_BOOST_2: 240    // Raio com 2 reforços (+2)
+    };
+
     // Renderizador unificado em Canvas 2D acelerado por hardware para todas as geometrias
     const tacticalCanvasRenderer = L.canvas({ padding: 0.5 });
 
     const map = L.map('map', {
         crs: L.CRS.Jackal,
         minZoom: 0,
-        maxZoom: 6,
-        zoomSnap: 0.25,
-        zoomDelta: 0.25,
-        wheelPxPerZoomLevel: 160,
-        wheelDebounceTime: 40,
+        maxZoom: TACTICAL_CONFIG.maxZoom,
+        zoomSnap: TACTICAL_CONFIG.zoomSnap,
+        zoomDelta: TACTICAL_CONFIG.zoomDelta,
+        wheelPxPerZoomLevel: TACTICAL_CONFIG.wheelPx,
+        wheelDebounceTime: TACTICAL_CONFIG.wheelDebounce,
         zoomAnimationThreshold: 4,
         zoomControl: false,
         preferCanvas: true,
@@ -1143,8 +1179,8 @@
     const initialTileUrl = (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png';
     const tileLayer = L.tileLayer(initialTileUrl, {
         minZoom: 0,
-        maxZoom: 6,
-        maxNativeZoom: 4,
+        maxZoom: TACTICAL_CONFIG.maxZoom,
+        maxNativeZoom: TACTICAL_CONFIG.maxNativeZoom,
         tileSize: 256,
         noWrap: true,
         bounds: [[0, 0], [MAP_SIZE, MAP_SIZE]],
@@ -1514,7 +1550,9 @@
 
             // Círculo de influência renderizado no Canvas unificado acelerado
             if (exibirInfluenciaBeacons) {
-                const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 160 : 100);
+                const radius = b.reforco === 2 
+                    ? TACTICAL_CONFIG.BEACON_RADIUS_BOOST_2 
+                    : (b.reforco === 1 ? TACTICAL_CONFIG.BEACON_RADIUS_BOOST_1 : TACTICAL_CONFIG.BEACON_RADIUS_BASE);
                 const cor = b.faccao === 'freedom' ? '#00e676' : '#ff4444';
                 const circle = L.circle([mapSize - b.y, b.x], {
                     radius: radius,
@@ -1594,13 +1632,14 @@
             interactive: false
         };
 
+        const half = TACTICAL_CONFIG.TOWER_COVERAGE_HALF_SIZE;
         torres.forEach(t => {
             const x = Number(t.x);
             const y = Number(t.y);
-            const yMin = mapSize - (y + 50);
-            const yMax = mapSize - (y - 50);
-            const xMin = x - 50;
-            const xMax = x + 50;
+            const yMin = mapSize - (y + half);
+            const yMax = mapSize - (y - half);
+            const xMin = x - half;
+            const xMax = x + half;
             const rect = L.rectangle([[yMin, xMin], [yMax, xMax]], estilo);
             rect.addTo(layers.towers_coverage);
         });
@@ -3633,12 +3672,17 @@
 
     // ==============================================================
     // SISTEMA DE INTERAÇÃO DE MOUSE & ARRASTO SUAVE (rAF)
+    // Se ?nativePan=1 estiver ativo, utiliza o comportamento nativo do Leaflet.
     // ==============================================================
     let pendingPanX = 0;
     let pendingPanY = 0;
     let panRaf = null;
 
     function executarPanSuave(dx, dy) {
+        if (TACTICAL_CONFIG.nativePan) {
+            map.panBy([dx, dy], { animate: false });
+            return;
+        }
         pendingPanX += dx;
         pendingPanY += dy;
         if (!panRaf) {
@@ -3652,11 +3696,11 @@
     }
 
     map.getContainer().addEventListener('contextmenu', function(e) {
-        e.preventDefault(); // Elimina menu nativo ou contextmenu
+        e.preventDefault(); // Elimina menu nativo de contextmenu do navegador
     });
 
     map.on('mousedown', function(e) {
-        // Botão direito (2) ou botão do meio (1): pan suave do mapa
+        // Botão direito (2) ou botão do meio (1): pan do mapa (rAF ou nativo)
         if (e.originalEvent.button === 2 || e.originalEvent.button === 1) {
             isRightMouseDown = true;
             panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
@@ -3782,25 +3826,38 @@
         }
     });
 
+    // Helper para verificar se o foco atual está em elemento interativo/editável de formulário
+    function isInputElementActive() {
+        const el = document.activeElement;
+        if (!el) return false;
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+        if (el.isContentEditable || el.getAttribute('contenteditable') === 'true') return true;
+        return false;
+    }
+
     // Teclado unificado: [Y] para cobertura de torres, [I] para radar de beacons, Shift para Snap livre, ESC para cancelar
     window.addEventListener('keydown', function(e) {
         if (e.key === 'Shift') isShiftPressed = true;
 
         if (e.key === 'y' || e.key === 'Y') {
-            const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-            if (tag !== 'input' && tag !== 'textarea') {
+            if (!isInputElementActive()) {
                 toggleCoberturaTorres();
             }
         }
 
         if (e.key === 'i' || e.key === 'I') {
-            const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-            if (tag !== 'input' && tag !== 'textarea') {
+            if (!isInputElementActive()) {
                 toggleInfluenciaBeacons();
             }
         }
 
         if (e.key === 'Escape') {
+            if (isInputElementActive()) {
+                // Permite ao usuário desfocar o campo com ESC sem fechar acidentalmente painéis cartográficos
+                document.activeElement.blur();
+                return;
+            }
             if (modoMedicaoArea) {
                 desativarModoMedicaoArea();
                 limparMedicaoArea();

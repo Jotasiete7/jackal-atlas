@@ -90,4 +90,12 @@ Jackal-Atlas/
 
 ---
 
+## ⚡ Política de Cache de Tiles & Versionamento
+
+Para garantir tempo de resposta de 60 FPS e carregamento sem travamentos de I/O de rede:
+- As pirâmides de tiles (`/tiles_custom/*`, `/tiles_terrain/*`, `/tiles_iso/*`, `/tiles_topo/*`) são servidas no Cloudflare Pages com `Cache-Control: public, max-age=31536000, immutable`.
+- **REGRA OBRIGATÓRIA**: Caso o mapa de terreno seja regerado ou atualizado no futuro, **NUNCA** substitua os arquivos diretamente nas mesmas pastas de tiles sem alterar o caminho. O cache imutável nos nós de borda da Cloudflare e nos navegadores dos oficiais manterá a versão antiga gravada. Crie sempre uma nova pasta versionada (exemplo: `tiles_terrain_v2/`, `tiles_custom_r2/`) e aponte no `index.html` ou nas configurações do mapa.
+
+---
+
 *Desenvolvido para A Guilda • Wurm Online Jackal Round 2 (2026).*

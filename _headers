@@ -1,3 +1,32 @@
+# Cache imutável para pirâmides de tiles (somente pastas de tiles)
+# Um ano de cache com immutable, garantindo entrega instantânea via CDN e cache local do browser.
+/tiles_custom/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/tiles_terrain/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/tiles_iso/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/tiles_topo/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# Assets e código da aplicação: revalidação rápida
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Cabeçalhos globais de segurança
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
