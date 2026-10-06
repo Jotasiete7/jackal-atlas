@@ -36,9 +36,20 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { overflow: hidden; width: 100vw; height: 100vh; background: #060709; }
-        #map { width: 100vw; height: 100vh; background: #060709; cursor: crosshair; }
+        #map {
+            width: 100vw; height: 100vh; background: #060709; cursor: crosshair;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
         .leaflet-layer { visibility: visible !important; }
-        .leaflet-tile { image-rendering: pixelated !important; image-rendering: crisp-edges !important; visibility: visible !important; }
+        .leaflet-tile {
+            image-rendering: pixelated !important;
+            image-rendering: crisp-edges !important;
+            visibility: visible !important;
+        }
+        .leaflet-tile-container { will-change: transform; }
+        .leaflet-zoom-anim .leaflet-tile { image-rendering: auto !important; }
+        .leaflet-dragging .leaflet-interactive { pointer-events: none !important; }
 
         /* Borda de identidade da Sidebar Esquerda */
         .sw-sidebar-left { border-top: 3px solid var(--jk-accent); }
@@ -376,6 +387,9 @@
         <button id="modeBtnPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
             <span>🌉</span> <span data-i18n="modoPonte">Traçar Ponte</span>
         </button>
+        <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles">
+            <span>📐</span> <span data-i18n="modoArea">Medir Área</span>
+        </button>
     </div>
 
     <!-- ABA REABRIR SIDEBAR ESQUERDA -->
@@ -509,6 +523,20 @@
                         <input type="checkbox" data-layer="beacons_freedom" checked onchange="toggleCamada('beacons_freedom', this.checked)">
                         <span data-i18n="beaconsFreedom">🟢 Beacons Freedom</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
                     </label>
+                    <div id="subOpcoesBeaconsContainer" style="margin-left:20px; margin-top:-3px; margin-bottom:5px; display:flex; flex-direction:column; gap:3px;">
+                        <label class="sw-filter-row" style="font-size:10px; color:#10b981; cursor:pointer;" title="Atalho: tecla [I]">
+                            <input type="checkbox" id="chkFilterInfluenciaBeacons" checked onchange="toggleInfluenciaBeacons(this.checked)">
+                            <span data-i18n="radarInfluencia">📡 Radar de Influência</span>
+                            <span style="font-size:8.5px; font-family:'JetBrains Mono'; margin-left:auto; border:1px solid rgba(16,185,129,0.4); padding:0 4px; border-radius:3px; color:#10b981; background:rgba(16,185,129,0.1);">I</span>
+                        </label>
+                        <div id="containerSliderInfluenciaBeacons" style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; padding:2px 2px 4px 6px; font-size:9.5px; color:var(--sw-text-muted); background:rgba(255,255,255,0.03); border-radius:4px; border:1px solid var(--sw-border-subtle);">
+                            <span data-i18n="opacidade">Opacidade:</span>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <input type="range" id="sliderInfluenciaBeacons" min="4" max="35" value="8" step="1" oninput="ajustarOpacidadeInfluenciaBeacons(this.value)" style="width:70px; height:4px; accent-color:#10b981; cursor:pointer;">
+                                <span id="labelInfluenciaBeaconsOpacity" style="font-family:'JetBrains Mono'; font-size:9px; color:#10b981; font-weight:700; min-width:24px; text-align:right;">8%</span>
+                            </div>
+                        </div>
+                    </div>
                     <div style="height:1px; background:var(--sw-border-subtle); margin:4px 0;"></div>
                     <label class="sw-filter-row" style="color:#a78bfa;">
                         <input type="checkbox" data-layer="lodestones" checked onchange="toggleCamada('lodestones', this.checked)">
@@ -682,6 +710,15 @@
             <button onclick="desfazerUltimoPontoTracado()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Desfazer último nó">↩ Desfazer</button>
             <button onclick="abrirModalSalvarRota()" style="background:var(--jk-accent); color:#000; border:none; padding:6px 14px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">✓ Salvar Obra</button>
             <button onclick="cancelarTracado()" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Cancelar</button>
+        </div>
+
+        <!-- BARRA DO MODO MEDIÇÃO DE ÁREA (DEED SIZER) -->
+        <div id="hudBottomArea" class="sw-focus-bar" style="display:none; align-items:center; gap:10px;">
+            <span style="color:#f59e0b; font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;">📐 Deed Sizer:</span>
+            <span id="hudAreaDimensao" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;">Clique e arraste no mapa</span>
+            <span id="hudAreaMetricas" style="font-family:'JetBrains Mono'; font-size:10.5px; color:#94a3b8;"></span>
+            <button onclick="limparMedicaoArea()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Limpar retângulo">🗑️ Limpar</button>
+            <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Fechar</button>
         </div>
     </div>
 
@@ -1066,15 +1103,21 @@
         transformation: new L.Transformation(SCALE_FACTOR, 0, SCALE_FACTOR, 0)
     });
 
+    // Renderizador unificado em Canvas 2D acelerado por hardware para todas as geometrias
+    const tacticalCanvasRenderer = L.canvas({ padding: 0.5 });
+
     const map = L.map('map', {
         crs: L.CRS.Jackal,
         minZoom: 0,
         maxZoom: 6,
         zoomSnap: 0.25,
         zoomDelta: 0.25,
-        wheelPxPerZoomLevel: 120,
+        wheelPxPerZoomLevel: 160,
+        wheelDebounceTime: 40,
+        zoomAnimationThreshold: 4,
         zoomControl: false,
         preferCanvas: true,
+        renderer: tacticalCanvasRenderer,
         attributionControl: false,
         maxBounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
     });
@@ -1105,7 +1148,10 @@
         tileSize: 256,
         noWrap: true,
         bounds: [[0, 0], [MAP_SIZE, MAP_SIZE]],
-        className: 'leaflet-tile'
+        className: 'leaflet-tile',
+        updateWhenZooming: false,
+        updateWhenIdle: true,
+        keepBuffer: 6
     }).addTo(map);
 
     map.setView([2048, 2048], 2);
@@ -1151,6 +1197,7 @@
             color: 'rgba(100, 116, 139, 0.45)',
             weight: 1.2,
             dashArray: '5, 5',
+            renderer: tacticalCanvasRenderer,
             interactive: false
         };
 
@@ -1326,6 +1373,7 @@
         fauna_spots:      L.layerGroup().addTo(map),
         landmarks:        L.layerGroup().addTo(map),
         influencia:       L.layerGroup().addTo(map),
+        area_measurement: L.layerGroup().addTo(map),
         roads_planned:    L.layerGroup().addTo(map),
         roads_built:      L.layerGroup().addTo(map),
         bridges_planned:  L.layerGroup().addTo(map),
@@ -1416,6 +1464,37 @@
         return m;
     }
 
+    // ==============================================================
+    // GESTÃO VISUAL DE BEACONS & INFLUÊNCIA TERRITORIAL
+    // ==============================================================
+    let exibirInfluenciaBeacons = true;
+    let beaconInfluenceOpacity = 0.08;
+
+    function ajustarOpacidadeInfluenciaBeacons(val) {
+        const num = Math.max(4, Math.min(35, parseInt(val, 10) || 8));
+        beaconInfluenceOpacity = num / 100;
+        const lbl = document.getElementById('labelInfluenciaBeaconsOpacity');
+        if (lbl) lbl.textContent = `${num}%`;
+        const slider = document.getElementById('sliderInfluenciaBeacons');
+        if (slider) slider.value = num;
+        renderizarTodosBeacons();
+    }
+
+    function toggleInfluenciaBeacons(ativo) {
+        exibirInfluenciaBeacons = (typeof ativo === 'boolean') ? ativo : !exibirInfluenciaBeacons;
+        const chk = document.getElementById('chkFilterInfluenciaBeacons');
+        if (chk) chk.checked = exibirInfluenciaBeacons;
+        const slider = document.getElementById('containerSliderInfluenciaBeacons');
+        if (slider) slider.style.display = exibirInfluenciaBeacons ? 'flex' : 'none';
+        if (layers.influencia) {
+            exibirInfluenciaBeacons ? map.addLayer(layers.influencia) : map.removeLayer(layers.influencia);
+        }
+        mostrarToastCartografico(exibirInfluenciaBeacons 
+            ? '📡 Radar de Influência dos Beacons: <strong style="color:#10b981;">Ativo</strong>' 
+            : '📡 Radar de Influência: <strong style="color:var(--sw-text-muted);">Oculto</strong>'
+        );
+    }
+
     function renderizarTodosBeacons() {
         layers.beacons_jackal.clearLayers();
         layers.beacons_freedom.clearLayers();
@@ -1433,18 +1512,22 @@
                 countFreedom++;
             }
 
-            // Círculo de influência
-            const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 160 : 100);
-            const cor = b.faccao === 'freedom' ? '#00e676' : '#ff4444';
-            const circle = L.circle([mapSize - b.y, b.x], {
-                radius: radius,
-                color: cor,
-                fillColor: cor,
-                fillOpacity: b.faccao === 'freedom' ? 0.08 : 0.05,
-                weight: 1.5,
-                dashArray: '4 4'
-            }).addTo(layers.influencia);
-            b.circle = circle;
+            // Círculo de influência renderizado no Canvas unificado acelerado
+            if (exibirInfluenciaBeacons) {
+                const radius = b.reforco === 2 ? 240 : (b.reforco === 1 ? 160 : 100);
+                const cor = b.faccao === 'freedom' ? '#00e676' : '#ff4444';
+                const circle = L.circle([mapSize - b.y, b.x], {
+                    radius: radius,
+                    color: cor,
+                    fillColor: cor,
+                    fillOpacity: b.faccao === 'freedom' ? beaconInfluenceOpacity : (beaconInfluenceOpacity * 0.75),
+                    weight: 1.5,
+                    dashArray: '4 4',
+                    renderer: tacticalCanvasRenderer,
+                    interactive: false
+                }).addTo(layers.influencia);
+                b.circle = circle;
+            }
         });
 
         // Contadores nos menus
@@ -1507,6 +1590,7 @@
             opacity: 0.85,
             fillColor: '#2563eb',
             fillOpacity: towerCoverageOpacity,
+            renderer: tacticalCanvasRenderer,
             interactive: false
         };
 
@@ -2204,6 +2288,7 @@
                 weight: 3,
                 dashArray: '4 4',
                 opacity: 0.7,
+                renderer: tacticalCanvasRenderer,
                 interactive: false
             }).addTo(map);
         } else {
@@ -2233,7 +2318,8 @@
             color: cor,
             weight: 3.5,
             dashArray: '6 4',
-            opacity: 0.9
+            opacity: 0.9,
+            renderer: tacticalCanvasRenderer
         }).addTo(map);
 
         pontosTracado.forEach((p, idx) => {
@@ -3335,13 +3421,156 @@
     // ==============================================================
     // CONTROLE UNIFICADO DE MODOS DE INTERAÇÃO (BARRA SUPERIOR)
     // ==============================================================
+    // ==============================================================
+    // FERRAMENTA DE MEDIÇÃO DE ÁREA & DEED SIZER (ESTILO WURM.TOP)
+    // ==============================================================
+    let modoMedicaoArea = false;
+    let isDrawingArea = false;
+    let areaStartPoint = null;
+    let areaRectTemp = null;
+    let areaTooltipMarker = null;
+    let ultimaMedicaoArea = null;
+
+    function ativarModoMedicaoArea() {
+        if (modoTracado) cancelarTracado();
+        if (modoAdicionar) desativarModoAdicionarPonto();
+        modoMedicaoArea = true;
+        map.getContainer().style.cursor = 'crosshair';
+
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudFoco = document.getElementById('hudBottomFoco');
+        const hudArea = document.getElementById('hudBottomArea');
+        if (hudNormal) hudNormal.style.display = 'none';
+        if (hudFoco) hudFoco.style.display = 'none';
+        if (hudArea) hudArea.style.display = 'flex';
+
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnArea')?.classList.add('active');
+
+        mostrarToastCartografico('📐 <strong>Deed Sizer</strong>: Clique e arraste no mapa para medir dimensões em tiles.');
+    }
+
+    function desativarModoMedicaoArea() {
+        modoMedicaoArea = false;
+        isDrawingArea = false;
+        areaStartPoint = null;
+        map.getContainer().style.cursor = '';
+
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudArea = document.getElementById('hudBottomArea');
+        if (hudArea) hudArea.style.display = 'none';
+        if (hudNormal) hudNormal.style.display = 'flex';
+
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnNavegar')?.classList.add('active');
+    }
+
+    function limparMedicaoArea() {
+        if (areaRectTemp) {
+            layers.area_measurement.removeLayer(areaRectTemp);
+            areaRectTemp = null;
+        }
+        if (areaTooltipMarker) {
+            layers.area_measurement.removeLayer(areaTooltipMarker);
+            areaTooltipMarker = null;
+        }
+        ultimaMedicaoArea = null;
+        const dimEl = document.getElementById('hudAreaDimensao');
+        const metEl = document.getElementById('hudAreaMetricas');
+        if (dimEl) dimEl.textContent = 'Clique e arraste no mapa';
+        if (metEl) metEl.textContent = '';
+    }
+
+    function atualizarDesenhoArea(curX, curY) {
+        if (!areaStartPoint) return;
+        const x1 = Math.min(areaStartPoint.x, curX);
+        const x2 = Math.max(areaStartPoint.x, curX);
+        const y1 = Math.min(areaStartPoint.y, curY);
+        const y2 = Math.max(areaStartPoint.y, curY);
+
+        const w = Math.max(1, (x2 - x1) + 1);
+        const h = Math.max(1, (y2 - y1) + 1);
+        const area = w * h;
+        const diag = Math.hypot(w, h).toFixed(1);
+        const perim = 2 * (w + h);
+
+        ultimaMedicaoArea = { x1, y1, x2, y2, w, h, area, diag, perim };
+
+        const yMin = mapSize - y2;
+        const yMax = mapSize - y1;
+        const bounds = [[yMin, x1], [yMax, x2]];
+
+        const estilo = {
+            color: '#f59e0b',
+            weight: 2,
+            dashArray: '5, 4',
+            opacity: 0.95,
+            fillColor: '#f59e0b',
+            fillOpacity: 0.14,
+            renderer: tacticalCanvasRenderer,
+            interactive: false
+        };
+
+        if (!areaRectTemp) {
+            areaRectTemp = L.rectangle(bounds, estilo).addTo(layers.area_measurement);
+        } else {
+            areaRectTemp.setBounds(bounds);
+        }
+
+        const dimEl = document.getElementById('hudAreaDimensao');
+        const metEl = document.getElementById('hudAreaMetricas');
+        if (dimEl) {
+            dimEl.innerHTML = `<span style="color:#f59e0b; font-weight:900;">${w} × ${h}</span> tiles`;
+        }
+        if (metEl) {
+            metEl.textContent = `Área ${area.toLocaleString()} tiles² • Diag ${diag}t • Perím ${perim}t`;
+        }
+    }
+
+    function finalizarMedicaoArea() {
+        if (!ultimaMedicaoArea) return;
+        const { x1, y1, x2, y2, w, h, area, diag, perim } = ultimaMedicaoArea;
+        const centroLat = mapSize - (y1 + y2) / 2;
+        const centroLng = (x1 + x2) / 2;
+
+        if (areaTooltipMarker) {
+            layers.area_measurement.removeLayer(areaTooltipMarker);
+        }
+
+        const quad1 = obterQuadranteWurm(y1, x1);
+        const quad2 = obterQuadranteWurm(y2, x2);
+        const quadTxt = (quad1 === quad2) ? quad1 : `${quad1} ➔ ${quad2}`;
+
+        const badgeHtml = `
+            <div class="deed-sizer-badge">
+                <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${area.toLocaleString()} tiles²)<br>
+                <span style="font-size:9.5px; opacity:0.8;">[${quadTxt}] • Diag ${diag}t</span>
+            </div>
+        `;
+
+        areaTooltipMarker = L.marker([centroLat, centroLng], {
+            icon: L.divIcon({
+                className: '',
+                iconAnchor: [60, 20],
+                html: badgeHtml
+            }),
+            interactive: false
+        }).addTo(layers.area_measurement);
+
+        mostrarToastCartografico(`📐 Área medida: <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${area.toLocaleString()} tiles²)`);
+    }
+
+    // ==============================================================
+    // CONTROLE UNIFICADO DE MODOS DE INTERAÇÃO (BARRA SUPERIOR)
+    // ==============================================================
     function definirModoInteracao(modo) {
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         const btnMap = {
             'navegar': 'modeBtnNavegar',
             'ponto':   'modeBtnPonto',
             'estrada': 'modeBtnEstrada',
-            'ponte':   'modeBtnPonte'
+            'ponte':   'modeBtnPonte',
+            'area':    'modeBtnArea'
         };
         const el = document.getElementById(btnMap[modo]);
         if (el) el.classList.add('active');
@@ -3364,6 +3593,10 @@
             map.getContainer().style.cursor = '';
         }
 
+        if (modo !== 'area' && modoMedicaoArea) {
+            desativarModoMedicaoArea();
+        }
+
         if (modo === 'navegar') {
             mostrarToastCartografico('👁️ Modo <strong>Navegação</strong> ativo.');
         } else if (modo === 'ponto') {
@@ -3372,11 +3605,14 @@
             iniciarTracado('road');
         } else if (modo === 'ponte') {
             iniciarTracado('bridge');
+        } else if (modo === 'area') {
+            ativarModoMedicaoArea();
         }
     }
 
     function ativarModoAdicionarPonto() {
         if (modoTracado) cancelarTracado();
+        if (modoMedicaoArea) desativarModoMedicaoArea();
         modoAdicionar = true;
         map.getContainer().style.cursor = 'crosshair';
         const tt = document.getElementById('crosshairTooltip');
@@ -3396,10 +3632,25 @@
     }
 
     // ==============================================================
-    // SISTEMA DE INTERAÇÃO DE MOUSE & ARRASTO (PADRÃO HARMONY ATLAS)
-    // Botão Direito e Botão do Meio: Arrastam o mapa suavemente (Pan)
-    // Botão Esquerdo: Insere pontos e nós de estrada com Snap 45°
+    // SISTEMA DE INTERAÇÃO DE MOUSE & ARRASTO SUAVE (rAF)
     // ==============================================================
+    let pendingPanX = 0;
+    let pendingPanY = 0;
+    let panRaf = null;
+
+    function executarPanSuave(dx, dy) {
+        pendingPanX += dx;
+        pendingPanY += dy;
+        if (!panRaf) {
+            panRaf = requestAnimationFrame(() => {
+                map.panBy([pendingPanX, pendingPanY], { animate: false });
+                pendingPanX = 0;
+                pendingPanY = 0;
+                panRaf = null;
+            });
+        }
+    }
+
     map.getContainer().addEventListener('contextmenu', function(e) {
         e.preventDefault(); // Elimina menu nativo ou contextmenu
     });
@@ -3412,22 +3663,39 @@
             map.getContainer().style.cursor = 'grabbing';
             return;
         }
+
+        // Botão esquerdo (0) no modo de medição de área (Deed Sizer)
+        if (e.originalEvent.button === 0 && modoMedicaoArea) {
+            const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+            const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+            isDrawingArea = true;
+            areaStartPoint = { x: curX, y: curY };
+            limparMedicaoArea();
+            atualizarDesenhoArea(curX, curY);
+            return;
+        }
     });
 
     map.on('mousemove', function(e) {
-        // 1. Pan do mapa por arraste com botão direito ou meio
+        // 1. Pan do mapa por arraste com botão direito ou meio acelerado via rAF
         if (isRightMouseDown && panStartPoint) {
             const dx = panStartPoint.x - e.originalEvent.clientX;
             const dy = panStartPoint.y - e.originalEvent.clientY;
             panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
-            map.panBy([dx, dy], { animate: false });
+            executarPanSuave(dx, dy);
             return;
         }
 
         const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
         const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
 
-        // 2. Atualizar crosshair tooltip quando em modo de adicionar ponto
+        // 2. Medição de área em tempo real (Deed Sizer)
+        if (isDrawingArea && areaStartPoint) {
+            atualizarDesenhoArea(curX, curY);
+            return;
+        }
+
+        // 3. Atualizar crosshair tooltip quando em modo de adicionar ponto
         if (modoAdicionar) {
             const tt = document.getElementById('crosshairTooltip');
             const cc = document.getElementById('crosshairCoords');
@@ -3439,7 +3707,7 @@
             }
         }
 
-        // 3. Traçado com Snap 45° em tempo real
+        // 4. Traçado com Snap 45° em tempo real
         if (modoTracado && pontosTracado.length > 0) {
             atualizarPreviewTracado(curX, curY);
         }
@@ -3449,11 +3717,16 @@
         if (isRightMouseDown) {
             isRightMouseDown = false;
             panStartPoint = null;
-            if (modoAdicionar || modoTracado) {
+            if (modoAdicionar || modoTracado || modoMedicaoArea) {
                 map.getContainer().style.cursor = 'crosshair';
             } else {
                 map.getContainer().style.cursor = '';
             }
+        }
+
+        if (isDrawingArea) {
+            isDrawingArea = false;
+            finalizarMedicaoArea();
         }
     }
     map.on('mouseup', finalizarArrastoMouse);
@@ -3463,6 +3736,7 @@
     // Clique com botão esquerdo no mapa
     map.on('click', function(e) {
         if (e.originalEvent && e.originalEvent.button !== 0) return;
+        if (modoMedicaoArea) return;
 
         // 1. Se estiver no modo de adicionar ponto
         if (modoAdicionar) {
@@ -3478,7 +3752,8 @@
                 color: '#f5a623',
                 fillColor: '#f5a623',
                 fillOpacity: 0.45,
-                weight: 2
+                weight: 2,
+                renderer: tacticalCanvasRenderer
             }).addTo(map);
 
             document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
@@ -3507,7 +3782,7 @@
         }
     });
 
-    // Teclado unificado: [Y] para cobertura de torres, Shift para Snap livre, ESC para cancelar
+    // Teclado unificado: [Y] para cobertura de torres, [I] para radar de beacons, Shift para Snap livre, ESC para cancelar
     window.addEventListener('keydown', function(e) {
         if (e.key === 'Shift') isShiftPressed = true;
 
@@ -3518,7 +3793,18 @@
             }
         }
 
+        if (e.key === 'i' || e.key === 'I') {
+            const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+            if (tag !== 'input' && tag !== 'textarea') {
+                toggleInfluenciaBeacons();
+            }
+        }
+
         if (e.key === 'Escape') {
+            if (modoMedicaoArea) {
+                desativarModoMedicaoArea();
+                limparMedicaoArea();
+            }
             if (modoAdicionar) {
                 desativarModoAdicionarPonto();
                 mostrarToastCartografico('Modo adição cancelado.');
@@ -3761,6 +4047,7 @@
             modoPonto: 'Anotar Ponto',
             modoEstrada: 'Traçar Estrada',
             modoPonte: 'Traçar Ponte',
+            modoArea: 'Medir Área',
             fauna: '🦎 Montarias & Criaturas',
             faunaSub: 'Fauna',
             weta: '🦗 Spots de Weta (Montaria Inicial)',
@@ -3845,6 +4132,7 @@
             modoPonto: 'Add Marker',
             modoEstrada: 'Trace Road',
             modoPonte: 'Trace Bridge',
+            modoArea: 'Measure Area',
             fauna: '🦎 Mounts & Creatures',
             faunaSub: 'Fauna',
             weta: '🦗 Weta Spots (Starter Mount)',
@@ -4133,7 +4421,8 @@
                     color: cor,
                     weight: Number(r.width) || 3.5,
                     dashArray: isBuilt ? null : '6 4',
-                    opacity: 0.9
+                    opacity: 0.9,
+                    renderer: tacticalCanvasRenderer
                 });
 
                 let dist = 0;

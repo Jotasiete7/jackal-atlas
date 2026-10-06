@@ -19,3 +19,5 @@ maps/raw/*.png
 maps/processed/*.png
 jackal_original_iso_4096.png
 jackal_original_topo_4096.png
+jackal_original_terrain_4096.png
+wurm_bundle.js
