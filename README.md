@@ -7,14 +7,20 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
 
 ## 🗺️ Funcionalidades Principais
 
-- **Base Cartográfica Leaflet**: Sistema de coordenadas Wurm com grade de 4096×4096 tiles, alternância entre camadas *Terrain*, *Isométrico* e *Topográfico* e controle de zoom suíço no canto inferior direito.
-- **Menu de Contexto Tático (Botão Direito)**: Clique em qualquer local do mapa para adicionar Deeds/pontos com coordenadas pré-preenchidas, copiar o comando `/vamp X Y` com 1 clique ou centralizar a visualização.
-- **Modo Foco de Infraestrutura (`sw-focus-bar`)**: Ferramenta de traçado de estradas e pontes com cálculo dinâmico de tiles em tempo real, suporte a desfazimento de nós (`↩`) e gravação na tabela `routes` do Supabase.
-- **Gestão de Deeds & Pontos**: Suporte completo a cadastro de vilas com atribuição de **Prefeito (Mayor)**, facções militares, popups interativos e botões de edição (`✏️`) e exclusão (`🗑️`) para criadores e oficiais.
-- **Radar de Influência & Beacons**: Cálculo dinâmico da ocupação do mapa (Freedom vs Jackal vs Neutro), reforço até nível 2x, alertas ao vivo de ataque e monitoramento do Primeiro Marco Comunitário (Idols & Plinths).
-- **Busca Inteligente com Autocomplete**: Localização instantânea por quadrantes Wurm (ex: `M15`, `k20` com destaque luminoso), nomes de Deeds, Prefeitos, Beacons e Cavernas com câmera guiada (`flyTo`).
-- **Autenticação Discord & Controle de Acesso**: Permissões baseadas em cargos (`pending`, `member`, `officer`, `admin`) e painel administrativo (`admin.html`) para moderação de acessos e submissões.
-- **Persistência Local**: Configurações de camadas ativas lembradas automaticamente no navegador do usuário via `localStorage`.
+- **Base Cartográfica Leaflet Ágil**: Motor de renderização suave e direto (estilo Harmony Atlas), com grade de 4096×4096 tiles, alternância entre camadas *Terrain*, *Isométrico* e *Topográfico* e controle de zoom suíço.
+- **Mira Tática Alvo Pulsante & URL Dinâmica**: Clique com botão esquerdo em qualquer ponto para cravar uma mira pulsante vermelha (`@keyframes sw-ping`) e atualizar o link do navegador instantaneamente (`#X,Y`) para compartilhamento rápido via Discord ou chat do Wurm.
+- **Abertura Instantânea por Link (`#X,Y` ou `#X,Y,Z`)**: Links com coordenadas abrem a câmera diretamente nas coordenadas táticas com zoom 5.0x, economizando dezenas de downloads de tiles do centro.
+- **Smart Paste de Coordenadas**: Reconhecimento automático de coordenadas copiadas do jogo (`2897,2845`, `/vamp 2897 2845`, etc.) com preenchimento automático nos modais de Deeds e anotações.
+- **Pipeline de Moderação Colaborativa (Zero-Vandalismo)**:
+  - Anotações de membros comuns entram como pendentes (`confirmed: false`) e só aparecem publicamente após aprovação de Oficiais/Admins.
+  - Oficiais e Admins aprovam ou rejeitam propostas diretamente pelo mapa em 1-clique ou pelo painel administrativo.
+  - Visitantes externos e deslogados têm acesso apenas aos pontos e rotas já confirmados.
+- **Grade YAGA Wurm & Destaque de Quadrantes**: Visualização de quadrantes oficiais (`B7` a `Z26`), busca instantânea por quadrante (ex: `L17`) e cálculo de coordenadas com precisão milimétrica.
+- **Modo Infraestrutura & Deed Sizer**:
+  - Traçado de estradas e pontes retas (ortogonais 90° e diagonais 45° via Snap Wurm) com cálculo de tiles.
+  - Medição de áreas para planejamento de deeds e terraplanagem em tempo real.
+- **Radar de Influência & Beacons**: Monitoramento dinâmico da ocupação territorial (Freedom vs Jackal vs Neutro), reforços de beacon (+1, +2), alertas de ataque e Primeiro Marco da Guilda (Idols & Plinths).
+- **Segurança Reforçada (RLS)**: Regras granulares no banco de dados com bloqueio de auto-aprovação, proteção contra escalação de privilégios e rate limiting.
 
 ---
 
@@ -22,6 +28,7 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
 
 - 📘 **[Manual de Operações & Tutorial Completo](TUTORIAL.md)**: Guia passo a passo com fotos conceituais, atalhos de teclado e instruções para batedores e oficiais.
 - 🗺️ **[Relatório de Engenharia Cartográfica & Calibração Swisstopo](docs/CARTOGRAFIA_CALIBRACAO_SWISSTOPO.md)**: Registro técnico do pipeline de alto contraste, sombreamento 3D limpo e resolução nativa 4096px.
+- ⏱️ **[Especificação Arquitetural de Timelapse](docs/TIMELAPSE_SPEC.md)**: Planejamento técnico para reprodução temporal da evolução do território e gravação em vídeo WebM.
 
 ---
 
@@ -44,7 +51,13 @@ Acesse:
 - **Login Discord**: `http://localhost:3001/login.html`
 - **Painel de Oficiais / Admin**: `http://localhost:3001/admin.html`
 
-### 3. Deploy em Produção
+### 3. Bateria de Testes Automatizados
+O projeto conta com uma suíte de testes com 42 verificações de sintaxe, DOM, cálculos cartográficos e conexão com o Supabase:
+```bash
+node test_suite.js
+```
+
+### 4. Deploy em Produção
 O projeto está configurado para deploy contínuo no **Cloudflare Pages** conectado à branch `main`:
 - **Produção**: [https://jackal-atlas.pages.dev](https://jackal-atlas.pages.dev)
 
@@ -53,14 +66,16 @@ O projeto está configurado para deploy contínuo no **Cloudflare Pages** conect
 ## 🗄️ Estrutura do Banco de Dados (Supabase)
 
 Scripts SQL na pasta `migrations/`:
-1. `001_base_schema.sql` — Enums de cargos, tabela `profiles` e funções de autorização.
+1. `001_base_schema.sql` — Enums de cargos (`app_role`), tabela `profiles` e funções de autorização (`is_admin`, `is_officer`, `is_approved_member`).
 2. `002_map_config.sql` — Configurações dinâmicas de mapas base.
-3. `003_points_events.sql` — Tabela `points` (com `attrs jsonb`), histórico `point_events` e gatilhos de cálculo de influência.
+3. `003_points_events.sql` — Tabela `points`, histórico `point_events` e gatilhos de cálculo de influência.
 4. `004_objectives_routes.sql` — Tabela `objectives` (P1/P2/P3) e tabela `routes` (caminhos viários e pontes).
 5. `005_config_seed.sql` — Tabelas de alcance de influência, marcos e fauna.
-6. `006_discord_auth_trigger.sql` — Gatilho automático de provisionamento de novos usuários Discord.
-7. `007_admin_role_escalation.sql` — Funções para moderação de cargos no painel admin.
-8. `008_point_management_policies.sql` — Políticas RLS para edição e exclusão de pontos por criadores e oficiais.
+6. `006_security_hardening.sql` — Bloqueio de inserção direta de perfis, restrição de coordenadas geográficas e rate limit.
+7. `007_fix_auth_and_permissions.sql` — Correção de provisionamento OAuth do Discord no login.
+8. `008_point_management_policies.sql` — Políticas RLS para edição e exclusão de anotações pelos criadores e oficiais.
+9. `009_admin_only_objectives.sql` — Restrição exclusiva para Administradores criarem Metas da Guilda e Topônimos.
+10. `010_security_patches.sql` — Acesso público de leitura para visitantes (pontos confirmados e rotas) e bloqueio de auto-aprovação via UPDATE.
 
 ---
 
@@ -70,9 +85,10 @@ Scripts SQL na pasta `migrations/`:
 Jackal-Atlas/
 ├── index.html                  # Aplicação principal e mapa tático
 ├── login.html                  # Autenticação Discord e checagem de aprovação
-├── admin.html                  # Painel de gestão de membros e fila de guerra
+├── admin.html                  # Painel de gestão de membros e fila de moderação
 ├── TUTORIAL.md                 # Manual de operações e tutorial detalhado
 ├── README.md                   # Apresentação do projeto e guia técnico
+├── test_suite.js               # Suíte de testes automatizados (42 verificações)
 ├── server.js                   # Servidor de desenvolvimento local (porta 3001)
 ├── Iniciar-Jackal-Atlas.bat     # Atalho executável para inicialização
 ├── config.example.js           # Template de credenciais Supabase
@@ -82,11 +98,12 @@ Jackal-Atlas/
 ├── _headers                    # Cabeçalhos CSP para deploy no Cloudflare Pages
 ├── robots.txt                  # Bloqueio de indexação pública
 ├── jackal_original_terrain_4096.png # Imagem mestre em alta definição
+├── tiles_custom/               # Tiles personalizados ativos
 ├── tiles_terrain/              # Tiles locais de terreno (Zoom 0 ao 4)
 ├── tiles_topo/                 # Tiles locais de curvas de nível
 ├── tiles_iso/                  # Tiles locais em visão isométrica
-├── migrations/                 # Migrações SQL numeradas
-└── scripts/                    # Utilitários de extração e fatiamento
+├── migrations/                 # Migrações SQL numeradas (001 a 010)
+└── scripts/                    # Utilitários de extração e fatiamento de tiles
 ```
 
 ---

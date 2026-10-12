@@ -13,6 +13,8 @@ scratch/
 test_tile.png
 .DS_Store
 Thumbs.db
+__pycache__/
+*.pyc
 
 # Imagens brutas pesadas de 4096px (apenas scripts e tiles vão para produção)
 maps/raw/*.png
