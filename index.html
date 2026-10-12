@@ -734,9 +734,22 @@
                 <button class="sw-modal-close" onclick="fecharModal('modalAddPonto')">✕</button>
             </div>
 
-            <div class="sw-coord-pill-badge">
+            <div class="sw-coord-pill-badge" style="display:flex; justify-content:space-between; align-items:center;">
                 <span>📍 Coordenadas Wurm</span>
-                <strong id="modalCoordStrong" style="color:var(--jk-accent);">X 0 • Y 0</strong>
+                <span id="modalAddQuadBadge" style="font-family:'JetBrains Mono',monospace; color:var(--jk-accent); font-weight:700; font-size:11px;">-</span>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+                <div style="flex:1; display:flex; align-items:center; gap:6px;">
+                    <label for="inputModalCoordX" style="font-size:11px; font-weight:700; color:var(--sw-text-muted);">X:</label>
+                    <input type="text" inputmode="numeric" id="inputModalCoordX" class="sw-form-input" style="padding:5px 8px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="X" oninput="atualizarCoordManualModal()" onpaste="tratarColarCoordenadasModal(event, 'add')">
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:6px;">
+                    <label for="inputModalCoordY" style="font-size:11px; font-weight:700; color:var(--sw-text-muted);">Y:</label>
+                    <input type="text" inputmode="numeric" id="inputModalCoordY" class="sw-form-input" style="padding:5px 8px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="Y" oninput="atualizarCoordManualModal()" onpaste="tratarColarCoordenadasModal(event, 'add')">
+                </div>
+            </div>
+            <div style="font-size:10px; color:var(--sw-text-muted); margin-top:-6px; margin-bottom:12px;">
+                💡 <em>Dica:</em> Cole <code>2897,2845</code> ou <code>/vamp 2897 2845</code> para autocompletar X e Y instantaneamente.
             </div>
 
             <div class="sw-form-group">
@@ -881,9 +894,22 @@
 
             <input type="hidden" id="inputEditPontoId">
 
-            <div class="sw-coord-pill-badge">
+            <div class="sw-coord-pill-badge" style="display:flex; justify-content:space-between; align-items:center;">
                 <span>📍 Coordenadas Wurm</span>
-                <strong id="modalEditCoordStrong" style="color:var(--jk-accent);">X 0 • Y 0</strong>
+                <span id="modalEditQuadBadge" style="font-family:'JetBrains Mono',monospace; color:var(--jk-accent); font-weight:700; font-size:11px;">-</span>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+                <div style="flex:1; display:flex; align-items:center; gap:6px;">
+                    <label for="inputEditCoordX" style="font-size:11px; font-weight:700; color:var(--sw-text-muted);">X:</label>
+                    <input type="text" inputmode="numeric" id="inputEditCoordX" class="sw-form-input" style="padding:5px 8px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="X" oninput="atualizarCoordManualModalEdit()" onpaste="tratarColarCoordenadasModal(event, 'edit')">
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:6px;">
+                    <label for="inputEditCoordY" style="font-size:11px; font-weight:700; color:var(--sw-text-muted);">Y:</label>
+                    <input type="text" inputmode="numeric" id="inputEditCoordY" class="sw-form-input" style="padding:5px 8px; font-family:'JetBrains Mono',monospace; font-size:12px;" placeholder="Y" oninput="atualizarCoordManualModalEdit()" onpaste="tratarColarCoordenadasModal(event, 'edit')">
+                </div>
+            </div>
+            <div style="font-size:10px; color:var(--sw-text-muted); margin-top:-6px; margin-bottom:12px;">
+                💡 <em>Dica:</em> Cole <code>2897,2845</code> ou <code>/vamp 2897 2845</code> para autocompletar X e Y.
             </div>
 
             <div class="sw-form-group">
@@ -1190,7 +1216,112 @@
         keepBuffer: 6
     }).addTo(map);
 
-    map.setView([2048, 2048], 2);
+    function obterCoordsHashUrl() {
+        const hash = window.location.hash.replace(/^#/, '').trim();
+        if (!hash || hash.includes('access_token')) return null;
+
+        const partes = hash.split(',');
+        if (partes.length >= 2) {
+            const x = parseInt(partes[0].trim(), 10);
+            const y = parseInt(partes[1].trim(), 10);
+            const z = partes[2] ? parseFloat(partes[2].trim()) : null;
+            if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+                return { x, y, z: (!isNaN(z) && z >= 0 && z <= 6) ? z : 5.0 };
+            }
+        }
+        return null;
+    }
+
+    // Inicialização Instantânea da Câmera (URL #X,Y ou Centro do Mapa)
+    const hashInicial = obterCoordsHashUrl();
+    if (hashInicial) {
+        // Inicializa a câmera direto nas coordenadas desejadas, economizando tiles do centro
+        map.setView([MAP_SIZE - hashInicial.y, hashInicial.x], hashInicial.z || 5.0);
+    } else {
+        map.setView([2048, 2048], 2);
+    }
+
+    // ==============================================================
+    // MIRA TÁTICA ALVO PULSANTE & URL DINÂMICA (#X,Y)
+    // ==============================================================
+    let targetMiraMarker = null;
+
+    function posicionarMiraTarget(x, y, voarAte = false, zoomAlvo = 5.0) {
+        x = Math.max(0, Math.min(Math.round(x), MAP_SIZE));
+        y = Math.max(0, Math.min(Math.round(y), MAP_SIZE));
+        const lat = MAP_SIZE - y;
+        const lng = x;
+
+        if (targetMiraMarker) {
+            map.removeLayer(targetMiraMarker);
+            targetMiraMarker = null;
+        }
+
+        const iconMira = L.divIcon({
+            className: 'target-mira-icon-container',
+            html: `
+                <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="Alvo Marcado (${x}, ${y}) - Clique para remover">
+                    <div style="position:absolute; width:28px; height:28px; border-radius:50%; border:2px solid #ef4444; animation:sw-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity:0.85;"></div>
+                    <div style="position:absolute; width:18px; height:18px; border-radius:50%; background:rgba(239, 68, 68, 0.25); border:1.5px solid #ef4444;"></div>
+                    <div style="width:4px; height:4px; border-radius:50%; background:#ef4444;"></div>
+                </div>
+            `,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+        });
+
+        targetMiraMarker = L.marker([lat, lng], {
+            icon: iconMira,
+            interactive: true,
+            zIndexOffset: 3000
+        }).addTo(map);
+
+        const quad = obterQuadranteWurm(y, x);
+
+        // Clique na própria mira remove ela
+        targetMiraMarker.on('click', function(ev) {
+            if (ev && ev.originalEvent) ev.originalEvent.stopPropagation();
+            removerMiraTarget();
+        });
+
+        // Atualiza coordenadas no rodapé
+        const coordBox = document.getElementById('coordBox');
+        const quadBox = document.getElementById('quadBox');
+        if (coordBox) coordBox.textContent = `X: ${x} • Y: ${y}`;
+        if (quadBox) quadBox.textContent = quad;
+
+        // Atualiza hash na URL dinamicamente sem recarregar
+        window.history.replaceState(null, '', '#' + x + ',' + y);
+
+        if (voarAte) {
+            map.flyTo([lat, lng], Math.max(map.getZoom(), zoomAlvo || 5.0), { duration: 1.0 });
+        }
+    }
+
+    function removerMiraTarget() {
+        if (targetMiraMarker) {
+            map.removeLayer(targetMiraMarker);
+            targetMiraMarker = null;
+        }
+        quadranteHighlightLayer.clearLayers();
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    function verificarHashUrl() {
+        const hashCoords = obterCoordsHashUrl();
+        if (!hashCoords) return;
+
+        const center = map.getCenter();
+        const latAlvo = MAP_SIZE - hashCoords.y;
+        const jaNoPonto = (Math.abs(center.lat - latAlvo) < 10 && Math.abs(center.lng - hashCoords.x) < 10);
+        posicionarMiraTarget(hashCoords.x, hashCoords.y, !jaNoPonto, hashCoords.z || 5.0);
+    }
+
+    // Posiciona a mira inicial se veio por URL
+    if (hashInicial) {
+        posicionarMiraTarget(hashInicial.x, hashInicial.y, false, hashInicial.z || 5.0);
+    }
+    window.addEventListener('hashchange', verificarHashUrl);
 
     // ==============================================================
     // SISTEMA DE GRADE & QUADRANTES WURM (ESTILO YAGA / HARMONY)
@@ -1237,15 +1368,16 @@
             interactive: false
         };
 
-        // Linhas Horizontais
+        // Linhas Horizontais (Leaflet Lat = MAP_SIZE - Wurm Y)
         for (let i = 1; i <= 21; i++) {
             const y = (i * spacing) + YAGA_GRID_OFFSETY;
             if (y >= 0 && y <= MAP_SIZE) {
-                L.polyline([[y, 0], [y, MAP_SIZE]], lineOpts).addTo(gridLayer);
+                const lat = MAP_SIZE - y;
+                L.polyline([[lat, 0], [lat, MAP_SIZE]], lineOpts).addTo(gridLayer);
             }
         }
 
-        // Linhas Verticais
+        // Linhas Verticais (Leaflet Lng = Wurm X)
         for (let j = 1; j <= 21; j++) {
             const x = (j * spacing) + YAGA_GRID_OFFSETX;
             if (x >= 0 && x <= MAP_SIZE) {
@@ -1256,7 +1388,8 @@
         // Labels dos Quadrantes
         for (let i = 0; i < 20; i++) {
             for (let j = 0; j < 20; j++) {
-                const centerLat = (i * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETY;
+                const wurmY = (i * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETY;
+                const centerLat = MAP_SIZE - wurmY;
                 const centerLng = (j * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETX;
                 const labelText = YAGA_LETTERS[i] + (j + 7);
 
@@ -1287,7 +1420,10 @@
         if (!bounds) return;
         quadranteHighlightLayer.clearLayers();
 
-        const rect = L.rectangle([[bounds.yMin, bounds.xMin], [bounds.yMax, bounds.xMax]], {
+        const latMin = MAP_SIZE - bounds.yMax;
+        const latMax = MAP_SIZE - bounds.yMin;
+
+        const rect = L.rectangle([[latMin, bounds.xMin], [latMax, bounds.xMax]], {
             color: '#38bdf8',
             weight: 2,
             dashArray: '6, 6',
@@ -1298,7 +1434,7 @@
         quadranteHighlightLayer.addLayer(rect);
 
         if (voar) {
-            map.flyToBounds([[bounds.yMin, bounds.xMin], [bounds.yMax, bounds.xMax]], {
+            map.flyToBounds([[latMin, bounds.xMin], [latMax, bounds.xMax]], {
                 padding: [60, 60],
                 duration: 1.2
             });
@@ -1685,11 +1821,15 @@
             const faccaoCor = p.faction === 'freedom' ? 'var(--jk-freedom)' : (p.faction === 'jackal' ? 'var(--jk-jackal)' : 'var(--jk-neutral)');
             const faccaoNome = p.faction === 'freedom' ? 'Freedom' : (p.faction === 'jackal' ? 'Jackal' : 'Neutro');
 
+            const isPendente = (p.confirmed === false);
+            const isStaff = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
+            const pendingBadge = isPendente ? `<span style="position:absolute; top:-6px; right:-6px; font-size:9px; background:#f5a623; color:#000; border-radius:50%; width:15px; height:15px; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 1px 3px rgba(0,0,0,0.8);" title="Pendente de Moderação">⏳</span>` : '';
+
             const m = L.marker([mapSize - y, x], {
                 icon: L.divIcon({
                     className: '',
                     iconAnchor: [12, 12],
-                    html: `<div style="font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}">${conf.icon}</div>`
+                    html: `<div style="position:relative; font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}${isPendente ? ' (Pendente)' : ''}">${conf.icon}${pendingBadge}</div>`
                 })
             });
 
@@ -1708,6 +1848,29 @@
                     🎯 Tornar Meta da Guilda
                 </button>
             ` : '';
+
+            let moderacaoHtml = '';
+            if (isPendente) {
+                if (isStaff) {
+                    moderacaoHtml = `
+                        <div style="background:rgba(245,166,35,0.14); border:1px solid rgba(245,166,35,0.4); border-radius:4px; padding:6px; margin-top:6px;">
+                            <div style="font-size:9.5px; color:#f5a623; font-weight:800; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                                <span>⏳</span> Proposta Pendente de Moderação
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="event.stopPropagation(); aprovarPontoRapido('${p.id}')" style="flex:1; background:#00e676; color:#000; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">✓ Aprovar</button>
+                                <button onclick="event.stopPropagation(); rejeitarPontoRapido('${p.id}')" style="flex:1; background:#ff4444; color:#fff; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">✕ Rejeitar</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (currentUser && p.created_by === currentUser.id) {
+                    moderacaoHtml = `
+                        <div style="background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.3); border-radius:4px; padding:4px 6px; margin-top:6px; font-size:9.5px; color:#f5a623;">
+                            ⏳ <strong>Sua anotação está em análise</strong> e aparecerá para todos após aprovação de um Oficial.
+                        </div>
+                    `;
+                }
+            }
 
             const actionBtns = canManage ? `
                 <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #30363d; padding-top:6px;">
@@ -1735,6 +1898,7 @@
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${moderacaoHtml}
                         ${adminMetaBtn}
                         ${actionBtns}
                     </div>
@@ -1752,6 +1916,7 @@
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${moderacaoHtml}
                         ${adminMetaBtn}
                         ${actionBtns}
                     </div>
@@ -1766,6 +1931,7 @@
                             <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
                         </div>
+                        ${moderacaoHtml}
                         ${adminMetaBtn}
                         ${actionBtns}
                     </div>
@@ -1960,7 +2126,7 @@
     function focarPonto(x, y, id) {
         document.getElementById('buscaDropdown').style.display = 'none';
         document.getElementById('inputBusca').value = '';
-        map.flyTo([mapSize - y, x], 4, { duration: 1 });
+        posicionarMiraTarget(x, y, true, 4.5);
 
         // Se for beacon, seleciona na central
         const b = beaconsData.find(item => String(item.id) === String(id));
@@ -1969,7 +2135,7 @@
         // Abre o popup do marcador correspondente
         setTimeout(() => {
             map.eachLayer(layer => {
-                if (layer.getLatLng) {
+                if (layer.getLatLng && layer !== targetMiraMarker) {
                     const ll = layer.getLatLng();
                     if (Math.round(ll.lng) === Math.round(x) && Math.round(mapSize - ll.lat) === Math.round(y)) {
                         if (layer.openPopup) layer.openPopup();
@@ -3800,7 +3966,13 @@
                 renderer: tacticalCanvasRenderer
             }).addTo(map);
 
-            document.getElementById('modalCoordStrong').textContent = `X: ${x} • Y: ${y}`;
+            const inputX = document.getElementById('inputModalCoordX');
+            const inputY = document.getElementById('inputModalCoordY');
+            if (inputX) inputX.value = x;
+            if (inputY) inputY.value = y;
+            const badgeQuad = document.getElementById('modalAddQuadBadge');
+            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+
             document.getElementById('modalAddPonto').classList.add('open');
             desativarModoAdicionarPonto();
             return;
@@ -3824,7 +3996,92 @@
             atualizarDesenhoTracado();
             return;
         }
+
+        // 3. Modo Navegação Tática: Crava a mira alvo pulsante e atualiza a URL (#X,Y)
+        const clkX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const clkY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+        posicionarMiraTarget(clkX, clkY, false);
     });
+
+    // ==============================================================
+    // SMART PASTE & AUTO-COMPLETAR INTELIGENTE DE COORDENADAS WURM
+    // ==============================================================
+    function tratarColarCoordenadasModal(e, modo) {
+        const pasteData = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (!pasteData) return;
+
+        // Extrai números de formatos como: "2897,2845", "2897 2845", "X: 2897 Y: 2845", "/vamp 2897 2845"
+        const nums = pasteData.match(/\d+/g);
+        if (nums && nums.length >= 2) {
+            const xVal = parseInt(nums[0], 10);
+            const yVal = parseInt(nums[1], 10);
+            if (!isNaN(xVal) && !isNaN(yVal) && xVal >= 0 && xVal <= MAP_SIZE && yVal >= 0 && yVal <= MAP_SIZE) {
+                e.preventDefault();
+                if (modo === 'add') {
+                    const inX = document.getElementById('inputModalCoordX');
+                    const inY = document.getElementById('inputModalCoordY');
+                    if (inX) inX.value = xVal;
+                    if (inY) inY.value = yVal;
+                    atualizarCoordManualModal();
+                } else if (modo === 'edit') {
+                    const inX = document.getElementById('inputEditCoordX');
+                    const inY = document.getElementById('inputEditCoordY');
+                    if (inX) inX.value = xVal;
+                    if (inY) inY.value = yVal;
+                    atualizarCoordManualModalEdit();
+                }
+            }
+        }
+    }
+
+    function atualizarCoordManualModal() {
+        const inX = document.getElementById('inputModalCoordX');
+        const inY = document.getElementById('inputModalCoordY');
+        if (!inX || !inY) return;
+
+        let rawX = inX.value;
+        if (/[,\s;|\/]/.test(rawX)) {
+            const nums = rawX.match(/\d+/g);
+            if (nums && nums.length >= 2) {
+                inX.value = nums[0];
+                inY.value = nums[1];
+            }
+        }
+
+        const x = parseInt(inX.value, 10);
+        const y = parseInt(inY.value, 10);
+        if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+            clickCoords = { x, y };
+            const badgeQuad = document.getElementById('modalAddQuadBadge');
+            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+
+            if (tempClickMarker) {
+                tempClickMarker.setLatLng([MAP_SIZE - y, x]);
+            }
+        }
+    }
+
+    function atualizarCoordManualModalEdit() {
+        const inX = document.getElementById('inputEditCoordX');
+        const inY = document.getElementById('inputEditCoordY');
+        if (!inX || !inY) return;
+
+        let rawX = inX.value;
+        if (/[,\s;|\/]/.test(rawX)) {
+            const nums = rawX.match(/\d+/g);
+            if (nums && nums.length >= 2) {
+                inX.value = nums[0];
+                inY.value = nums[1];
+            }
+        }
+
+        const x = parseInt(inX.value, 10);
+        const y = parseInt(inY.value, 10);
+        if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+            const badgeQuad = document.getElementById('modalEditQuadBadge');
+            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+        }
+    }
 
     // Helper para verificar se o foco atual está em elemento interativo/editável de formulário
     function isInputElementActive() {
@@ -3904,6 +4161,13 @@
             return;
         }
 
+        const inCoordX = parseInt(document.getElementById('inputModalCoordX')?.value, 10);
+        const inCoordY = parseInt(document.getElementById('inputModalCoordY')?.value, 10);
+        if (!isNaN(inCoordX) && !isNaN(inCoordY) && inCoordX >= 0 && inCoordX <= MAP_SIZE && inCoordY >= 0 && inCoordY <= MAP_SIZE) {
+            clickCoords.x = inCoordX;
+            clickCoords.y = inCoordY;
+        }
+
         const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
         const dificuldade = document.getElementById('selectDificuldade')?.value;
         const mayor = document.getElementById('inputMayor')?.value.trim();
@@ -3911,6 +4175,8 @@
         const attrs = {};
         if (dificuldade) attrs.dificuldade = Number(dificuldade);
         if (mayor) attrs.mayor = mayor;
+
+        const isConfirmed = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
 
         if (supabaseClient) {
             try {
@@ -3920,12 +4186,18 @@
                     x: clickCoords.x,
                     y: clickCoords.y,
                     faction: faccaoSelecionada,
-                    attrs: attrs
+                    attrs: attrs,
+                    confirmed: isConfirmed
                 }).select().single();
 
                 if (error) throw error;
 
-                alert(`✓ Ponto "${nome}" enviado com sucesso! Se você for Officer/Admin, foi publicado imediatamente.`);
+                if (isConfirmed) {
+                    alert(`✓ Ponto "${nome}" registrado e publicado imediatamente no mapa oficial.`);
+                } else {
+                    alert(`✓ Ponto "${nome}" enviado para moderação!\nComo membro, sua sugestão entrará na fila de revisão e ficará visível publicamente após aprovação de um Oficial ou Admin.`);
+                }
+
                 fecharModal('modalAddPonto');
                 document.getElementById('inputNomePonto').value = '';
                 if (document.getElementById('inputMayor')) document.getElementById('inputMayor').value = '';
@@ -3972,7 +4244,13 @@
         }
 
         document.getElementById('inputEditPontoId').value = ponto.id;
-        document.getElementById('modalEditCoordStrong').textContent = `X: ${ponto.x} • Y: ${ponto.y}`;
+        const inEditX = document.getElementById('inputEditCoordX');
+        const inEditY = document.getElementById('inputEditCoordY');
+        if (inEditX) inEditX.value = ponto.x;
+        if (inEditY) inEditY.value = ponto.y;
+        const badgeEditQuad = document.getElementById('modalEditQuadBadge');
+        if (badgeEditQuad) badgeEditQuad.textContent = obterQuadranteWurm(ponto.y, ponto.x);
+
         document.getElementById('selectEditKind').value = ponto.kind || 'village';
         document.getElementById('selectEditFaccao').value = ponto.faction || 'neutral';
         document.getElementById('inputEditNomePonto').value = ponto.name || '';
@@ -4018,14 +4296,24 @@
             else delete attrs.mayor;
         }
 
+        const inEditX = parseInt(document.getElementById('inputEditCoordX')?.value, 10);
+        const inEditY = parseInt(document.getElementById('inputEditCoordY')?.value, 10);
+
+        const updatePayload = {
+            name: nome,
+            kind: kind,
+            faction: faccao,
+            attrs: attrs,
+            updated_at: new Date().toISOString()
+        };
+
+        if (!isNaN(inEditX) && !isNaN(inEditY) && inEditX >= 0 && inEditX <= MAP_SIZE && inEditY >= 0 && inEditY <= MAP_SIZE) {
+            updatePayload.x = inEditX;
+            updatePayload.y = inEditY;
+        }
+
         try {
-            const { error } = await supabaseClient.from('points').update({
-                name: nome,
-                kind: kind,
-                faction: faccao,
-                attrs: attrs,
-                updated_at: new Date().toISOString()
-            }).eq('id', id);
+            const { error } = await supabaseClient.from('points').update(updatePayload).eq('id', id);
 
             if (error) throw error;
 
@@ -4343,7 +4631,25 @@
             if (error) throw error;
             if (data) {
                 todosPontosCache = data;
-                beaconsData = data.filter(p => p.kind === 'beacon').map(p => ({
+
+                // Atualiza badge de pendentes no painel admin do header
+                const pendentesCount = data.filter(p => p.confirmed === false).length;
+                const badgePending = document.getElementById('adminPendingCount');
+                if (badgePending) badgePending.textContent = pendentesCount;
+
+                // Filtragem de segurança / moderação:
+                // Admins e Oficiais veem todos os pontos (inclusive pendentes para aprovação).
+                // Membros logados veem pontos aprovados + suas próprias submissões pendentes.
+                // Visitantes deslogados veem apenas pontos aprovados (confirmed === true).
+                const isStaff = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
+                const pontosVisiveis = data.filter(p => {
+                    if (p.confirmed === true || p.confirmed === undefined) return true;
+                    if (isStaff) return true;
+                    if (currentUser && p.created_by === currentUser.id) return true;
+                    return false;
+                });
+
+                beaconsData = pontosVisiveis.filter(p => p.kind === 'beacon').map(p => ({
                     id: p.id,
                     x: Number(p.x),
                     y: Number(p.y),
@@ -4357,10 +4663,35 @@
                     circle: null
                 }));
                 renderizarTodosBeacons();
-                renderizarOutrosPontos(data.filter(p => p.kind !== 'beacon'));
+                renderizarOutrosPontos(pontosVisiveis.filter(p => p.kind !== 'beacon'));
             }
         } catch (e) {
             console.error('Falha ao sincronizar pontos do banco:', e);
+        }
+    }
+
+    async function aprovarPontoRapido(id) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient.from('points').update({ confirmed: true }).eq('id', id);
+            if (error) throw error;
+            mostrarToastCartografico('✓ Ponto aprovado e publicado com sucesso!');
+            await carregarPontosDoBanco();
+        } catch(e) {
+            alert('Erro ao aprovar ponto: ' + e.message);
+        }
+    }
+
+    async function rejeitarPontoRapido(id) {
+        if (!supabaseClient) return;
+        if (!confirm('Deseja realmente recusar e remover esta anotação do mapa?')) return;
+        try {
+            const { error } = await supabaseClient.from('points').delete().eq('id', id);
+            if (error) throw error;
+            mostrarToastCartografico('🗑️ Ponto rejeitado e removido do mapa.');
+            await carregarPontosDoBanco();
+        } catch(e) {
+            alert('Erro ao rejeitar ponto: ' + e.message);
         }
     }
 
