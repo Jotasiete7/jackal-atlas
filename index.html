@@ -37,7 +37,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { overflow: hidden; width: 100vw; height: 100vh; background: #060709; }
         #map {
-            width: 100vw; height: 100vh; background: #060709; cursor: crosshair;
+            width: 100vw; height: 100vh; background: #060709;
             transform: translateZ(0);
             backface-visibility: hidden;
         }
@@ -50,6 +50,13 @@
         .leaflet-tile-container { will-change: transform; }
         .leaflet-zoom-anim .leaflet-tile { image-rendering: auto !important; }
         .leaflet-dragging .leaflet-interactive { pointer-events: none !important; }
+
+        /* Mira Tática Alvo Pulsante (Estilo Harmony) */
+        .target-mira-icon-container {
+            background: transparent !important;
+            border: none !important;
+            pointer-events: auto !important;
+        }
 
         /* Borda de identidade da Sidebar Esquerda */
         .sw-sidebar-left { border-top: 3px solid var(--jk-accent); }
@@ -1129,57 +1136,25 @@
         transformation: new L.Transformation(SCALE_FACTOR, 0, SCALE_FACTOR, 0)
     });
 
-    // ==============================================================
-    // CONFIGURAÇÃO DINÂMICA VIA PARÂMETROS DE URL (TESTES & BENCHMARKS)
-    // Suporta: ?zoomSnap=, ?zoomDelta=, ?wheelDebounce=, ?wheelPx=, ?maxZoom=, ?maxNativeZoom=, ?nativePan=1
-    // Sanitização e clamping estritos: somente números dentro de limites seguros.
-    // ==============================================================
-    const urlParams = new URLSearchParams(window.location.search);
-
-    function getClampedParam(paramName, defaultVal, minVal, maxVal) {
-        if (!urlParams.has(paramName)) return defaultVal;
-        const val = parseFloat(urlParams.get(paramName));
-        if (isNaN(val)) return defaultVal;
-        return Math.max(minVal, Math.min(maxVal, val));
-    }
-
     const TACTICAL_CONFIG = {
-        zoomSnap: getClampedParam('zoomSnap', 1.0, 0.05, 2.0),
-        zoomDelta: getClampedParam('zoomDelta', 1.0, 0.05, 2.0),
-        wheelDebounce: Math.round(getClampedParam('wheelDebounce', 40, 0, 500)),
-        wheelPx: Math.round(getClampedParam('wheelPx', 160, 20, 1000)),
-        maxZoom: Math.round(getClampedParam('maxZoom', 6, 1, 8)),
-        maxNativeZoom: Math.round(getClampedParam('maxNativeZoom', 4, 0, 5)), // z4 = 4096px nativo (16x16 tiles de 256px)
-        nativePan: urlParams.get('nativePan') === '1',
-
-        // ==========================================================
-        // CONSTANTES TÁTICAS DE ALCANCE E COBERTURA (WURM ONLINE)
-        // NOTA: Os valores base (ex: Guarda 100x100 tiles = raio 50t) vêm das mecânicas
-        // oficiais de território do Wurm Online. Verificar com post oficial do evento
-        // se o alcance de torres no Jackal Round 2 é estritamente quadrado (bounding box)
-        // ou circular euclidiano.
-        // ==========================================================
-        TOWER_COVERAGE_HALF_SIZE: 50, // Caixa quadrada de 100x100 tiles (+-50 tiles do centro)
+        maxZoom: 6,
+        maxNativeZoom: 4,
+        // Constantes táticas de cobertura (Wurm Online)
+        TOWER_COVERAGE_HALF_SIZE: 50, // Caixa de 100x100 tiles (+-50 tiles do centro)
         BEACON_RADIUS_BASE: 100,      // Raio base circular de beacon em tiles
         BEACON_RADIUS_BOOST_1: 160,   // Raio com 1 reforço (+1)
         BEACON_RADIUS_BOOST_2: 240    // Raio com 2 reforços (+2)
     };
 
-    // Renderizador unificado em Canvas 2D acelerado por hardware para todas as geometrias
-    const tacticalCanvasRenderer = L.canvas({ padding: 0.5 });
-
     const map = L.map('map', {
         crs: L.CRS.Jackal,
         minZoom: 0,
-        maxZoom: TACTICAL_CONFIG.maxZoom,
-        zoomSnap: TACTICAL_CONFIG.zoomSnap,
-        zoomDelta: TACTICAL_CONFIG.zoomDelta,
-        wheelPxPerZoomLevel: TACTICAL_CONFIG.wheelPx,
-        wheelDebounceTime: TACTICAL_CONFIG.wheelDebounce,
-        zoomAnimationThreshold: 4,
+        maxZoom: 6,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25,
+        wheelPxPerZoomLevel: 120,
         zoomControl: false,
         preferCanvas: true,
-        renderer: tacticalCanvasRenderer,
         attributionControl: false,
         maxBounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
     });
@@ -3837,148 +3812,50 @@
     }
 
     // ==============================================================
-    // SISTEMA DE INTERAÇÃO DE MOUSE & ARRASTO SUAVE (rAF)
-    // Se ?nativePan=1 estiver ativo, utiliza o comportamento nativo do Leaflet.
+    // INTERAÇÃO DO MAPA (ESTILO HARMONY ATLAS): NAVEGAÇÃO NATIVA, CLIQUE E MIRA TÁTICA
     // ==============================================================
-    let pendingPanX = 0;
-    let pendingPanY = 0;
-    let panRaf = null;
+    map.on('mousemove', function(e) {
+        const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
 
-    function executarPanSuave(dx, dy) {
-        if (TACTICAL_CONFIG.nativePan) {
-            map.panBy([dx, dy], { animate: false });
+        // 1. Medição de área em tempo real (Deed Sizer)
+        if (isDrawingArea && areaStartPoint) {
+            atualizarDesenhoArea(curX, curY);
             return;
         }
-        pendingPanX += dx;
-        pendingPanY += dy;
-        if (!panRaf) {
-            panRaf = requestAnimationFrame(() => {
-                map.panBy([pendingPanX, pendingPanY], { animate: false });
-                pendingPanX = 0;
-                pendingPanY = 0;
-                panRaf = null;
-            });
-        }
-    }
 
-    map.getContainer().addEventListener('contextmenu', function(e) {
-        e.preventDefault(); // Elimina menu nativo de contextmenu do navegador
+        // 2. Traçado de infraestrutura com Snap 45° em tempo real
+        if (modoTracado && pontosTracado.length > 0) {
+            atualizarPreviewTracado(curX, curY);
+        }
     });
 
     map.on('mousedown', function(e) {
-        // Botão direito (2) ou botão do meio (1): pan do mapa (rAF ou nativo)
-        if (e.originalEvent.button === 2 || e.originalEvent.button === 1) {
-            isRightMouseDown = true;
-            panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
-            map.getContainer().style.cursor = 'grabbing';
-            return;
-        }
-
-        // Botão esquerdo (0) no modo de medição de área (Deed Sizer)
-        if (e.originalEvent.button === 0 && modoMedicaoArea) {
+        // Iniciar medição de área se ativo
+        if (modoMedicaoArea) {
             const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
             const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
             isDrawingArea = true;
             areaStartPoint = { x: curX, y: curY };
             limparMedicaoArea();
             atualizarDesenhoArea(curX, curY);
-            return;
         }
     });
 
-    map.on('mousemove', function(e) {
-        // 1. Pan do mapa por arraste com botão direito ou meio acelerado via rAF
-        if (isRightMouseDown && panStartPoint) {
-            const dx = panStartPoint.x - e.originalEvent.clientX;
-            const dy = panStartPoint.y - e.originalEvent.clientY;
-            panStartPoint = { x: e.originalEvent.clientX, y: e.originalEvent.clientY };
-            executarPanSuave(dx, dy);
-            return;
-        }
-
-        const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-
-        // 2. Medição de área em tempo real (Deed Sizer)
-        if (isDrawingArea && areaStartPoint) {
-            atualizarDesenhoArea(curX, curY);
-            return;
-        }
-
-        // 3. Atualizar crosshair tooltip quando em modo de adicionar ponto
-        if (modoAdicionar) {
-            const tt = document.getElementById('crosshairTooltip');
-            const cc = document.getElementById('crosshairCoords');
-            if (tt && cc) {
-                tt.style.left = `${e.originalEvent.clientX}px`;
-                tt.style.top = `${e.originalEvent.clientY}px`;
-                const quad = obterQuadranteWurm(curY, curX);
-                cc.textContent = `X: ${curX} • Y: ${curY} [${quad}]`;
-            }
-        }
-
-        // 4. Traçado com Snap 45° em tempo real
-        if (modoTracado && pontosTracado.length > 0) {
-            atualizarPreviewTracado(curX, curY);
-        }
-    });
-
-    function finalizarArrastoMouse() {
-        if (isRightMouseDown) {
-            isRightMouseDown = false;
-            panStartPoint = null;
-            if (modoAdicionar || modoTracado || modoMedicaoArea) {
-                map.getContainer().style.cursor = 'crosshair';
-            } else {
-                map.getContainer().style.cursor = '';
-            }
-        }
-
+    function finalizarDesenhoAreaMouse() {
         if (isDrawingArea) {
             isDrawingArea = false;
             finalizarMedicaoArea();
         }
     }
-    map.on('mouseup', finalizarArrastoMouse);
-    window.addEventListener('mouseup', finalizarArrastoMouse);
-    window.addEventListener('blur', finalizarArrastoMouse);
+    map.on('mouseup', finalizarDesenhoAreaMouse);
+    window.addEventListener('mouseup', finalizarDesenhoAreaMouse);
 
-    // Clique com botão esquerdo no mapa
+    // CLIQUE NO MAPA: CAPTURA DIRETA E EXATA DE COORDENADAS (ESTILO HARMONY ATLAS)
     map.on('click', function(e) {
-        if (e.originalEvent && e.originalEvent.button !== 0) return;
         if (modoMedicaoArea) return;
 
-        // 1. Se estiver no modo de adicionar ponto
-        if (modoAdicionar) {
-            const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-            const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-            clickCoords = { x, y };
-
-            if (tempClickMarker) {
-                map.removeLayer(tempClickMarker);
-            }
-            tempClickMarker = L.circleMarker(e.latlng, {
-                radius: 8,
-                color: '#f5a623',
-                fillColor: '#f5a623',
-                fillOpacity: 0.45,
-                weight: 2,
-                renderer: tacticalCanvasRenderer
-            }).addTo(map);
-
-            const inputX = document.getElementById('inputModalCoordX');
-            const inputY = document.getElementById('inputModalCoordY');
-            if (inputX) inputX.value = x;
-            if (inputY) inputY.value = y;
-            const badgeQuad = document.getElementById('modalAddQuadBadge');
-            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
-
-            document.getElementById('modalAddPonto').classList.add('open');
-            desativarModoAdicionarPonto();
-            return;
-        }
-
-        // 2. Se estiver traçando rota de infraestrutura (Snap 45°)
+        // 1. Se estiver traçando rota de infraestrutura (Snap 45°)
         if (modoTracado) {
             const curX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
             const curY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
@@ -3997,10 +3874,37 @@
             return;
         }
 
-        // 3. Modo Navegação Tática: Crava a mira alvo pulsante e atualiza a URL (#X,Y)
-        const clkX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const clkY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-        posicionarMiraTarget(clkX, clkY, false);
+        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+
+        // 2. Se estiver no modo de adicionar ponto
+        if (modoAdicionar) {
+            clickCoords = { x, y };
+
+            if (tempClickMarker) {
+                map.removeLayer(tempClickMarker);
+            }
+            tempClickMarker = L.circleMarker([MAP_SIZE - y, x], {
+                radius: 8,
+                color: '#f5a623',
+                fillColor: '#f5a623',
+                fillOpacity: 0.45,
+                weight: 2
+            }).addTo(map);
+
+            const inputX = document.getElementById('inputModalCoordX');
+            const inputY = document.getElementById('inputModalCoordY');
+            if (inputX) inputX.value = x;
+            if (inputY) inputY.value = y;
+            const badgeQuad = document.getElementById('modalAddQuadBadge');
+            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+
+            document.getElementById('modalAddPonto').classList.add('open');
+            desativarModoAdicionarPonto();
+        } else {
+            // 3. Modo Navegação Normal: Crava a mira alvo pulsante e atualiza a URL (#X,Y) imediatamente
+            posicionarMiraTarget(x, y, false);
+        }
     });
 
     // ==============================================================
