@@ -1123,7 +1123,7 @@
         wheelDebounce: Math.round(getClampedParam('wheelDebounce', 40, 0, 500)),
         wheelPx: Math.round(getClampedParam('wheelPx', 160, 20, 1000)),
         maxZoom: Math.round(getClampedParam('maxZoom', 6, 1, 8)),
-        maxNativeZoom: Math.round(getClampedParam('maxNativeZoom', 3, 0, 5)), // z3 = 4096px nativo sem upscale de z4
+        maxNativeZoom: Math.round(getClampedParam('maxNativeZoom', 4, 0, 5)), // z4 = 4096px nativo (16x16 tiles de 256px)
         nativePan: urlParams.get('nativePan') === '1',
 
         // ==========================================================
