@@ -21,6 +21,7 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
 ## 📖 Documentação & Guias
 
 - 📘 **[Manual de Operações & Tutorial Completo](TUTORIAL.md)**: Guia passo a passo com fotos conceituais, atalhos de teclado e instruções para batedores e oficiais.
+- 🗺️ **[Relatório de Engenharia Cartográfica & Calibração Swisstopo](docs/CARTOGRAFIA_CALIBRACAO_SWISSTOPO.md)**: Registro técnico do pipeline de alto contraste, sombreamento 3D limpo e resolução nativa 4096px.
 
 ---
 
