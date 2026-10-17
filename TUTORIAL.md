@@ -1,4 +1,6 @@
 # 📖 Manual de Operações & Tutorial Completo — Jackal Atlas
+
+> 🇺🇸 English version: [TUTORIAL.en.md](TUTORIAL.en.md)
 *Guia oficial de campo para batedores, oficiais e comandantes de A Guilda • Wurm Online Jackal Round 2*
 
 ---

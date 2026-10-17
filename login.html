@@ -49,6 +49,27 @@
             text-align: center;
         }
 
+        .login-lang {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 4px;
+        }
+        .login-lang button {
+            background: #1a1d27;
+            border: 1px solid #2a2e3d;
+            color: #9ca3af;
+            font-size: 10px;
+            padding: 4px 7px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .login-lang button.ativo {
+            border-color: #f5a623;
+            color: #f5a623;
+        }
+
         .brand-badge {
             display: inline-block;
             font-size: 10px;
@@ -200,10 +221,14 @@
     <div class="bg-grid"></div>
 
     <div class="login-card">
+        <div class="login-lang">
+            <button id="btnLangPT" onclick="trocarIdiomaLogin('pt')" title="Português">🇧🇷 PT</button>
+            <button id="btnLangEN" onclick="trocarIdiomaLogin('en')" title="English">🇺🇸 EN</button>
+        </div>
         <div class="brand-badge">WURM ONLINE • ROUND 2</div>
         <div class="title">JACKAL <span>ATLAS</span></div>
         <div class="subtitle">
-            Mapa Comunitário da Guilda • Guild Community Atlas
+            <span data-i18n="subtitulo">Mapa Comunitário da Guilda</span>
         </div>
 
         <!-- Bloco 1: Deslogado -->
@@ -212,15 +237,14 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.078.078 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                 </svg>
-                Entrar com Discord • Sign in
+                <span data-i18n="entrar">Entrar com Discord</span>
             </button>
             <div style="margin-top:16px; font-size:11px; color:#71717a; line-height:1.5;">
-                Acesso de membros. Novos cadastros passam por aprovação.<br>
-                <span style="font-size:10px; color:#52525b;">Guild access. New registrations require approval.</span>
+                <span data-i18n="acessoMembros">Acesso de membros. Novos cadastros passam por aprovação.</span>
             </div>
             <div style="margin-top:20px; border-top:1px solid #1f2430; padding-top:14px;">
                 <a href="index.html" style="font-size:11px; color:#9ca3af; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-                    ← Visualizar mapa como visitante • View as guest
+                    ← <span data-i18n="visitante">Visualizar mapa como visitante</span>
                 </a>
             </div>
         </div>
@@ -230,19 +254,18 @@
             <div class="user-box">
                 <img id="avatar-pending" src="" class="user-avatar" alt="Avatar">
                 <div class="user-details">
-                    <div id="name-pending" class="user-name">Carregando...</div>
-                    <div class="user-wurm">Discord Autenticado • Authenticated</div>
+                    <div id="name-pending" class="user-name" data-i18n="carregando">Carregando...</div>
+                    <div class="user-wurm" data-i18n="autenticado">Discord Autenticado</div>
                 </div>
             </div>
             <div class="status-alert status-pending">
-                ⏳ <strong>Aprovação Pendente • Pending Approval</strong><br>
-                Sua conta foi registrada. Um oficial da guilda irá liberar seu acesso.<br>
-                <span style="font-size:10.5px; opacity:0.85;">Your account was registered. An admin will approve access shortly.</span>
+                ⏳ <strong data-i18n="pendente">Aprovação Pendente</strong><br>
+                <span data-i18n="pendenteTexto">Sua conta foi registrada. Um oficial da guilda irá liberar seu acesso.</span>
             </div>
             <button class="discord-login-btn" style="background:#232738;" onclick="window.location.reload()">
-                🔄 Atualizar Status • Refresh
+                🔄 <span data-i18n="atualizar">Atualizar Status</span>
             </button>
-            <a class="logout-link" onclick="signOut()">Desconectar da conta • Sign out</a>
+            <a class="logout-link" onclick="signOut()" data-i18n="desconectarConta">Desconectar da conta</a>
         </div>
 
         <!-- Bloco 3: Logado e Aprovado -->
@@ -250,23 +273,23 @@
             <div class="user-box">
                 <img id="avatar-approved" src="" class="user-avatar" alt="Avatar">
                 <div class="user-details">
-                    <div id="name-approved" class="user-name">Carregando...</div>
-                    <div id="role-approved" class="user-wurm">Membro Autorizado</div>
+                    <div id="name-approved" class="user-name" data-i18n="carregando">Carregando...</div>
+                    <div id="role-approved" class="user-wurm" data-i18n="membroAutorizado">Membro Autorizado</div>
                 </div>
             </div>
             <div class="status-alert status-approved">
-                ✓ <strong>Acesso Autorizado • Access Granted!</strong><br>
-                Bem-vindo ao mapa! Redirecionando... • Welcome! Redirecting...
+                ✓ <strong data-i18n="autorizado">Acesso Autorizado!</strong><br>
+                <span data-i18n="bemVindo">Bem-vindo ao mapa! Redirecionando...</span>
             </div>
             <button class="enter-btn" onclick="window.location.href = 'index.html'">
-                🗺️ Abrir Jackal Atlas • Open Atlas
+                🗺️ <span data-i18n="abrir">Abrir Jackal Atlas</span>
             </button>
-            <a class="logout-link" onclick="signOut()">Desconectar • Sign out</a>
+            <a class="logout-link" onclick="signOut()" data-i18n="desconectar">Desconectar</a>
         </div>
 
         <!-- LINK DISCRETO KO-FI -->
-        <a href="https://ko-fi.com/aguildanode" target="_blank" rel="noopener noreferrer" class="login-kofi-link" title="Apoie o desenvolvimento e servidores no Ko-fi">
-            ☕ Apoie o Atlas no Ko-fi • Support on Ko-fi
+        <a href="https://ko-fi.com/aguildanode" target="_blank" rel="noopener noreferrer" class="login-kofi-link" data-i18n-title="kofiTitulo" title="Apoie o desenvolvimento e servidores no Ko-fi">
+            ☕ <span data-i18n="kofi">Apoie o Atlas no Ko-fi</span>
         </a>
     </div>
 
@@ -274,6 +297,83 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js" onerror="console.warn('config.js não encontrado, usando exemplo');"></script>
     <script>
+        const I18N_LOGIN = {
+            pt: {
+                subtitulo: 'Mapa Comunitário da Guilda',
+                entrar: 'Entrar com Discord',
+                acessoMembros: 'Acesso de membros. Novos cadastros passam por aprovação.',
+                visitante: 'Visualizar mapa como visitante',
+                carregando: 'Carregando...',
+                autenticado: 'Discord Autenticado',
+                pendente: 'Aprovação Pendente',
+                pendenteTexto: 'Sua conta foi registrada. Um oficial da guilda irá liberar seu acesso.',
+                atualizar: 'Atualizar Status',
+                desconectarConta: 'Desconectar da conta',
+                membroAutorizado: 'Membro Autorizado',
+                autorizado: 'Acesso Autorizado!',
+                bemVindo: 'Bem-vindo ao mapa! Redirecionando...',
+                abrir: 'Abrir Jackal Atlas',
+                desconectar: 'Desconectar',
+                kofi: 'Apoie o Atlas no Ko-fi',
+                kofiTitulo: 'Apoie o desenvolvimento e servidores no Ko-fi'
+            },
+            en: {
+                subtitulo: 'Guild Community Atlas',
+                entrar: 'Sign in with Discord',
+                acessoMembros: 'Guild access. New registrations require approval.',
+                visitante: 'View the map as a guest',
+                carregando: 'Loading...',
+                autenticado: 'Discord Authenticated',
+                pendente: 'Pending Approval',
+                pendenteTexto: 'Your account was registered. A guild officer will approve your access.',
+                atualizar: 'Refresh Status',
+                desconectarConta: 'Sign out of account',
+                membroAutorizado: 'Authorized Member',
+                autorizado: 'Access Granted!',
+                bemVindo: 'Welcome to the map! Redirecting...',
+                abrir: 'Open Jackal Atlas',
+                desconectar: 'Sign out',
+                kofi: 'Support the Atlas on Ko-fi',
+                kofiTitulo: 'Support development and servers on Ko-fi'
+            }
+        };
+
+        let idiomaAtual = 'pt';
+        try { idiomaAtual = localStorage.getItem('jackal_atlas_lang') === 'en' ? 'en' : 'pt'; } catch (e) {}
+
+        function txt(pt, en) { return idiomaAtual === 'en' ? en : pt; }
+
+        function aplicarIdiomaLogin() {
+            const dic = I18N_LOGIN[idiomaAtual];
+            document.documentElement.lang = idiomaAtual === 'en' ? 'en' : 'pt-BR';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                // Names already filled in by renderUser keep their value
+                if (el.dataset.preenchido) return;
+                const v = dic[el.dataset.i18n];
+                if (v) el.textContent = v;
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const v = dic[el.dataset.i18nTitle];
+                if (v) el.title = v;
+            });
+            document.getElementById('btnLangPT').classList.toggle('ativo', idiomaAtual === 'pt');
+            document.getElementById('btnLangEN').classList.toggle('ativo', idiomaAtual === 'en');
+            if (ultimoRole) atualizarRoleAprovado();
+        }
+
+        function trocarIdiomaLogin(lang) {
+            idiomaAtual = lang === 'en' ? 'en' : 'pt';
+            try { localStorage.setItem('jackal_atlas_lang', idiomaAtual); } catch (e) {}
+            aplicarIdiomaLogin();
+        }
+
+        let ultimoRole = null;
+        function atualizarRoleAprovado() {
+            const el = document.getElementById('role-approved');
+            el.dataset.preenchido = '1';
+            el.innerText = `${txt('Membro Autorizado', 'Authorized Member')} (${ultimoRole.toUpperCase()})`;
+        }
+
         const cfg = window.JACKAL_CONFIG || {
             supabaseUrl: 'https://ndeepjongrkeldzrssis.supabase.co',
             supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kZWVwam9uZ3JrZWxkenJzc2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNzA3NTUsImV4cCI6MjEwNzg0Njc1NX0.p7Tqg-EHAW3LhJVX3GX_COFIAJ4L94UufV0sUxdutFI'
@@ -350,12 +450,15 @@
             if (role === 'pending') {
                 document.getElementById('avatar-pending').src = avatarUrl;
                 document.getElementById('name-pending').innerText = name;
+                document.getElementById('name-pending').dataset.preenchido = '1';
                 document.getElementById('pending-block').style.display = 'block';
                 document.getElementById('approved-block').style.display = 'none';
             } else {
                 document.getElementById('avatar-approved').src = avatarUrl;
                 document.getElementById('name-approved').innerText = (profile && profile.nick) ? `${name} (${profile.nick})` : name;
-                document.getElementById('role-approved').innerText = `Membro Autorizado (${role.toUpperCase()})`;
+                document.getElementById('name-approved').dataset.preenchido = '1';
+                ultimoRole = role;
+                atualizarRoleAprovado();
                 document.getElementById('approved-block').style.display = 'block';
                 document.getElementById('pending-block').style.display = 'none';
 
@@ -368,7 +471,7 @@
 
         async function signInWithDiscord() {
             if (!supabaseClient) {
-                alert('Aviso: Configure o arquivo config.js com as chaves do seu Supabase para realizar o login real com Discord.');
+                alert(txt('Aviso: Configure o arquivo config.js com as chaves do seu Supabase para realizar o login real com Discord.', 'Notice: set up config.js with your Supabase keys to sign in with Discord.'));
                 return;
             }
             const redirectUrl = window.location.origin + window.location.pathname;
@@ -380,7 +483,7 @@
             });
             if (error) {
                 console.error('Falha ao autenticar com Discord:', error);
-                alert('Erro ao conectar com Discord: ' + error.message);
+                alert(txt('Erro ao conectar com Discord: ', 'Error connecting to Discord: ') + error.message);
             }
         }
 
@@ -391,6 +494,7 @@
             window.location.reload();
         }
 
+        aplicarIdiomaLogin();
         init();
     </script>
 </body>
