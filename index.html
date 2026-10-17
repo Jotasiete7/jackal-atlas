@@ -683,6 +683,10 @@
                         <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
                         <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
+                    <label class="sw-filter-row" title="Linhas a cada 512 → 4 tiles conforme o zoom, com números de X e Y nas bordas • Lines every 512 → 4 tiles depending on zoom, with X and Y numbers on the edges">
+                        <input type="checkbox" id="chkGradeCoord" onchange="toggleGridCoord(this.checked)">
+                        <span data-i18n="gradeCoord">🔢 Grade de Coordenadas (tiles)</span>
+                    </label>
                     <label class="sw-filter-row" style="color:#60a5fa;">
                         <input type="checkbox" data-layer="sketch" checked onchange="toggleCamada('sketch', this.checked)">
                         <span data-i18n="camadaSketch">✏️ Camada de Esboço</span>
@@ -1736,14 +1740,83 @@
         }
     }
 
-    function toggleGridTiles(ativo) {
+    function toggleGridTiles(ativo, salvar = true) {
         if (ativo) {
             desenharGridYaga();
             if (!map.hasLayer(gridLayer)) map.addLayer(gridLayer);
         } else {
             if (map.hasLayer(gridLayer)) map.removeLayer(gridLayer);
         }
+        if (salvar) salvarEstadoCamadas();
     }
+
+    // ==============================================================
+    // GRADE DE COORDENADAS (TILES) • TILE COORDINATE GRID
+    // Linhas em números redondos de tile que ficam mais finas com o zoom (512 → 4 tiles),
+    // com rótulos de X no topo e de Y à direita. Só desenha a área visível.
+    // Lines on round tile numbers that get finer as you zoom in (512 → 4 tiles), labelled
+    // with X along the top and Y along the left. Only the visible area is drawn.
+    // ==============================================================
+    const gridCoordLayer = L.layerGroup();
+    const GRID_COORD_PASSOS = [4, 8, 16, 32, 64, 128, 256, 512];
+
+    function passoGridCoord() {
+        const ppt = Math.pow(2, map.getZoom()) * SCALE_FACTOR; // screen pixels per tile
+        return GRID_COORD_PASSOS.find(p => p * ppt >= 70) || 512;
+    }
+
+    function desenharGridCoord() {
+        gridCoordLayer.clearLayers();
+        if (!map.hasLayer(gridCoordLayer)) return;
+        const naParchment = (typeof baseAtual !== 'undefined' && baseAtual === 'parchment');
+        const corFina = naParchment ? 'rgba(91, 74, 50, 0.22)' : 'rgba(203, 213, 225, 0.18)';
+        const corForte = naParchment ? 'rgba(91, 74, 50, 0.5)' : 'rgba(226, 232, 240, 0.42)';
+        const corTexto = naParchment ? '#4a3b27' : '#e2e8f0';
+        const fundoTexto = naParchment ? 'rgba(239,230,207,0.85)' : 'rgba(14,15,20,0.75)';
+
+        const passo = passoGridCoord();
+        const forte = passo * 4;
+        const b = map.getBounds();
+        // Visible tile range (Leaflet lat = MAP_SIZE - y, lng = x)
+        const xMin = Math.max(0, Math.floor(b.getWest() / passo) * passo);
+        const xMax = Math.min(MAP_SIZE, Math.ceil(b.getEast() / passo) * passo);
+        const yMin = Math.max(0, Math.floor((MAP_SIZE - b.getNorth()) / passo) * passo);
+        const yMax = Math.min(MAP_SIZE, Math.ceil((MAP_SIZE - b.getSouth()) / passo) * passo);
+        // This CRS has lat growing downwards on screen, so the top edge of the view is getSouth()
+        const latTopo = Math.max(0, b.getSouth());
+        const lngDir = Math.min(MAP_SIZE, b.getEast());
+        const opts = (ehForte) => ({ color: ehForte ? corForte : corFina, weight: ehForte ? 1.2 : 0.8, renderer: tacticalCanvasRenderer, interactive: false });
+        const rotulo = (texto, latlng, ancora) => L.marker(latlng, {
+            interactive: false, keyboard: false,
+            icon: L.divIcon({
+                className: '', iconSize: [0, 0],
+                html: `<span style="position:absolute; ${ancora} font:700 9.5px 'JetBrains Mono',monospace; color:${corTexto}; background:${fundoTexto}; padding:0 3px; border-radius:2px; white-space:nowrap;">${texto}</span>`
+            })
+        }).addTo(gridCoordLayer);
+
+        for (let x = xMin; x <= xMax; x += passo) {
+            const ehForte = x % forte === 0;
+            L.polyline([[MAP_SIZE - yMin, x], [MAP_SIZE - yMax, x]], opts(ehForte)).addTo(gridCoordLayer);
+            if (ehForte || passo >= 256) rotulo(x, [latTopo, x], 'top:62px; transform:translateX(-50%);'); // below the top mode bar
+        }
+        for (let y = yMin; y <= yMax; y += passo) {
+            const ehForte = y % forte === 0;
+            L.polyline([[MAP_SIZE - y, xMin], [MAP_SIZE - y, xMax]], opts(ehForte)).addTo(gridCoordLayer);
+            if (ehForte || passo >= 256) rotulo(y, [MAP_SIZE - y, lngDir], 'right:6px; transform:translateY(-50%);'); // right edge, clear of the sidebar
+        }
+    }
+
+    function toggleGridCoord(ativo, salvar = true) {
+        if (ativo) {
+            if (!map.hasLayer(gridCoordLayer)) map.addLayer(gridCoordLayer);
+            desenharGridCoord();
+        } else if (map.hasLayer(gridCoordLayer)) {
+            map.removeLayer(gridCoordLayer);
+        }
+        if (salvar) salvarEstadoCamadas();
+    }
+
+    map.on('moveend zoomend', () => { if (map.hasLayer(gridCoordLayer)) desenharGridCoord(); });
 
     function destacarQuadranteWurm(letra, numero, voar = true) {
         const bounds = obterBoundsQuadrante(letra, numero);
@@ -1900,6 +1973,8 @@
             });
             const chkGrade = document.getElementById('chkGrade');
             if (chkGrade) estado['grid_yaga'] = chkGrade.checked;
+            const chkGradeCoord = document.getElementById('chkGradeCoord');
+            if (chkGradeCoord) estado['grid_coord'] = chkGradeCoord.checked;
             localStorage.setItem('jackal_layer_prefs', JSON.stringify(estado));
         } catch(e) {}
     }
@@ -1915,7 +1990,13 @@
                     const chk = document.getElementById('chkGrade');
                     if (chk) {
                         chk.checked = val;
-                        toggleGridTiles(val);
+                        toggleGridTiles(val, false);
+                    }
+                } else if (nome === 'grid_coord') {
+                    const chk = document.getElementById('chkGradeCoord');
+                    if (chk) {
+                        chk.checked = val;
+                        toggleGridCoord(val, false);
                     }
                 } else {
                     const chk = document.querySelector(`input[data-layer="${nome}"]`);
@@ -3070,6 +3151,7 @@
 
         // A grade usa linhas mais escuras no pergaminho • The grid uses darker lines on parchment
         if (mudouParchment && map.hasLayer(gridLayer)) desenharGridYaga();
+        if (mudouParchment && map.hasLayer(gridCoordLayer)) desenharGridCoord();
 
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         if (btn) {
@@ -6024,6 +6106,7 @@
             camadas: 'Camadas',
             circulos: '⭕ Círculos de Influência',
             grade: '📐 Grade de Quadrantes Wurm',
+            gradeCoord: '🔢 Grade de Coordenadas (tiles)',
             addPonto: '📍 Adicionar Ponto no Mapa',
             pontosMapa: '📍 Pontos do Mapa',
             filtros: 'Filtros',
@@ -6152,6 +6235,7 @@
             camadas: 'Layers',
             circulos: '⭕ Influence Circles',
             grade: '📐 Wurm Quadrant Grid',
+            gradeCoord: '🔢 Coordinate Grid (tiles)',
             addPonto: '📍 Add Map Marker',
             pontosMapa: '📍 Map Points',
             filtros: 'Filters',
