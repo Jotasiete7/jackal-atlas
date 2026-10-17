@@ -21,6 +21,10 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
   - Medição de áreas para planejamento de deeds e terraplanagem em tempo real.
 - **Radar de Influência & Beacons**: Monitoramento dinâmico da ocupação territorial (Freedom vs Jackal vs Neutro), reforços de beacon (+1, +2), alertas de ataque e Primeiro Marco da Guilda (Idols & Plinths).
 - **Segurança Reforçada (RLS)**: Regras granulares no banco de dados com bloqueio de auto-aprovação, proteção contra escalação de privilégios e rate limiting.
+- **Camada de Esboço (mapa desenhado à mão)** • *Sketch Layer*: Desenho estilo quadro branco para quando não houver dump do mapa: pincéis de água, floresta, cristas, areia e rocha, setas, rótulos de texto e ícones de acampamento / saída de túnel / perigo, tamanho do pincel em tiles e borracha. Os traços ficam em coordenadas de tile do jogo, alinhados com a grade e os marcadores em qualquer zoom.
+- **Commits do Esboço (versionamento estilo git)** • *Sketch commits*: Você desenha num rascunho privado e faz **commit** com uma mensagem. Commits de oficiais vão ao ar na hora; os de membros aguardam aprovação de um oficial (o commit inteiro). O **histórico** mostra cada commit (quem, quando, mensagem, traços adicionados/apagados), destaca o commit no mapa ao passar o mouse, mostra o **mapa como estava em qualquer commit** e permite a oficiais **reverter** (ocultar, nunca apagar) e restaurar. Enquanto alguém desenha, os outros veem o traço ao vivo com o nome da pessoa.
+- **Pergaminho em Branco (Round 2)** • *Blank parchment base*: Base lisa para esboçar conforme os batedores exploram. O mapa antigo do Jackal (Round 1) continua disponível (Goldfish®, Terrain, Isométrico, Topo).
+- **Copiar coordenadas** • *Copy X,Y*: Os popups agora copiam `X,Y` para o Discord (`/vamp` não é um comando disponível para jogadores comuns).
 
 ---
 
@@ -76,6 +80,12 @@ Scripts SQL na pasta `migrations/`:
 8. `008_point_management_policies.sql` — Políticas RLS para edição e exclusão de anotações pelos criadores e oficiais.
 9. `009_admin_only_objectives.sql` — Restrição exclusiva para Administradores criarem Metas da Guilda e Topônimos.
 10. `010_security_patches.sql` — Acesso público de leitura para visitantes (pontos confirmados e rotas) e bloqueio de auto-aprovação via UPDATE.
+11. `011_sketch_strokes.sql` — Tabela `sketch_strokes` da camada de esboço (traços em coordenadas de tile, validação de caminho e limites). • Sketch strokes table.
+12. `012_security_fixes.sql` — Perfis só podem ser criados pelo gatilho de cadastro (fim do INSERT anônimo), o último administrador não pode ser rebaixado nem apagado, eventos aprovados são aplicados uma única vez (sem reforço contado em dobro) e oficiais podem aprovar topônimos e registrar eventos neles (só administradores editam o conteúdo). • Profiles only via the sign-up trigger, last admin protected, approved events applied once, officers can approve landmarks.
+13. `013_profile_discord_identity.sql` — Guarda nome e avatar do Discord no perfil (no cadastro, atualizado a cada login e preenchido para usuários existentes) para o painel admin mostrar nomes em vez de IDs; membros não podem alterá-los. • Stores Discord name and avatar so the admin panel shows names instead of IDs.
+14. `014_sketch_commits.sql` — Versionamento estilo git: `sketch_commits` e `sketch_commit_erasures`, RPCs `sketch_commit_create` (atômica) e `sketch_commit_review` (aprovar, rejeitar, reverter, restaurar; só oficiais), histórico legível para "ver neste ponto", limites por commit para membros e tempo real. Só cadastros via Discord podem virar o primeiro admin. Depende de 011 e 013. • Git-style commits for sketches; depends on 011 and 013.
+
+> Depois de rodar 011 e 014, defina `sketchShared: true` no `config.js`. • After running 011 and 014, set `sketchShared: true` in `config.js`.
 
 ---
 

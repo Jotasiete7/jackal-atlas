@@ -373,6 +373,166 @@
             font-weight: 800;
             box-shadow: 0 2px 10px rgba(245,166,35,0.3);
         }
+
+        /* Sketch layer (collaborative hand-drawn map) */
+        .jk-sketch-bar {
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: min(980px, 94vw);
+            row-gap: 6px;
+            padding: 7px 12px;
+        }
+        .jk-sketch-group {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding-right: 8px;
+            border-right: 1px solid var(--sw-border-subtle);
+        }
+        .jk-sketch-group:last-child { border-right: none; padding-right: 0; }
+        .jk-sketch-tool {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--sw-bg-subtle);
+            border: 1px solid var(--sw-border);
+            color: var(--sw-text-sub);
+            padding: 4px 7px;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.15s;
+        }
+        .jk-sketch-tool:hover { color: #fff; border-color: var(--jk-accent-border); }
+        .jk-sketch-tool.active {
+            background: var(--jk-accent);
+            border-color: var(--jk-accent);
+            color: #000;
+        }
+        .jk-sketch-swatch {
+            width: 10px; height: 10px; border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.4);
+            display: inline-block;
+        }
+        .jk-sketch-status {
+            font-size: 9.5px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #cbd5e1;
+            background: rgba(148,163,184,0.1);
+            white-space: nowrap;
+        }
+        .jk-sketch-status.shared { color: #00e676; border-color: rgba(0,230,118,0.4); background: rgba(0,230,118,0.1); }
+        .jk-sketch-status.readonly { color: #f5a623; border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.1); }
+        .jk-sketch-label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            color: #1f2937;
+            white-space: nowrap;
+            line-height: 1;
+            text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff;
+            transform: translate(-50%, -50%);
+            display: inline-block;
+        }
+        .jk-sketch-label.pending { opacity: 0.55; font-style: italic; }
+        .jk-sketch-stamp {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.92);
+            border: 2px solid #1f2937;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+        }
+        .jk-sketch-stamp.pending { opacity: 0.55; border-style: dashed; }
+        .jk-sketch-label.draft { opacity: 0.7; text-decoration: underline dashed; }
+        .jk-sketch-label.erasing { opacity: 0.2; text-decoration: line-through; }
+        .jk-sketch-stamp.draft { opacity: 0.75; border-style: dashed; border-color: #60a5fa; }
+        .jk-sketch-stamp.erasing { opacity: 0.2; }
+        .jk-sketch-draft-chip.has-changes { color: #60a5fa; border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.12); }
+        .jk-sketch-tool:disabled { opacity: 0.4; cursor: not-allowed; }
+        .jk-sketch-tool.jk-sketch-commit:not(:disabled) { background: var(--jk-accent); border-color: var(--jk-accent); color: #000; }
+        .jk-sketch-ghost-tag {
+            display: inline-block;
+            transform: translate(8px, -22px);
+            background: rgba(14,15,20,0.88);
+            color: #fff;
+            font: 700 10px 'Inter', sans-serif;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid rgba(96,165,250,0.6);
+            white-space: nowrap;
+        }
+
+        /* Sketch history panel */
+        .jk-hist-panel {
+            position: fixed;
+            top: 64px;
+            right: 14px;
+            width: 330px;
+            max-width: calc(100vw - 28px);
+            max-height: calc(100vh - 150px);
+            z-index: 1500;
+            flex-direction: column;
+            background: var(--sw-bg-panel, rgba(18,20,28,0.96));
+            border: 1px solid var(--sw-border);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            font-family: 'Inter', sans-serif;
+            color: var(--sw-text-main, #e2e8f0);
+        }
+        .jk-hist-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 6px; font-weight: 800; font-size: 12.5px; }
+        .jk-hist-filters { display: flex; gap: 4px; padding: 0 12px 6px; }
+        .jk-hist-filter { background: var(--sw-bg-subtle); border: 1px solid var(--sw-border); color: var(--sw-text-sub); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 12px; cursor: pointer; }
+        .jk-hist-filter.active { background: var(--jk-accent); border-color: var(--jk-accent); color: #000; }
+        .jk-hist-hint { font-size: 9.5px; color: var(--sw-text-muted); padding: 0 12px 6px; }
+        .jk-hist-list { overflow-y: auto; padding: 0 8px 8px; }
+        .jk-hist-row { display: flex; gap: 8px; padding: 8px 6px; border-radius: 6px; border-bottom: 1px solid var(--sw-border-subtle); }
+        .jk-hist-row:hover { background: rgba(245,166,35,0.08); }
+        .jk-hist-row.viewing { background: rgba(96,165,250,0.12); outline: 1px solid rgba(96,165,250,0.5); }
+        .jk-hist-row.legacy { opacity: 0.75; }
+        .jk-hist-avatar img, .jk-hist-avatar-vazio { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: inline-flex; align-items: center; justify-content: center; background: #2a2d3a; font-size: 12px; }
+        .jk-hist-body { flex: 1; min-width: 0; }
+        .jk-hist-top { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+        .jk-hist-msg { font-size: 11.5px; margin: 2px 0; word-wrap: break-word; }
+        .jk-hist-meta { font-size: 9.5px; color: var(--sw-text-muted); font-family: 'JetBrains Mono', monospace; }
+        .jk-hist-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .jk-hist-actions button { background: var(--sw-bg-subtle); border: 1px solid var(--sw-border); color: var(--sw-text-sub); font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; cursor: pointer; }
+        .jk-hist-actions button.ok { color: #00e676; border-color: rgba(0,230,118,0.4); }
+        .jk-hist-actions button.danger { color: #ff6b6b; border-color: rgba(255,68,68,0.4); }
+        .jk-hist-badge { font-size: 8.5px; font-weight: 900; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.4px; }
+        .jk-hist-badge.approved { color: #00e676; background: rgba(0,230,118,0.12); border: 1px solid rgba(0,230,118,0.4); }
+        .jk-hist-badge.pending { color: #f5a623; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.4); }
+        .jk-hist-badge.rejected { color: #ff6b6b; background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.4); }
+        .jk-hist-badge.reverted { color: #94a3b8; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.4); }
+        .jk-hist-empty { font-size: 11px; color: var(--sw-text-muted); padding: 16px 8px; text-align: center; }
+        .jk-version-banner {
+            position: fixed;
+            top: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1600;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30,58,138,0.95);
+            border: 1px solid #60a5fa;
+            color: #fff;
+            font: 600 11.5px 'Inter', sans-serif;
+            padding: 6px 8px 6px 14px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            max-width: 90vw;
+        }
+        .jk-version-banner button { background: #fff; color: #1e3a8a; border: none; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 14px; cursor: pointer; white-space: nowrap; }
+        #map.jk-sketching { cursor: crosshair; }
+        #map.jk-sketching.jk-sketch-pan { cursor: grab; }
+        #map.jk-sketching.jk-sketch-erase { cursor: cell; }
     </style>
 </head>
 <body class="swiss-theme-dark">
@@ -396,6 +556,9 @@
         </button>
         <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles">
             <span>📐</span> <span data-i18n="modoArea">Medir Área</span>
+        </button>
+        <button id="modeBtnSketch" class="sw-mode-btn" onclick="definirModoInteracao('sketch')" title="Esboço: desenhe água, floresta, cristas, rótulos e setas no mapa compartilhado • Sketch: hand-draw water, forest, ridges, labels and arrows on the shared map">
+            <span>✏️</span> <span data-i18n="modoSketch">Esboço</span>
         </button>
     </div>
 
@@ -479,8 +642,12 @@
                     <span style="font-size:9.5px; opacity:0.8;" data-i18n="camadas">Camadas</span>
                 </div>
                 <div class="sw-acc-content open">
+                    <div class="sw-base-switcher" style="grid-template-columns: 1fr; margin-bottom:6px;">
+                        <button id="btnParchment" class="sw-base-btn active" onclick="trocarBase('parchment', this)" title="Mapa em branco para o Round 2: esboce o terreno conforme os batedores exploram • Blank map for Round 2: sketch the land as scouts explore it" data-i18n="baseParchment">📜 Pergaminho em Branco (Round 2)</button>
+                    </div>
+                    <div style="font-size:9.5px; font-weight:700; color:var(--sw-text-muted); margin:0 0 4px 2px;" data-i18n="baseOldMap">Mapa antigo do Jackal (Round 1):</div>
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
-                        <button id="btnCustom" class="sw-base-btn active" onclick="trocarBase('custom', this)">Goldfish®</button>
+                        <button id="btnCustom" class="sw-base-btn" onclick="trocarBase('custom', this)">Goldfish®</button>
                         <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
                         <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)">Isométrico</button>
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
@@ -489,6 +656,19 @@
                         <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
                         <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
+                    <label class="sw-filter-row" style="color:#60a5fa;">
+                        <input type="checkbox" data-layer="sketch" checked onchange="toggleCamada('sketch', this.checked)">
+                        <span data-i18n="camadaSketch">✏️ Camada de Esboço</span>
+                        <button type="button" onclick="event.preventDefault(); event.stopPropagation(); toggleHistoricoSketch();" title="Histórico de commits do esboço • Sketch commit history" style="margin-left:auto; background:transparent; border:1px solid var(--sw-border); color:#60a5fa; font-size:9.5px; padding:0 5px; border-radius:3px; cursor:pointer;">🕘</button>
+                        <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:6px;" id="cntSketch">(0)</span>
+                    </label>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin:2px 0 4px 20px; padding:2px 2px 4px 6px; font-size:9.5px; color:var(--sw-text-muted); background:rgba(255,255,255,0.03); border-radius:4px; border:1px solid var(--sw-border-subtle);">
+                        <span data-i18n="opacidade">Opacidade:</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <input type="range" id="sliderSketchOpacity" min="15" max="100" value="100" step="5" oninput="ajustarOpacidadeSketch(this.value)" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
+                            <span id="labelSketchOpacity" style="font-family:'JetBrains Mono'; font-size:9px; color:#60a5fa; font-weight:700; min-width:24px; text-align:right;">100%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -726,6 +906,115 @@
             <span id="hudAreaMetricas" style="font-family:'JetBrains Mono'; font-size:10.5px; color:#94a3b8;"></span>
             <button onclick="limparMedicaoArea()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Limpar retângulo">🗑️ Limpar</button>
             <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Fechar</button>
+        </div>
+
+        <!-- BARRA DO MODO ESBOÇO (MAPA DESENHADO À MÃO, COLABORATIVO) • SKETCH MODE BAR -->
+        <div id="hudBottomSketch" class="sw-focus-bar jk-sketch-bar" style="display:none;">
+            <div class="jk-sketch-group">
+                <span style="color:#60a5fa; font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;" data-i18n="skTitulo">✏️ Esboço:</span>
+                <button class="jk-sketch-tool" data-sketch-tool="water" onclick="selecionarFerramentaSketch('water')" title="Água: lagos, rios, litoral • Water: lakes, rivers, coastline"><span class="jk-sketch-swatch" style="background:#3b82f6;"></span><span data-i18n="skAgua">Água</span></button>
+                <button class="jk-sketch-tool" data-sketch-tool="forest" onclick="selecionarFerramentaSketch('forest')" title="Floresta • Forest"><span class="jk-sketch-swatch" style="background:#16a34a;"></span><span data-i18n="skFloresta">Floresta</span></button>
+                <button class="jk-sketch-tool" data-sketch-tool="ridge" onclick="selecionarFerramentaSketch('ridge')" title="Crista de montanha • Mountain ridge line"><span class="jk-sketch-swatch" style="background:#6d4c41;"></span><span data-i18n="skCrista">Crista</span></button>
+                <button class="jk-sketch-tool" data-sketch-tool="sand" onclick="selecionarFerramentaSketch('sand')" title="Areia / praia • Sand / beach"><span class="jk-sketch-swatch" style="background:#eab308;"></span><span data-i18n="skAreia">Areia</span></button>
+                <button class="jk-sketch-tool" data-sketch-tool="rock" onclick="selecionarFerramentaSketch('rock')" title="Rocha / penhascos • Rock / cliffs"><span class="jk-sketch-swatch" style="background:#78716c;"></span><span data-i18n="skRocha">Rocha</span></button>
+            </div>
+            <div class="jk-sketch-group">
+                <button class="jk-sketch-tool" data-sketch-tool="arrow" onclick="selecionarFerramentaSketch('arrow')" title="Seta: arraste do início ao fim • Arrow: drag from start to end" data-i18n="skSeta">➡️ Seta</button>
+                <button class="jk-sketch-tool" data-sketch-tool="label" onclick="selecionarFerramentaSketch('label')" title="Rótulo: clique onde o texto vai • Text label: click where it goes" data-i18n="skRotulo">🔤 Rótulo</button>
+                <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="camp" onclick="selecionarFerramentaSketch('stamp', 'camp')" title="Acampamento • Camp">⛺</button>
+                <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="tunnel" onclick="selecionarFerramentaSketch('stamp', 'tunnel')" title="Saída de túnel • Tunnel exit">🚇</button>
+                <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="danger" onclick="selecionarFerramentaSketch('stamp', 'danger')" title="Perigo • Danger">⚠️</button>
+                <button class="jk-sketch-tool" data-sketch-tool="eraser" onclick="selecionarFerramentaSketch('eraser')" title="Borracha: clique ou arraste sobre um traço • Eraser: click or drag over a stroke" data-i18n="skBorracha">🧽 Apagar</button>
+            </div>
+            <div class="jk-sketch-group" title="Tamanho do pincel em tiles do jogo • Brush size in game tiles">
+                <span style="font-size:10px; color:var(--sw-text-muted); font-weight:700;" data-i18n="skTamanho">Tam.</span>
+                <input type="range" id="sliderSketchTamanho" min="1" max="60" value="12" step="1" oninput="ajustarTamanhoSketch(this.value)" style="width:80px; height:4px; accent-color:#60a5fa; cursor:pointer;">
+                <span id="labelSketchTamanho" style="font-family:'JetBrains Mono'; font-size:10px; color:#fff; font-weight:800; min-width:44px;">12 tiles</span>
+            </div>
+            <div class="jk-sketch-group">
+                <span id="sketchDraftChip" class="jk-sketch-status jk-sketch-draft-chip" title="Suas alterações sem commit. Só você vê até fazer o commit. • Your uncommitted changes. Only you can see them until you commit.">✏️ Rascunho: vazio</span>
+                <button class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" onclick="desfazerUltimoSketch()" title="Desfazer a última alteração do rascunho (Ctrl+Z) • Undo the last change in your draft (Ctrl+Z)" data-i18n="skDesfazer">↩ Desfazer</button>
+                <button id="btnSketchDescartar" class="jk-sketch-tool" onclick="descartarDraftSketch()" title="Descartar todo o rascunho • Throw away your whole draft" disabled data-i18n="skDescartar">🗑️ Descartar</button>
+                <button id="btnSketchCommit" class="jk-sketch-tool jk-sketch-commit" onclick="abrirModalCommitSketch()" title="Salvar o rascunho como um commit com mensagem • Save your draft as a commit with a message" disabled>💾 Commit…</button>
+            </div>
+            <div class="jk-sketch-group">
+                <span id="sketchStatusChip" class="jk-sketch-status">💾 Só local</span>
+                <button class="jk-sketch-tool" onclick="toggleHistoricoSketch()" title="Histórico: versões antigas, revisão e reversão • History: old versions, review and revert" data-i18n="skHistorico">🕘 Histórico</button>
+                <button id="btnSketchRevisar" class="jk-sketch-tool" style="display:none; color:#f5a623; border-color:rgba(245,166,35,0.45);" onclick="toggleHistoricoSketch(true, 'pending')" title="Commits de membros aguardando revisão • Members' commits waiting for review"><span data-i18n="skRevisar">📝 Revisar</span> (<span id="sketchPendentesCount">0</span>)</button>
+                <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;" title="Fechar o modo esboço (Esc). O rascunho é mantido. Segure Espaço e arraste para mover o mapa. • Close sketch mode (Esc). Your draft is kept. Hold Space and drag to pan." data-i18n="skFechar">✕ Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         PAINEL DE HISTÓRICO DO ESBOÇO & FAIXA DE VERSÃO • SKETCH HISTORY PANEL & VERSION BANNER
+         ================================================================ -->
+    <div id="sketchHistoryPanel" class="jk-hist-panel" style="display:none;">
+        <div class="jk-hist-header">
+            <span data-i18n="skHistTitulo">🕘 Histórico do Esboço</span>
+            <button class="sw-modal-close" onclick="toggleHistoricoSketch(false)" title="Fechar • Close">✕</button>
+        </div>
+        <div class="jk-hist-filters">
+            <button class="jk-hist-filter active" data-filtro="all" onclick="filtrarHistoricoSketch('all')" data-i18n="skFiltroTodos">Todos</button>
+            <button class="jk-hist-filter" data-filtro="pending" onclick="filtrarHistoricoSketch('pending')"><span data-i18n="skFiltroPendentes">Pendentes</span> <span id="sketchHistPendCount"></span></button>
+            <button class="jk-hist-filter" data-filtro="mine" onclick="filtrarHistoricoSketch('mine')" data-i18n="skFiltroMeus">Meus</button>
+        </div>
+        <div class="jk-hist-hint" data-i18n="skHistDica">Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.</div>
+        <div id="sketchHistoryList" class="jk-hist-list"></div>
+    </div>
+
+    <div id="sketchVersaoBanner" class="jk-version-banner" style="display:none;">
+        <span><span data-i18n="skVendoVersao">🕘 Vendo o mapa como estava em</span> <strong id="sketchVersaoTexto"></strong></span>
+        <button onclick="voltarAoVivoSketch()" data-i18n="skVoltarAoVivo">Voltar ao vivo</button>
+    </div>
+
+    <!-- ================================================================
+         MODAL — COMMIT DO ESBOÇO • SKETCH COMMIT
+         ================================================================ -->
+    <div id="modalSketchCommit" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:380px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title"><span data-i18n="skCommitTitulo">💾 Commit do Esboço</span> <span id="sketchCommitResumo" style="font-family:'JetBrains Mono'; font-size:10px; color:var(--jk-accent); margin-left:6px;"></span></div>
+                <button class="sw-modal-close" onclick="fecharModal('modalSketchCommit')">✕</button>
+            </div>
+            <div class="sw-form-group">
+                <label class="sw-form-label" data-i18n="skCommitPergunta">O que você mudou? (obrigatório)</label>
+                <input type="text" class="sw-form-input" id="inputSketchCommitMsg" maxlength="200" placeholder="ex: Mapeei o lago BB e a saída oeste do túnel • e.g. Mapped BB lake" onkeydown="if (event.key === 'Enter') confirmarCommitSketch()">
+            </div>
+            <div id="sketchCommitNota" style="font-size:10.5px; color:var(--sw-text-muted); margin:-4px 0 10px 2px;"></div>
+            <div class="sw-modal-actions">
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalSketchCommit')" data-i18n="skCancelar">Cancelar</button>
+                <button id="btnConfirmarCommitSketch" class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarCommitSketch()">Commit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         MODAL — RÓTULO DO ESBOÇO • SKETCH LABEL
+         ================================================================ -->
+    <div id="modalSketchLabel" class="jk-modal-overlay">
+        <div class="sw-modal-window" style="width:340px; max-width:92vw;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title"><span data-i18n="skRotuloTitulo">🔤 Rótulo no Mapa</span> <span id="sketchLabelCoords" style="font-family:'JetBrains Mono'; font-size:10px; color:var(--jk-accent); margin-left:6px;"></span></div>
+                <button class="sw-modal-close" onclick="fecharModal('modalSketchLabel')">✕</button>
+            </div>
+            <div class="sw-form-group">
+                <label class="sw-form-label" data-i18n="skTexto">Texto</label>
+                <input type="text" class="sw-form-input" id="inputSketchLabel" maxlength="80" placeholder="ex: Acampamento da Torre, Lago BB • e.g. Turret camp, BB lake" onkeydown="if (event.key === 'Enter') confirmarLabelSketch()">
+            </div>
+            <div class="sw-form-group">
+                <label class="sw-form-label" data-i18n="skTamanhoTexto">Tamanho</label>
+                <select class="sw-form-input" id="selectSketchLabelTamanho">
+                    <option value="10" data-i18n="skPequeno">Pequeno</option>
+                    <option value="20" selected data-i18n="skMedio">Médio</option>
+                    <option value="40" data-i18n="skGrande">Grande</option>
+                    <option value="80" data-i18n="skRegiao">Nome de região</option>
+                </select>
+            </div>
+            <div class="sw-modal-actions">
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalSketchLabel')" data-i18n="skCancelar">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarLabelSketch()" data-i18n="skColocarRotulo">Colocar Rótulo</button>
+            </div>
         </div>
     </div>
 
@@ -1159,6 +1448,20 @@
         maxBounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
     });
 
+    // Renderizador canvas compartilhado (grade, círculos de influência, cobertura de torres, Deed Sizer e rotas)
+    // Shared canvas renderer (grid, influence circles, tower coverage, deed sizer and routes)
+    const tacticalCanvasRenderer = L.canvas({ padding: 0.5 });
+
+    // Panes do pergaminho em branco e da camada de esboço • Panes for the blank parchment base and the Sketch layer:
+    // pergaminho abaixo de tudo, traços abaixo das sobreposições táticas, rótulos abaixo dos marcadores
+    map.createPane('parchmentPane').style.zIndex = 150;
+    map.getPane('parchmentPane').style.pointerEvents = 'none';
+    map.createPane('sketchPane').style.zIndex = 380;
+    map.getPane('sketchPane').style.pointerEvents = 'none';
+    map.createPane('sketchLabelPane').style.zIndex = 590;
+    map.getPane('sketchLabelPane').style.pointerEvents = 'none';
+    const sketchCanvasRenderer = L.canvas({ pane: 'sketchPane', padding: 0.5 });
+
     // Controle de Zoom unificado com Botão de Captura Tática (Modo Print Goldfish®)
     const zoomCtrl = L.control.zoom({ position: 'bottomright' }).addTo(map);
     const zoomContainer = zoomCtrl.getContainer();
@@ -1335,8 +1638,10 @@
     function desenharGridYaga() {
         gridLayer.clearLayers();
         const spacing = YAGA_GRID_SPACING;
+        const naParchment = (typeof baseAtual !== 'undefined' && baseAtual === 'parchment');
+        const corRotulo = naParchment ? 'rgba(91,74,50,0.7)' : 'rgba(148,163,184,0.6)';
         const lineOpts = {
-            color: 'rgba(100, 116, 139, 0.45)',
+            color: naParchment ? 'rgba(91, 74, 50, 0.45)' : 'rgba(100, 116, 139, 0.45)',
             weight: 1.2,
             dashArray: '5, 5',
             renderer: tacticalCanvasRenderer,
@@ -1371,7 +1676,7 @@
                 L.marker([centerLat, centerLng], {
                     icon: L.divIcon({
                         className: '',
-                        html: `<span style="font-size:10px; font-weight:800; color:rgba(148,163,184,0.6); font-family:'JetBrains Mono';">${labelText}</span>`,
+                        html: `<span style="font-size:10px; font-weight:800; color:${corRotulo}; font-family:'JetBrains Mono';">${labelText}</span>`,
                         iconSize: [40, 20],
                         iconAnchor: [20, 10]
                     }),
@@ -1460,10 +1765,12 @@
         }, 2200);
     }
 
+    // Copia "X,Y" para colar no Discord ou no próprio Atlas. (Antes copiava "/vamp X Y", mas /vamp não é um comando
+    // disponível para jogadores comuns no Wurm Online.) • Copies "X,Y"; /vamp is not a command regular players can use.
     function copiarVamp(x, y, btn) {
-        const cmd = `/vamp ${Math.round(x)} ${Math.round(y)}`;
+        const cmd = `${Math.round(x)},${Math.round(y)}`;
         navigator.clipboard.writeText(cmd).then(() => {
-            mostrarToastCartografico(`📋 Comando <strong>${cmd}</strong> copiado para a área de transferência!`);
+            mostrarToastCartografico(`📋 Coordenadas • Coordinates <strong>${cmd}</strong> copiadas • copied!`);
             if (btn) {
                 const oldText = btn.innerHTML;
                 btn.innerHTML = '✓ Copiado';
@@ -1476,7 +1783,7 @@
                 }, 1800);
             }
         }).catch(() => {
-            prompt('Copie o comando /vamp:', cmd);
+            prompt('Copie as coordenadas • Copy the coordinates:', cmd);
         });
     }
 
@@ -1524,7 +1831,8 @@
         roads_planned:    L.layerGroup().addTo(map),
         roads_built:      L.layerGroup().addTo(map),
         bridges_planned:  L.layerGroup().addTo(map),
-        bridges_built:    L.layerGroup().addTo(map)
+        bridges_built:    L.layerGroup().addTo(map),
+        sketch:           L.layerGroup().addTo(map)
     };
 
     function toggleCamada(nome, ativo, salvar = true) {
@@ -1871,7 +2179,7 @@
                         ${mayor ? `<div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">👑 Prefeito: <strong style="color:#fff;">${sanitize(mayor)}</strong></div>` : ''}
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -1889,7 +2197,7 @@
                         </div>
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -1904,7 +2212,7 @@
                         </div>
                         <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar comando /vamp para o chat do Wurm">📋 /vamp</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -2369,6 +2677,7 @@
     let markersTempTracado = [];
 
     function iniciarTracado(tipo) {
+        if (modoSketch) desativarModoSketch();
         if (modoAdicionar) {
             modoAdicionar = false;
             const tt = document.getElementById('crosshairTooltip');
@@ -2678,6 +2987,18 @@
         localStorage.setItem('jackal_sidebar_right_open', novoEstadoAberto ? 'true' : 'false');
     }
 
+    // Pergaminho em branco (Round 2): folha lisa cobrindo o mapa 4096x4096, com moldura para ver as bordas
+    // Blank parchment base (Round 2): a plain sheet covering the 4096x4096 map, framed so the edges are visible
+    let baseAtual = 'custom';
+    const parchmentLayer = L.rectangle([[0, 0], [MAP_SIZE, MAP_SIZE]], {
+        pane: 'parchmentPane',
+        color: '#5b4a32',
+        weight: 2,
+        fillColor: '#efe6cf',
+        fillOpacity: 1,
+        interactive: false
+    });
+
     function trocarBase(tipo, btn = null) {
         const urls = {
             custom:  (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png',
@@ -2685,12 +3006,27 @@
             iso:     (CFG.tiles && (CFG.tiles.isometric || CFG.tiles.iso)) || 'tiles_iso/{z}/{x}/{y}.png',
             topo:    (CFG.tiles && (CFG.tiles.topographic || CFG.tiles.topo)) || 'tiles_topo/{z}/{x}/{y}.png'
         };
-        tileLayer.setUrl(urls[tipo] || urls.custom);
+        if (tipo === 'parchment') {
+            if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
+            if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
+        } else {
+            if (!urls[tipo]) tipo = 'custom';
+            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            tileLayer.setUrl(urls[tipo]);
+            if (!map.hasLayer(tileLayer)) tileLayer.addTo(map);
+        }
+        const mudouParchment = (baseAtual === 'parchment') !== (tipo === 'parchment');
+        baseAtual = tipo;
+
+        // A grade usa linhas mais escuras no pergaminho • The grid uses darker lines on parchment
+        if (mudouParchment && map.hasLayer(gridLayer)) desenharGridYaga();
+
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         if (btn) {
             btn.classList.add('active');
         } else {
             const bMap = {
+                parchment: document.getElementById('btnParchment'),
                 custom: document.getElementById('btnCustom'),
                 terrain: document.getElementById('btnTerrain'),
                 iso: document.getElementById('btnIso'),
@@ -3612,6 +3948,7 @@
     let ultimaMedicaoArea = null;
 
     function ativarModoMedicaoArea() {
+        if (modoSketch) desativarModoSketch();
         if (modoTracado) cancelarTracado();
         if (modoAdicionar) desativarModoAdicionarPonto();
         modoMedicaoArea = true;
@@ -3741,6 +4078,1185 @@
     }
 
     // ==============================================================
+    // SKETCH LAYER — COLLABORATIVE HAND-DRAWN MAP WITH GIT-STYLE COMMITS
+    // Strokes are stored in game tile coordinates ([x, y] pairs), so they line up with the
+    // grid and markers at every zoom level and survive a real Round 2 map being added later.
+    // Workflow: you sketch into a private draft (kept in this browser), then commit it with a
+    // message. A commit adds strokes and/or erases existing ones. Officers' and Admins' commits
+    // go live at once; members' commits wait for an Officer to approve the whole commit.
+    // Officers can revert a commit (hidden, never deleted) and restore it. The history panel
+    // can show the map as it was at any commit.
+    // Storage: 'local' (this browser) unless config.js sets sketchShared: true, in which case
+    // commits go to Supabase (migrations 011 + 014) with live updates and live "ghost" strokes.
+    // ==============================================================
+    // Texto no idioma atual (PT/EN) • Text in the current language
+    function txt(pt, en) {
+        return (typeof idiomaAtual !== 'undefined' && idiomaAtual === 'en') ? en : pt;
+    }
+    function localeSketch() {
+        return (typeof idiomaAtual !== 'undefined' && idiomaAtual === 'en') ? 'en-GB' : 'pt-BR';
+    }
+
+    const SKETCH_PRESETS = {
+        water:  { nome: 'Water',  cor: '#3b82f6', opacidade: 0.8,  largura: 12 },
+        forest: { nome: 'Forest', cor: '#16a34a', opacidade: 0.75, largura: 12 },
+        ridge:  { nome: 'Ridge',  cor: '#6d4c41', opacidade: 0.95, largura: 3 },
+        sand:   { nome: 'Sand',   cor: '#eab308', opacidade: 0.7,  largura: 10 },
+        rock:   { nome: 'Rock',   cor: '#78716c', opacidade: 0.8,  largura: 8 },
+        arrow:  { nome: 'Arrow',  cor: '#dc2626', opacidade: 0.95, largura: 2 }
+    };
+    const SKETCH_STAMPS = {
+        camp:   { nome: 'Acampamento • Camp',        emoji: '⛺' },
+        tunnel: { nome: 'Saída de túnel • Tunnel exit', emoji: '🚇' },
+        danger: { nome: 'Perigo • Danger',      emoji: '⚠️' }
+    };
+    const SKETCH_LOCAL_KEY_V1 = 'jackal_sketch_local_v1';   // strokes saved before versioning
+    const SKETCH_LOCAL_KEY = 'jackal_sketch_local_v2';      // { commits, strokes, erasures }
+    const SKETCH_MAX_PONTOS = 2000;
+    const SKETCH_MAX_POR_COMMIT = 500;
+
+    let modoSketch = false;
+    let sketchModoArmazenamento = 'local';   // 'local' | 'shared'
+    let sketchFerramenta = 'water';
+    let sketchStampAtual = 'camp';
+    let sketchLarguraPorFerramenta = {};      // remembers the size chosen for each tool
+    let sketchStrokes = [];                   // committed strokes (every row you can read)
+    let sketchCommits = new Map();            // commit id -> commit
+    let sketchErasures = [];                  // [{ commit_id, stroke_id }]
+    let sketchDraft = { strokes: [], erase: [], ops: [] };
+    let sketchVersaoAtual = null;             // commit id being viewed in history (null = live map)
+    const sketchCamadaPorId = new Map();      // stroke id -> { camada, s, estado }
+    let sketchTracoAtual = null;              // { pts: [[x,y]...], lastPx: L.Point } while drawing
+    let sketchPreview = null;
+    let sketchApagando = false;
+    let sketchEspacoPan = false;
+    let sketchLabelPendente = null;           // {x, y} where the label modal will place text
+    let sketchCanalRealtime = null;
+    let sketchCanalAoVivo = null;
+    let sketchHistoricoFiltro = 'all';
+    let sketchRecargaTimer = null;
+    const sketchHighlightLayer = L.layerGroup().addTo(map);
+
+    function pxPorTile() {
+        return Math.pow(2, map.getZoom()) * SCALE_FACTOR;
+    }
+
+    function arred1(n) {
+        return Math.round(n * 10) / 10;
+    }
+
+    function novoIdLocal() {
+        return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('local-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+    }
+
+    function tileDoEvento(e) {
+        return {
+            x: Math.max(0, Math.min(MAP_SIZE, e.latlng.lng)),
+            y: Math.max(0, Math.min(MAP_SIZE, MAP_SIZE - e.latlng.lat))
+        };
+    }
+
+    function sketchIsStaff() {
+        if (sketchModoArmazenamento === 'local') return true;
+        return !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
+    }
+
+    function sketchPodeDesenhar() {
+        if (sketchModoArmazenamento === 'local') return true;
+        return !!(currentUser && currentProfile && ['member', 'officer', 'admin'].includes(currentProfile.role));
+    }
+
+    function sketchMeuId() {
+        if (sketchModoArmazenamento === 'local') return 'local';
+        return currentUser ? currentUser.id : null;
+    }
+
+    // Ramer–Douglas–Peucker simplification in tile space (keeps strokes small)
+    function simplificarTraco(pts, epsilon) {
+        if (pts.length <= 2) return pts.slice();
+        const manter = new Uint8Array(pts.length);
+        manter[0] = 1;
+        manter[pts.length - 1] = 1;
+        const pilha = [[0, pts.length - 1]];
+        while (pilha.length) {
+            const [ini, fim] = pilha.pop();
+            const [ax, ay] = pts[ini];
+            const [bx, by] = pts[fim];
+            const dx = bx - ax, dy = by - ay;
+            const len2 = dx * dx + dy * dy;
+            let maxDist = -1, idx = -1;
+            for (let i = ini + 1; i < fim; i++) {
+                const [px, py] = pts[i];
+                let d;
+                if (len2 === 0) {
+                    d = Math.hypot(px - ax, py - ay);
+                } else {
+                    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+                    d = Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+                }
+                if (d > maxDist) { maxDist = d; idx = i; }
+            }
+            if (maxDist > epsilon && idx !== -1) {
+                manter[idx] = 1;
+                pilha.push([ini, idx], [idx, fim]);
+            }
+        }
+        return pts.filter((_, i) => manter[i]);
+    }
+
+    function distanciaPontoSegmento(px, py, ax, ay, bx, by) {
+        const dx = bx - ax, dy = by - ay;
+        const len2 = dx * dx + dy * dy;
+        if (len2 === 0) return Math.hypot(px - ax, py - ay);
+        const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+        return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+
+    // Arrow = shaft + two-line head, all in tile coordinates
+    function latlngsSeta(path, largura) {
+        const [x1, y1] = path[0];
+        const [x2, y2] = path[path.length - 1];
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        const cabeca = Math.max(4, Math.min(len * 0.3, largura * 5 + 6));
+        const ang = Math.atan2(y2 - y1, x2 - x1);
+        const abertura = 28 * Math.PI / 180;
+        const pA = [x2 - cabeca * Math.cos(ang - abertura), y2 - cabeca * Math.sin(ang - abertura)];
+        const pB = [x2 - cabeca * Math.cos(ang + abertura), y2 - cabeca * Math.sin(ang + abertura)];
+        const ll = p => [MAP_SIZE - p[1], p[0]];
+        return [[ll([x1, y1]), ll([x2, y2])], [ll(pA), ll([x2, y2]), ll(pB)]];
+    }
+
+    function latlngsDoTraco(s) {
+        if (s.kind === 'arrow') return latlngsSeta(s.path, Number(s.width));
+        const latlngs = s.path.map(p => [MAP_SIZE - p[1], p[0]]);
+        if (latlngs.length === 1) latlngs.push([latlngs[0][0], latlngs[0][1] + 0.01]);
+        return latlngs;
+    }
+
+    // ---------- What is on the map right now ----------
+    // Display states: 'normal' (live), 'pending' (awaiting approval), 'draft' (my uncommitted
+    // strokes), 'erasing' (live stroke my draft will erase)
+    function calcularVisiveisSketch() {
+        const lista = [];
+        const marco = sketchVersaoAtual ? sketchCommits.get(sketchVersaoAtual) : null;
+        const tMarco = marco ? new Date(marco.created_at).getTime() : null;
+        const meuId = sketchMeuId();
+        const staff = sketchIsStaff();
+
+        const commitAtivo = (c) => {
+            if (!c) return false;
+            if (!marco) return c.status === 'approved';
+            if (c.status !== 'approved' && c.status !== 'reverted') return false;
+            if (new Date(c.created_at).getTime() > tMarco) return false;
+            if (c.status === 'reverted' && c.reverted_at && new Date(c.reverted_at).getTime() <= tMarco) return false;
+            return true;
+        };
+
+        const apagados = new Set();
+        sketchErasures.forEach(e => {
+            if (commitAtivo(sketchCommits.get(e.commit_id))) apagados.add(e.stroke_id);
+        });
+
+        sketchStrokes.forEach(s => {
+            if (!Array.isArray(s.path) || !s.path.length || apagados.has(s.id)) return;
+            let estado = null;
+            if (!s.commit_id) {
+                // Strokes drawn before versioning
+                if (marco && new Date(s.created_at).getTime() > tMarco) return;
+                if (s.confirmed) estado = 'normal';
+                else if (!marco && (staff || s.created_by === meuId)) estado = 'pending';
+            } else {
+                const c = sketchCommits.get(s.commit_id);
+                if (commitAtivo(c)) estado = 'normal';
+                else if (!marco && c && c.status === 'pending' && (staff || c.author === meuId)) estado = 'pending';
+            }
+            if (!estado) return;
+            if (!marco && sketchDraft.erase.includes(s.id)) estado = 'erasing';
+            lista.push({ s, estado });
+        });
+
+        if (!marco) sketchDraft.strokes.forEach(s => lista.push({ s, estado: 'draft' }));
+        return lista;
+    }
+
+    function estiloTraco(s, estado) {
+        const preset = SKETCH_PRESETS[s.kind] || SKETCH_PRESETS.rock;
+        let opacidade = preset.opacidade;
+        let dash = null;
+        if (estado === 'pending') { opacidade *= 0.45; dash = '4 6'; }
+        else if (estado === 'draft') { opacidade *= 0.6; dash = '10 8'; }
+        else if (estado === 'erasing') { opacidade = 0.15; }
+        return {
+            color: preset.cor,
+            weight: Math.max(1, Number(s.width) * pxPorTile()),
+            opacity: opacidade,
+            dashArray: dash,
+            lineCap: 'round',
+            lineJoin: 'round',
+            renderer: sketchCanvasRenderer,
+            interactive: false
+        };
+    }
+
+    function iconeLabelSketch(s, estado) {
+        const fonte = Math.max(10, Math.min(64, Number(s.width) * pxPorTile()));
+        return L.divIcon({
+            className: '',
+            iconSize: [0, 0],
+            html: `<span class="jk-sketch-label ${estado !== 'normal' ? estado : ''}" style="font-size:${fonte.toFixed(1)}px;">${sanitize(s.label)}</span>`
+        });
+    }
+
+    function iconeStampSketch(s, estado) {
+        const stamp = SKETCH_STAMPS[s.stamp] || SKETCH_STAMPS.camp;
+        return L.divIcon({
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            html: `<div class="jk-sketch-stamp ${estado !== 'normal' ? estado : ''}" title="${sanitize(stamp.nome)}">${stamp.emoji}</div>`
+        });
+    }
+
+    function criarCamadaSketch(s, estado) {
+        const [x0, y0] = s.path[0];
+        if (s.kind === 'label') {
+            return L.marker([MAP_SIZE - y0, x0], { icon: iconeLabelSketch(s, estado), pane: 'sketchLabelPane', interactive: false, keyboard: false });
+        }
+        if (s.kind === 'stamp') {
+            return L.marker([MAP_SIZE - y0, x0], { icon: iconeStampSketch(s, estado), pane: 'sketchLabelPane', interactive: false, keyboard: false });
+        }
+        if (s.kind === 'arrow' && s.path.length < 2) return null;
+        return L.polyline(latlngsDoTraco(s), estiloTraco(s, estado));
+    }
+
+    function renderizarSketch() {
+        layers.sketch.clearLayers();
+        sketchCamadaPorId.clear();
+        const lista = calcularVisiveisSketch();
+        lista.forEach(({ s, estado }) => {
+            const camada = criarCamadaSketch(s, estado);
+            if (camada) {
+                camada.addTo(layers.sketch);
+                sketchCamadaPorId.set(s.id, { camada, s, estado });
+            }
+        });
+        atualizarContadoresSketch(lista);
+        atualizarBarraDraftSketch();
+        if (historicoSketchAberto()) renderizarHistoricoSketch();
+    }
+
+    // Brush widths and label sizes are in tiles, so they are rescaled on every zoom
+    map.on('zoomend', function() {
+        sketchCamadaPorId.forEach(({ camada, s, estado }) => {
+            if (s.kind === 'label') camada.setIcon(iconeLabelSketch(s, estado));
+            else if (s.kind !== 'stamp') camada.setStyle({ weight: Math.max(1, Number(s.width) * pxPorTile()) });
+        });
+        if (sketchPreview && sketchTracoAtual) {
+            sketchPreview.setStyle({ weight: Math.max(1, larguraSketchAtual() * pxPorTile()) });
+        }
+        sketchFantasmas.forEach(g => {
+            if (g.line) g.line.setStyle({ weight: Math.max(1, g.width * pxPorTile()) });
+        });
+    });
+
+    function atualizarContadoresSketch(lista) {
+        const cnt = document.getElementById('cntSketch');
+        if (cnt) cnt.textContent = `(${(lista || []).filter(i => i.estado === 'normal' || i.estado === 'erasing').length})`;
+
+        const pendentes = [...sketchCommits.values()].filter(c => c.status === 'pending').length;
+        const btn = document.getElementById('btnSketchRevisar');
+        const cntPend = document.getElementById('sketchPendentesCount');
+        if (cntPend) cntPend.textContent = pendentes;
+        if (btn) btn.style.display = (sketchModoArmazenamento === 'shared' && sketchIsStaff() && pendentes > 0) ? 'flex' : 'none';
+    }
+
+    function atualizarBarraDraftSketch() {
+        const adds = sketchDraft.strokes.length;
+        const erases = sketchDraft.erase.length;
+        const chip = document.getElementById('sketchDraftChip');
+        if (chip) {
+            chip.textContent = (adds || erases) ? `✏️ ${txt('Rascunho', 'Draft')}: +${adds} / −${erases}` : txt('✏️ Rascunho: vazio', '✏️ Draft: empty');
+            chip.classList.toggle('has-changes', !!(adds || erases));
+        }
+        const btnCommit = document.getElementById('btnSketchCommit');
+        if (btnCommit) btnCommit.disabled = !(adds || erases) || !!sketchVersaoAtual;
+        const btnDescartar = document.getElementById('btnSketchDescartar');
+        if (btnDescartar) btnDescartar.disabled = !(adds || erases);
+    }
+
+    function atualizarStatusSketch() {
+        const chip = document.getElementById('sketchStatusChip');
+        if (!chip) return;
+        chip.classList.remove('shared', 'readonly');
+        if (sketchModoArmazenamento === 'local') {
+            chip.textContent = txt('💾 Só local', '💾 Local only');
+            chip.title = txt('Os commits ficam salvos só neste navegador. Defina sketchShared: true no config.js (com as migrações 011 e 014 aplicadas) para compartilhar com a guilda.', 'Commits are saved in this browser only. Set sketchShared: true in config.js (with migrations 011 and 014 applied) to share them with the clan.');
+        } else if (sketchPodeDesenhar()) {
+            chip.textContent = txt('🌐 Compartilhado • ao vivo', '🌐 Shared • live');
+            chip.classList.add('shared');
+            chip.title = sketchIsStaff()
+                ? txt('Seus commits vão ao ar para toda a guilda na hora.', 'Your commits go live for the whole clan straight away.')
+                : txt('Seus commits aparecem para a guilda depois que um oficial aprová-los.', 'Your commits are shared with the clan once an officer approves them.');
+        } else {
+            chip.textContent = txt('👁️ Só visualizar', '👁️ View only');
+            chip.classList.add('readonly');
+            chip.title = txt('Entre com o Discord como membro aprovado para desenhar no mapa compartilhado.', 'Sign in with Discord as an approved member to draw on the shared map.');
+        }
+    }
+
+    // ---------- Storage (this browser, or the shared Supabase tables) ----------
+    function lerStoreLocalSketch() {
+        try {
+            const v2 = JSON.parse(localStorage.getItem(SKETCH_LOCAL_KEY) || 'null');
+            if (v2 && Array.isArray(v2.strokes)) {
+                return { commits: v2.commits || [], strokes: v2.strokes, erasures: v2.erasures || [] };
+            }
+            const v1 = JSON.parse(localStorage.getItem(SKETCH_LOCAL_KEY_V1) || '[]');
+            return {
+                commits: [],
+                strokes: Array.isArray(v1) ? v1.map(s => Object.assign({ commit_id: null, confirmed: true }, s)) : [],
+                erasures: []
+            };
+        } catch (e) {
+            return { commits: [], strokes: [], erasures: [] };
+        }
+    }
+
+    function gravarStoreLocalSketch() {
+        try {
+            localStorage.setItem(SKETCH_LOCAL_KEY, JSON.stringify({ commits: [...sketchCommits.values()], strokes: sketchStrokes, erasures: sketchErasures }));
+        } catch (e) {
+            alert(txt('Não foi possível salvar o esboço neste navegador (armazenamento cheio ou bloqueado).', 'Could not save the sketch in this browser (storage full or blocked).'));
+        }
+    }
+
+    // PostgREST returns at most 1000 rows per request, so page through big tables
+    async function buscarTodosSketch(tabela, colunas, ordenar) {
+        const todos = [];
+        const passo = 1000;
+        for (let de = 0; ; de += passo) {
+            const { data, error } = await supabaseClient.from(tabela).select(colunas).order(ordenar, { ascending: true }).range(de, de + passo - 1);
+            if (error) throw error;
+            todos.push(...(data || []));
+            if (!data || data.length < passo) break;
+        }
+        return todos;
+    }
+
+    async function carregarSketchDoBanco() {
+        if (sketchModoArmazenamento === 'shared' && supabaseClient) {
+            try {
+                const [commits, strokes, erasures] = await Promise.all([
+                    buscarTodosSketch('sketch_commits', '*, author_profile:profiles!sketch_commits_author_fkey(discord_username, avatar_url)', 'created_at'),
+                    buscarTodosSketch('sketch_strokes', '*', 'created_at'),
+                    buscarTodosSketch('sketch_commit_erasures', '*', 'commit_id')
+                ]);
+                sketchCommits = new Map(commits.map(c => [c.id, c]));
+                sketchStrokes = strokes;
+                sketchErasures = erasures;
+            } catch (e) {
+                console.error('Error loading sketch layer:', e);
+                return;
+            }
+        } else {
+            const store = lerStoreLocalSketch();
+            sketchCommits = new Map(store.commits.map(c => [c.id, c]));
+            sketchStrokes = store.strokes;
+            sketchErasures = store.erasures;
+        }
+        if (sketchVersaoAtual && !sketchCommits.has(sketchVersaoAtual)) voltarAoVivoSketch(false);
+        renderizarSketch();
+    }
+
+    function agendarRecargaSketch() {
+        if (sketchRecargaTimer) clearTimeout(sketchRecargaTimer);
+        sketchRecargaTimer = setTimeout(carregarSketchDoBanco, 400);
+    }
+
+    // ---------- Draft (private, kept in this browser until committed) ----------
+    function chaveDraftSketch() {
+        return sketchModoArmazenamento === 'shared'
+            ? `jackal_sketch_draft_v1_shared_${currentUser ? currentUser.id : 'anon'}`
+            : 'jackal_sketch_draft_v1_local';
+    }
+
+    function carregarDraftSketch() {
+        try {
+            const d = JSON.parse(localStorage.getItem(chaveDraftSketch()) || 'null');
+            sketchDraft = (d && Array.isArray(d.strokes))
+                ? { strokes: d.strokes, erase: Array.isArray(d.erase) ? d.erase : [], ops: Array.isArray(d.ops) ? d.ops : [] }
+                : { strokes: [], erase: [], ops: [] };
+        } catch (e) {
+            sketchDraft = { strokes: [], erase: [], ops: [] };
+        }
+    }
+
+    function gravarDraftSketch() {
+        try { localStorage.setItem(chaveDraftSketch(), JSON.stringify(sketchDraft)); } catch (e) {}
+    }
+
+    function limparDraftSketch() {
+        sketchDraft = { strokes: [], erase: [], ops: [] };
+        gravarDraftSketch();
+    }
+
+    function sketchBloqueadoPorHistorico() {
+        if (!sketchVersaoAtual) return false;
+        mostrarToastCartografico(txt('🕘 Você está vendo uma versão antiga. Clique em <strong>Voltar ao vivo</strong> para desenhar.', '🕘 You are viewing an old version. Click <strong>Back to live</strong> to sketch.'));
+        return true;
+    }
+
+    function adicionarAoDraftSketch(stroke) {
+        if (sketchBloqueadoPorHistorico()) return;
+        if (!sketchPodeDesenhar()) {
+            mostrarToastCartografico(txt('🔒 Entre com o Discord como membro aprovado para desenhar no mapa compartilhado.', '🔒 Sign in with Discord as an approved member to draw on the shared map.'));
+            return;
+        }
+        if (sketchDraft.strokes.length >= SKETCH_MAX_POR_COMMIT) {
+            mostrarToastCartografico(txt(`Seu rascunho tem ${SKETCH_MAX_POR_COMMIT} traços. Faça o commit antes de desenhar mais.`, `Your draft has ${SKETCH_MAX_POR_COMMIT} strokes. Commit it before drawing more.`));
+            return;
+        }
+        const s = Object.assign({ id: 'draft-' + novoIdLocal() }, stroke);
+        sketchDraft.strokes.push(s);
+        sketchDraft.ops.push({ tipo: 'add', id: s.id });
+        gravarDraftSketch();
+        renderizarSketch();
+    }
+
+    function desfazerUltimoSketch() {
+        const op = sketchDraft.ops.pop();
+        if (!op) {
+            mostrarToastCartografico(txt('Nada para desfazer no rascunho.', 'Nothing to undo in your draft.'));
+            return;
+        }
+        if (op.tipo === 'add') {
+            sketchDraft.strokes = sketchDraft.strokes.filter(s => s.id !== op.id);
+        } else if (op.tipo === 'erase') {
+            sketchDraft.erase = sketchDraft.erase.filter(id => id !== op.id);
+        } else if (op.tipo === 'remove-draft' && op.stroke) {
+            sketchDraft.strokes.splice(Math.min(op.indice, sketchDraft.strokes.length), 0, op.stroke);
+        }
+        gravarDraftSketch();
+        renderizarSketch();
+        mostrarToastCartografico(txt('↩ Desfeito.', '↩ Undone.'));
+    }
+
+    function descartarDraftSketch() {
+        const n = sketchDraft.strokes.length + sketchDraft.erase.length;
+        if (!n) return;
+        if (!confirm(txt(`Descartar o rascunho (${n} alteraç${n === 1 ? 'ão' : 'ões'})? Não dá para desfazer.`, `Discard your draft (${n} change${n === 1 ? '' : 's'})? This cannot be undone.`))) return;
+        limparDraftSketch();
+        renderizarSketch();
+        mostrarToastCartografico(txt('🗑️ Rascunho descartado.', '🗑️ Draft discarded.'));
+    }
+
+    // ---------- Commits ----------
+    function abrirModalCommitSketch() {
+        if (sketchBloqueadoPorHistorico()) return;
+        const adds = sketchDraft.strokes.length;
+        const erases = sketchDraft.erase.length;
+        if (!adds && !erases) {
+            mostrarToastCartografico(txt('Seu rascunho está vazio. Desenhe algo primeiro.', 'Your draft is empty. Sketch something first.'));
+            return;
+        }
+        if (!sketchPodeDesenhar()) {
+            mostrarToastCartografico(txt('🔒 Entre com o Discord como membro aprovado para fazer commit.', '🔒 Sign in with Discord as an approved member to commit.'));
+            return;
+        }
+        const resumo = document.getElementById('sketchCommitResumo');
+        if (resumo) resumo.textContent = txt(`+${adds} traço${adds === 1 ? '' : 's'} • −${erases} apagado${erases === 1 ? '' : 's'}`, `+${adds} stroke${adds === 1 ? '' : 's'} • −${erases} erased`);
+        const nota = document.getElementById('sketchCommitNota');
+        if (nota) {
+            nota.textContent = (sketchModoArmazenamento === 'shared' && !sketchIsStaff())
+                ? txt('Um oficial vai revisar este commit antes da guilda ver.', 'An officer will review this commit before the clan sees it.')
+                : txt('Este commit vai ao ar na hora.', 'This commit goes live straight away.');
+        }
+        const input = document.getElementById('inputSketchCommitMsg');
+        if (input) input.value = '';
+        document.getElementById('modalSketchCommit').classList.add('open');
+        if (input) input.focus();
+    }
+
+    async function confirmarCommitSketch() {
+        const input = document.getElementById('inputSketchCommitMsg');
+        const mensagem = (input ? input.value : '').trim().slice(0, 200);
+        if (!mensagem) {
+            if (input) input.focus();
+            mostrarToastCartografico(txt('A mensagem do commit é obrigatória.', 'A commit message is required.'));
+            return;
+        }
+        const btn = document.getElementById('btnConfirmarCommitSketch');
+        if (btn) btn.disabled = true;
+        try {
+            const strokes = sketchDraft.strokes.map(s => ({
+                kind: s.kind, path: s.path, width: s.width, label: s.label || null, stamp: s.stamp || null
+            }));
+            const erase = sketchDraft.erase.filter(id => !String(id).startsWith('draft-'));
+
+            if (sketchModoArmazenamento === 'shared' && supabaseClient) {
+                const { data, error } = await supabaseClient.rpc('sketch_commit_create', { p_message: mensagem, p_strokes: strokes, p_erase: erase });
+                if (error) throw error;
+                limparDraftSketch();
+                fecharModal('modalSketchCommit');
+                await carregarSketchDoBanco();
+                const status = data && (data.status || (Array.isArray(data) && data[0] && data[0].status));
+                mostrarToastCartografico(status === 'pending'
+                    ? txt('📝 Commit feito. Aguardando aprovação de um oficial.', '📝 Committed. Waiting for an officer to approve it.')
+                    : txt('✓ Commit feito e no ar para a guilda.', '✓ Committed and live for the clan.'));
+            } else {
+                const agora = new Date().toISOString();
+                const id = novoIdLocal();
+                sketchCommits.set(id, {
+                    id, author: 'local', author_profile: { discord_username: txt('Você', 'You') }, message: mensagem,
+                    status: 'approved', stroke_count: strokes.length, erase_count: erase.length,
+                    approved_at: agora, created_at: agora
+                });
+                strokes.forEach(s => sketchStrokes.push(Object.assign({ id: novoIdLocal(), commit_id: id, confirmed: true, created_by: 'local', created_at: agora }, s)));
+                erase.forEach(sid => sketchErasures.push({ commit_id: id, stroke_id: sid }));
+                gravarStoreLocalSketch();
+                limparDraftSketch();
+                fecharModal('modalSketchCommit');
+                renderizarSketch();
+                mostrarToastCartografico(txt('✓ Commit feito (salvo neste navegador).', '✓ Committed (saved in this browser).'));
+            }
+        } catch (err) {
+            alert(txt('Erro ao fazer commit do esboço: ', 'Error committing sketch: ') + err.message);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function revisarCommitSketch(id, acao) {
+        const c = sketchCommits.get(id);
+        if (!c) return;
+        const textos = {
+            approve: null,
+            reject: txt(`Rejeitar "${c.message}"? Os traços não serão mostrados.`, `Reject "${c.message}"? Its strokes will not be shown.`),
+            revert: txt(`Reverter "${c.message}"? Os traços ficam ocultos (não apagados) e podem ser restaurados depois.`, `Revert "${c.message}"? Its strokes are hidden (not deleted) and can be restored later.`),
+            restore: null
+        };
+        if (textos[acao] && !confirm(textos[acao])) return;
+        try {
+            if (sketchModoArmazenamento === 'shared' && supabaseClient) {
+                const { error } = await supabaseClient.rpc('sketch_commit_review', { p_commit: id, p_action: acao });
+                if (error) throw error;
+                await carregarSketchDoBanco();
+            } else {
+                const agora = new Date().toISOString();
+                if (acao === 'revert' && c.status === 'approved') Object.assign(c, { status: 'reverted', reverted_at: agora });
+                else if (acao === 'restore' && c.status === 'reverted') Object.assign(c, { status: 'approved', reverted_at: null });
+                gravarStoreLocalSketch();
+                renderizarSketch();
+            }
+            const feito = {
+                approve: txt('✓ Commit aprovado.', '✓ Commit approved.'),
+                reject: txt('Commit rejeitado.', 'Commit rejected.'),
+                revert: txt('↩ Commit revertido.', '↩ Commit reverted.'),
+                restore: txt('✓ Commit restaurado.', '✓ Commit restored.')
+            };
+            mostrarToastCartografico(feito[acao] || txt('Feito.', 'Done.'));
+        } catch (err) {
+            alert(txt('Erro ao atualizar o commit: ', 'Error updating commit: ') + err.message);
+        }
+    }
+
+    // ---------- History panel ----------
+    function historicoSketchAberto() {
+        const p = document.getElementById('sketchHistoryPanel');
+        return !!(p && p.style.display !== 'none');
+    }
+
+    function toggleHistoricoSketch(forcar = null, filtro = null) {
+        const p = document.getElementById('sketchHistoryPanel');
+        if (!p) return;
+        const abrir = (forcar !== null) ? forcar : !historicoSketchAberto();
+        if (filtro) sketchHistoricoFiltro = filtro;
+        p.style.display = abrir ? 'flex' : 'none';
+        if (abrir) renderizarHistoricoSketch();
+        else destacarCommitSketch(null);
+    }
+
+    function filtrarHistoricoSketch(filtro) {
+        sketchHistoricoFiltro = filtro;
+        renderizarHistoricoSketch();
+    }
+
+    function tempoRelativoSketch(iso) {
+        const seg = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+        if (seg < 60) return txt('agora', 'just now');
+        if (seg < 3600) return txt(`há ${Math.floor(seg / 60)} min`, `${Math.floor(seg / 60)} min ago`);
+        if (seg < 86400) return txt(`há ${Math.floor(seg / 3600)} h`, `${Math.floor(seg / 3600)} h ago`);
+        return new Date(iso).toLocaleString(localeSketch(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderizarHistoricoSketch() {
+        const lista = document.getElementById('sketchHistoryList');
+        if (!lista) return;
+        destacarCommitSketch(null); // rows are rebuilt, so a hovered row never gets its mouseleave
+        const meuId = sketchMeuId();
+        const staff = sketchIsStaff();
+
+        document.querySelectorAll('#sketchHistoryPanel .jk-hist-filter').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-filtro') === sketchHistoricoFiltro);
+        });
+        const nPend = [...sketchCommits.values()].filter(c => c.status === 'pending').length;
+        const cntFiltro = document.getElementById('sketchHistPendCount');
+        if (cntFiltro) cntFiltro.textContent = nPend ? `(${nPend})` : '';
+
+        let commits = [...sketchCommits.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        if (sketchHistoricoFiltro === 'pending') commits = commits.filter(c => c.status === 'pending');
+        else if (sketchHistoricoFiltro === 'mine') commits = commits.filter(c => c.author === meuId);
+
+        const badges = {
+            approved: `<span class="jk-hist-badge approved">${txt('NO AR', 'LIVE')}</span>`,
+            pending: `<span class="jk-hist-badge pending">${txt('PENDENTE', 'PENDING')}</span>`,
+            rejected: `<span class="jk-hist-badge rejected">${txt('REJEITADO', 'REJECTED')}</span>`,
+            reverted: `<span class="jk-hist-badge reverted">${txt('REVERTIDO', 'REVERTED')}</span>`
+        };
+
+        let html = commits.map(c => {
+            const nome = (c.author_profile && c.author_profile.discord_username) || (c.author === meuId ? txt('Você', 'You') : txt('Membro da guilda', 'Clan member'));
+            const avatar = (c.author_profile && /^https:\/\/cdn\.discordapp\.com\/[A-Za-z0-9_./?=&-]+$/.test(c.author_profile.avatar_url || ''))
+                ? `<img src="${c.author_profile.avatar_url}" alt="">`
+                : '<span class="jk-hist-avatar-vazio">👤</span>';
+            const id = sanitizeId(c.id) || '';
+            const acoes = [];
+            if (c.status === 'approved' || c.status === 'reverted') {
+                acoes.push(`<button onclick="verVersaoSketch('${id}')" title="${txt('Mostrar o mapa como estava logo após este commit', 'Show the map as it was right after this commit')}">👁 ${txt('Ver neste ponto', 'View at this point')}</button>`);
+            }
+            if (staff && c.status === 'pending' && sketchModoArmazenamento === 'shared') {
+                acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'approve')">✓ ${txt('Aprovar', 'Approve')}</button>`);
+                acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'reject')">✕ ${txt('Rejeitar', 'Reject')}</button>`);
+            }
+            if (staff && c.status === 'approved') acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'revert')">↩ ${txt('Reverter', 'Revert')}</button>`);
+            if (staff && c.status === 'reverted') acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'restore')">⟲ ${txt('Restaurar', 'Restore')}</button>`);
+            const ativo = sketchVersaoAtual === c.id ? ' viewing' : '';
+            return `
+                <div class="jk-hist-row${ativo}" onmouseenter="destacarCommitSketch('${id}')" onmouseleave="destacarCommitSketch(null)">
+                    <div class="jk-hist-avatar">${avatar}</div>
+                    <div class="jk-hist-body">
+                        <div class="jk-hist-top"><strong>${sanitize(nome)}</strong>${badges[c.status] || ''}</div>
+                        <div class="jk-hist-msg">${sanitize(c.message)}</div>
+                        <div class="jk-hist-meta">${tempoRelativoSketch(c.created_at)} • +${Number(c.stroke_count) || 0} / −${Number(c.erase_count) || 0}</div>
+                        ${acoes.length ? `<div class="jk-hist-actions">${acoes.join('')}</div>` : ''}
+                    </div>
+                </div>`;
+        }).join('');
+
+        const legado = sketchStrokes.filter(s => !s.commit_id && s.confirmed).length;
+        if (legado && sketchHistoricoFiltro === 'all') {
+            html += `
+                <div class="jk-hist-row legacy">
+                    <div class="jk-hist-avatar"><span class="jk-hist-avatar-vazio">📜</span></div>
+                    <div class="jk-hist-body">
+                        <div class="jk-hist-top"><strong>${txt('Antes do versionamento', 'Before versioning')}</strong></div>
+                        <div class="jk-hist-meta">${txt(`${legado} traço${legado === 1 ? '' : 's'} desenhado${legado === 1 ? '' : 's'} antes dos commits`, `${legado} stroke${legado === 1 ? '' : 's'} drawn before commits existed`)}</div>
+                    </div>
+                </div>`;
+        }
+        const vazio = {
+            all: txt('Nenhum commit ainda. Desenhe algo e clique em <strong>Commit</strong>.', 'No commits yet. Sketch something, then press <strong>Commit</strong>.'),
+            pending: txt('Nada aguardando revisão.', 'Nothing waiting for review.'),
+            mine: txt('Você ainda não fez nenhum commit.', 'You have not committed anything yet.')
+        };
+        lista.innerHTML = html || `<div class="jk-hist-empty">${vazio[sketchHistoricoFiltro] || vazio.all}</div>`;
+    }
+
+    // Hovering a commit outlines what it added (gold) and erased (red)
+    function destacarCommitSketch(id) {
+        sketchHighlightLayer.clearLayers();
+        if (!id) return;
+        const adicionados = new Set(sketchStrokes.filter(s => s.commit_id === id).map(s => s.id));
+        const apagados = new Set(sketchErasures.filter(e => e.commit_id === id).map(e => e.stroke_id));
+        sketchStrokes.forEach(s => {
+            const ehAdd = adicionados.has(s.id);
+            if (!ehAdd && !apagados.has(s.id)) return;
+            const cor = ehAdd ? '#f5a623' : '#ef4444';
+            if (s.kind === 'label' || s.kind === 'stamp') {
+                L.circleMarker([MAP_SIZE - s.path[0][1], s.path[0][0]], {
+                    radius: 16, color: cor, weight: 3, fill: false, dashArray: ehAdd ? null : '4 4',
+                    renderer: sketchCanvasRenderer, interactive: false
+                }).addTo(sketchHighlightLayer);
+                return;
+            }
+            if (s.kind === 'arrow' && s.path.length < 2) return;
+            L.polyline(latlngsDoTraco(s), {
+                color: cor, weight: Math.max(5, Number(s.width) * pxPorTile() + 8), opacity: 0.55,
+                dashArray: ehAdd ? null : '6 6', lineCap: 'round', lineJoin: 'round',
+                renderer: sketchCanvasRenderer, interactive: false
+            }).addTo(sketchHighlightLayer);
+        });
+    }
+
+    function verVersaoSketch(id) {
+        const c = sketchCommits.get(id);
+        if (!c) return;
+        sketchVersaoAtual = id;
+        cancelarTracoSketch();
+        const banner = document.getElementById('sketchVersaoBanner');
+        const texto = document.getElementById('sketchVersaoTexto');
+        if (texto) texto.textContent = `${new Date(c.created_at).toLocaleString(localeSketch(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} • ${c.message}`;
+        if (banner) banner.style.display = 'flex';
+        renderizarSketch();
+    }
+
+    function voltarAoVivoSketch(renderizar = true) {
+        sketchVersaoAtual = null;
+        const banner = document.getElementById('sketchVersaoBanner');
+        if (banner) banner.style.display = 'none';
+        if (renderizar) renderizarSketch();
+    }
+
+    // ---------- Live presence: other people's in-progress strokes (Realtime broadcast) ----------
+    const sketchFantasmas = new Map();        // user id -> { pts, kind, width, name, line, tag, timer }
+    let sketchEnvioBuffer = [];
+    let sketchEnvioTimer = null;
+    let sketchEnvioInicio = false;
+
+    function meuNomeSketch() {
+        return (currentProfile && currentProfile.discord_username)
+            || (currentUser && currentUser.user_metadata && (currentUser.user_metadata.full_name || currentUser.user_metadata.name))
+            || 'Scout';
+    }
+
+    function iniciarCanalAoVivoSketch() {
+        if (sketchModoArmazenamento !== 'shared' || !supabaseClient || sketchCanalAoVivo) return;
+        sketchCanalAoVivo = supabaseClient.channel('jackal_sketch_live', { config: { broadcast: { self: false } } })
+            .on('broadcast', { event: 'ghost' }, ({ payload }) => receberFantasmaSketch(payload))
+            .on('broadcast', { event: 'ghost_end' }, ({ payload }) => encerrarFantasmaSketch(payload && payload.uid))
+            .subscribe();
+    }
+
+    function podeTransmitirSketch() {
+        return !!(sketchCanalAoVivo && sketchModoArmazenamento === 'shared' && currentUser && sketchPodeDesenhar());
+    }
+
+    function enviarFantasmaSketch() {
+        sketchEnvioTimer = null;
+        if (!podeTransmitirSketch() || !sketchTracoAtual) return;
+        const ehSeta = sketchFerramenta === 'arrow';
+        const pts = ehSeta ? sketchTracoAtual.pts : sketchEnvioBuffer;
+        if (!pts.length) return;
+        sketchCanalAoVivo.send({
+            type: 'broadcast',
+            event: 'ghost',
+            payload: {
+                uid: currentUser.id,
+                name: meuNomeSketch(),
+                kind: sketchFerramenta,
+                width: larguraSketchAtual(),
+                start: sketchEnvioInicio,
+                replace: ehSeta,
+                pts: pts.map(p => [arred1(p[0]), arred1(p[1])])
+            }
+        });
+        sketchEnvioInicio = false;
+        sketchEnvioBuffer = [];
+    }
+
+    // Queue a point and send at most ~10 updates per second
+    function agendarFantasmaSketch(ponto, inicio = false) {
+        if (!podeTransmitirSketch()) return;
+        if (inicio) { sketchEnvioInicio = true; sketchEnvioBuffer = []; }
+        if (ponto) sketchEnvioBuffer.push(ponto);
+        if (!sketchEnvioTimer) sketchEnvioTimer = setTimeout(enviarFantasmaSketch, 100);
+    }
+
+    function terminarFantasmaSketch() {
+        if (sketchEnvioTimer) { clearTimeout(sketchEnvioTimer); sketchEnvioTimer = null; }
+        if (sketchEnvioBuffer.length && sketchTracoAtual) enviarFantasmaSketch();
+        sketchEnvioBuffer = [];
+        if (podeTransmitirSketch()) {
+            sketchCanalAoVivo.send({ type: 'broadcast', event: 'ghost_end', payload: { uid: currentUser.id } });
+        }
+    }
+
+    function removerFantasmaSketch(g) {
+        if (!g) return;
+        if (g.timer) clearTimeout(g.timer);
+        if (g.line) map.removeLayer(g.line);
+        if (g.tag) map.removeLayer(g.tag);
+    }
+
+    function encerrarFantasmaSketch(uid) {
+        const g = sketchFantasmas.get(uid);
+        if (!g) return;
+        // Keep the finished line on screen briefly so the hand-off to their draft is not jarring
+        if (g.timer) clearTimeout(g.timer);
+        g.timer = setTimeout(() => { removerFantasmaSketch(g); sketchFantasmas.delete(uid); }, 1500);
+    }
+
+    function receberFantasmaSketch(p) {
+        if (!p || typeof p.uid !== 'string' || !Array.isArray(p.pts)) return;
+        if (currentUser && p.uid === currentUser.id) return;
+        const preset = SKETCH_PRESETS[p.kind];
+        if (!preset) return;
+        const pts = p.pts
+            .filter(pt => Array.isArray(pt) && pt.length === 2 && isFinite(pt[0]) && isFinite(pt[1]))
+            .slice(0, 500)
+            .map(pt => [Math.max(0, Math.min(MAP_SIZE, Number(pt[0]))), Math.max(0, Math.min(MAP_SIZE, Number(pt[1])))]);
+        if (!pts.length) return;
+
+        let g = sketchFantasmas.get(p.uid);
+        if (!g || p.start) {
+            removerFantasmaSketch(g);
+            g = { pts: [], kind: p.kind, width: Math.max(1, Math.min(60, Number(p.width) || 6)), name: String(p.name || 'Scout').slice(0, 40), line: null, tag: null, timer: null };
+            sketchFantasmas.set(p.uid, g);
+        }
+        g.pts = p.replace ? pts : g.pts.concat(pts).slice(-3000);
+
+        const latlngs = (g.kind === 'arrow' && g.pts.length >= 2)
+            ? latlngsSeta(g.pts, g.width)
+            : g.pts.map(pt => [MAP_SIZE - pt[1], pt[0]]);
+        if (!g.line) {
+            g.line = L.polyline(latlngs, {
+                color: preset.cor, weight: Math.max(1, g.width * pxPorTile()), opacity: 0.45,
+                dashArray: '6 6', lineCap: 'round', lineJoin: 'round',
+                renderer: sketchCanvasRenderer, interactive: false
+            }).addTo(map);
+        } else {
+            g.line.setLatLngs(latlngs);
+        }
+        const ult = g.pts[g.pts.length - 1];
+        const posTag = [MAP_SIZE - ult[1], ult[0]];
+        if (!g.tag) {
+            g.tag = L.marker(posTag, {
+                pane: 'sketchLabelPane', interactive: false, keyboard: false,
+                icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<span class="jk-sketch-ghost-tag">✏️ ${sanitize(g.name)}</span>` })
+            }).addTo(map);
+        } else {
+            g.tag.setLatLng(posTag);
+        }
+        if (g.timer) clearTimeout(g.timer);
+        g.timer = setTimeout(() => { removerFantasmaSketch(g); sketchFantasmas.delete(p.uid); }, 4000);
+    }
+
+    // ---------- Startup ----------
+    async function inicializarSketch() {
+        // Shared mode is opt-in: it needs migrations 011 and 014 on your own Supabase project
+        sketchModoArmazenamento = (supabaseClient && CFG.sketchShared === true) ? 'shared' : 'local';
+        carregarDraftSketch();
+        await carregarSketchDoBanco();
+        atualizarStatusSketch();
+
+        if (sketchModoArmazenamento === 'shared' && !sketchCanalRealtime) {
+            sketchCanalRealtime = supabaseClient.channel('jackal_sketch_sync')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_commits' }, agendarRecargaSketch)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_strokes' }, agendarRecargaSketch)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_commit_erasures' }, agendarRecargaSketch)
+                .subscribe();
+            iniciarCanalAoVivoSketch();
+        }
+    }
+
+    function ajustarOpacidadeSketch(valor) {
+        const op = Math.max(0.15, Math.min(1, Number(valor) / 100));
+        map.getPane('sketchPane').style.opacity = op;
+        map.getPane('sketchLabelPane').style.opacity = op;
+        const lbl = document.getElementById('labelSketchOpacity');
+        if (lbl) lbl.textContent = Math.round(op * 100) + '%';
+        try { localStorage.setItem('jackal_sketch_opacity', String(Math.round(op * 100))); } catch (e) {}
+    }
+
+    // ---------- Tools ----------
+    function larguraSketchAtual() {
+        const slider = document.getElementById('sliderSketchTamanho');
+        return slider ? Number(slider.value) : 12;
+    }
+
+    function selecionarFerramentaSketch(ferramenta, stamp = null) {
+        sketchFerramenta = ferramenta;
+        if (stamp) sketchStampAtual = stamp;
+
+        document.querySelectorAll('#hudBottomSketch .jk-sketch-tool[data-sketch-tool]').forEach(b => {
+            const mesmoTool = b.getAttribute('data-sketch-tool') === ferramenta;
+            const mesmoStamp = ferramenta !== 'stamp' || b.getAttribute('data-stamp') === sketchStampAtual;
+            b.classList.toggle('active', mesmoTool && mesmoStamp);
+        });
+
+        // Each brush remembers its own size
+        const slider = document.getElementById('sliderSketchTamanho');
+        if (slider && SKETCH_PRESETS[ferramenta]) {
+            slider.value = sketchLarguraPorFerramenta[ferramenta] || SKETCH_PRESETS[ferramenta].largura;
+            ajustarTamanhoSketch(slider.value, false);
+        }
+        const temTamanho = !!SKETCH_PRESETS[ferramenta];
+        if (slider) slider.disabled = !temTamanho;
+        if (!temTamanho) {
+            const lbl = document.getElementById('labelSketchTamanho');
+            if (lbl) lbl.textContent = '—';
+        }
+
+        map.getContainer().classList.toggle('jk-sketch-erase', ferramenta === 'eraser');
+    }
+
+    function ajustarTamanhoSketch(valor, lembrar = true) {
+        const v = Math.max(1, Math.min(60, Number(valor) || 1));
+        const lbl = document.getElementById('labelSketchTamanho');
+        if (lbl) lbl.textContent = `${v} tile${v === 1 ? '' : 's'}`;
+        if (lembrar && SKETCH_PRESETS[sketchFerramenta]) sketchLarguraPorFerramenta[sketchFerramenta] = v;
+    }
+
+    function ativarModoSketch() {
+        if (modoTracado) cancelarTracado();
+        if (modoMedicaoArea) desativarModoMedicaoArea();
+        if (modoAdicionar) desativarModoAdicionarPonto();
+        modoSketch = true;
+        map.dragging.disable();
+        map.getContainer().classList.add('jk-sketching');
+
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudSketch = document.getElementById('hudBottomSketch');
+        if (hudNormal) hudNormal.style.display = 'none';
+        if (hudSketch) hudSketch.style.display = 'flex';
+
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnSketch')?.classList.add('active');
+
+        // Make sure the layer is visible while sketching
+        const chk = document.querySelector('input[data-layer="sketch"]');
+        if (chk && !chk.checked) { chk.checked = true; toggleCamada('sketch', true); }
+
+        selecionarFerramentaSketch(sketchFerramenta, sketchStampAtual);
+        atualizarStatusSketch();
+        renderizarSketch();
+        mostrarToastCartografico(txt('✏️ <strong>Esboço</strong>: arraste para desenhar no rascunho e depois faça o <strong>Commit</strong>. Segure <strong>Espaço</strong> para mover o mapa.', '✏️ <strong>Sketch</strong>: drag to draw into your draft, then <strong>Commit</strong>. Hold <strong>Space</strong> to pan.'));
+    }
+
+    function desativarModoSketch() {
+        if (sketchTracoAtual) terminarFantasmaSketch();
+        cancelarTracoSketch();
+        modoSketch = false;
+        sketchApagando = false;
+        sketchEspacoPan = false;
+        map.dragging.enable();
+        map.getContainer().classList.remove('jk-sketching', 'jk-sketch-pan', 'jk-sketch-erase');
+
+        const hudNormal = document.getElementById('hudBottomNormal');
+        const hudSketch = document.getElementById('hudBottomSketch');
+        if (hudSketch) hudSketch.style.display = 'none';
+        if (hudNormal) hudNormal.style.display = 'flex';
+
+        document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('modeBtnNavegar')?.classList.add('active');
+    }
+
+    function cancelarTracoSketch() {
+        sketchTracoAtual = null;
+        if (sketchPreview) {
+            map.removeLayer(sketchPreview);
+            sketchPreview = null;
+        }
+    }
+
+    // Eraser: a draft stroke is removed from the draft; a live stroke is marked for erasing in the draft
+    let sketchApagandoOcupado = false;
+    function apagarSketchEm(e) {
+        if (sketchApagandoOcupado || sketchBloqueadoPorHistorico()) return;
+        sketchApagandoOcupado = true;
+        try {
+            apagarSketchNoPonto(tileDoEvento(e));
+        } finally {
+            sketchApagandoOcupado = false;
+        }
+    }
+
+    function apagarSketchNoPonto(p) {
+        if (!sketchPodeDesenhar()) {
+            mostrarToastCartografico(txt('🔒 Entre com o Discord como membro aprovado para apagar no mapa compartilhado.', '🔒 Sign in with Discord as an approved member to erase on the shared map.'));
+            return;
+        }
+        const tolerancia = 6 / pxPorTile();
+        const entradas = [...sketchCamadaPorId.values()];
+        for (let i = entradas.length - 1; i >= 0; i--) {
+            const { s, estado } = entradas[i];
+            if (estado === 'erasing' || estado === 'pending') continue;
+            let atingiu = false;
+            if (s.kind === 'label' || s.kind === 'stamp') {
+                const raio = s.kind === 'stamp' ? 14 / pxPorTile() : Math.max(tolerancia * 2, Number(s.width) * 0.8);
+                atingiu = Math.hypot(p.x - s.path[0][0], p.y - s.path[0][1]) <= raio;
+            } else {
+                const limite = Number(s.width) / 2 + tolerancia;
+                if (s.path.length === 1) atingiu = Math.hypot(p.x - s.path[0][0], p.y - s.path[0][1]) <= limite;
+                for (let k = 1; k < s.path.length && !atingiu; k++) {
+                    atingiu = distanciaPontoSegmento(p.x, p.y, s.path[k - 1][0], s.path[k - 1][1], s.path[k][0], s.path[k][1]) <= limite;
+                }
+            }
+            if (!atingiu) continue;
+
+            if (estado === 'draft') {
+                const indice = sketchDraft.strokes.findIndex(d => d.id === s.id);
+                if (indice !== -1) {
+                    sketchDraft.strokes.splice(indice, 1);
+                    sketchDraft.ops.push({ tipo: 'remove-draft', stroke: s, indice });
+                }
+            } else {
+                if (sketchDraft.erase.length >= SKETCH_MAX_POR_COMMIT) {
+                    mostrarToastCartografico(txt('Faça o commit do rascunho antes de apagar mais.', 'Commit your draft before erasing more.'));
+                    return;
+                }
+                sketchDraft.erase.push(s.id);
+                sketchDraft.ops.push({ tipo: 'erase', id: s.id });
+            }
+            gravarDraftSketch();
+            renderizarSketch();
+            return;
+        }
+    }
+
+    function finalizarTracoSketch() {
+        if (!sketchTracoAtual) return;
+        terminarFantasmaSketch();
+        const traco = sketchTracoAtual;
+        cancelarTracoSketch();
+
+        const largura = larguraSketchAtual();
+        let path;
+        if (sketchFerramenta === 'arrow') {
+            const a = traco.pts[0], b = traco.pts[traco.pts.length - 1];
+            if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 2) return; // too short to be an arrow
+            path = [a, b];
+        } else {
+            let eps = Math.max(0.4, largura * 0.08);
+            path = simplificarTraco(traco.pts, eps);
+            while (path.length > SKETCH_MAX_PONTOS) {
+                eps *= 1.6;
+                path = simplificarTraco(traco.pts, eps);
+            }
+        }
+        path = path.map(p => [arred1(p[0]), arred1(p[1])]);
+        adicionarAoDraftSketch({ kind: sketchFerramenta, path, width: largura });
+    }
+
+    map.on('mousedown', function(e) {
+        if (!modoSketch || sketchEspacoPan) return;
+        if (e.originalEvent && e.originalEvent.button !== 0) return;
+        if (sketchBloqueadoPorHistorico()) return;
+
+        if (sketchFerramenta === 'eraser') {
+            sketchApagando = true;
+            apagarSketchEm(e);
+            return;
+        }
+        if (!SKETCH_PRESETS[sketchFerramenta]) return; // label / stamp are placed on click
+
+        if (!sketchPodeDesenhar()) {
+            mostrarToastCartografico(txt('🔒 Entre com o Discord como membro aprovado para desenhar no mapa compartilhado.', '🔒 Sign in with Discord as an approved member to draw on the shared map.'));
+            return;
+        }
+        const p = tileDoEvento(e);
+        sketchTracoAtual = { pts: [[p.x, p.y]], lastPx: e.containerPoint };
+        const preset = SKETCH_PRESETS[sketchFerramenta];
+        sketchPreview = L.polyline([e.latlng, e.latlng], {
+            color: preset.cor,
+            weight: Math.max(1, larguraSketchAtual() * pxPorTile()),
+            opacity: preset.opacidade * 0.6,
+            dashArray: '10 8',
+            lineCap: 'round',
+            lineJoin: 'round',
+            renderer: sketchCanvasRenderer,
+            interactive: false
+        }).addTo(map);
+        agendarFantasmaSketch([p.x, p.y], true);
+    });
+
+    map.on('mousemove', function(e) {
+        if (!modoSketch) return;
+        if (sketchApagando) {
+            apagarSketchEm(e);
+            return;
+        }
+        if (!sketchTracoAtual) return;
+        const p = tileDoEvento(e);
+        if (sketchFerramenta === 'arrow') {
+            sketchTracoAtual.pts = [sketchTracoAtual.pts[0], [p.x, p.y]];
+            if (sketchPreview) sketchPreview.setLatLngs(latlngsSeta(sketchTracoAtual.pts, larguraSketchAtual()));
+            agendarFantasmaSketch(null);
+            return;
+        }
+        // Only record a point once the cursor has moved a few screen pixels
+        if (e.containerPoint.distanceTo(sketchTracoAtual.lastPx) < 3) return;
+        sketchTracoAtual.lastPx = e.containerPoint;
+        sketchTracoAtual.pts.push([p.x, p.y]);
+        if (sketchPreview) sketchPreview.addLatLng(e.latlng);
+        agendarFantasmaSketch([p.x, p.y]);
+    });
+
+    function finalizarSketchMouse(e) {
+        if (sketchApagando) sketchApagando = false;
+        if (!sketchTracoAtual) return;
+        // Include the release point (the last few pixels before mouse-up are not always sampled)
+        if (e && e.latlng) {
+            const p = tileDoEvento(e);
+            if (sketchFerramenta === 'arrow') {
+                sketchTracoAtual.pts = [sketchTracoAtual.pts[0], [p.x, p.y]];
+            } else {
+                const ult = sketchTracoAtual.pts[sketchTracoAtual.pts.length - 1];
+                if (ult[0] !== p.x || ult[1] !== p.y) sketchTracoAtual.pts.push([p.x, p.y]);
+            }
+        }
+        finalizarTracoSketch();
+    }
+    map.on('mouseup', finalizarSketchMouse);
+    window.addEventListener('mouseup', finalizarSketchMouse);
+
+    map.on('click', function(e) {
+        if (!modoSketch || sketchEspacoPan) return;
+        const p = tileDoEvento(e);
+        if (sketchFerramenta === 'stamp') {
+            adicionarAoDraftSketch({ kind: 'stamp', stamp: sketchStampAtual, path: [[arred1(p.x), arred1(p.y)]], width: 1 });
+        } else if (sketchFerramenta === 'label') {
+            if (sketchBloqueadoPorHistorico()) return;
+            if (!sketchPodeDesenhar()) {
+                mostrarToastCartografico(txt('🔒 Entre com o Discord como membro aprovado para desenhar no mapa compartilhado.', '🔒 Sign in with Discord as an approved member to draw on the shared map.'));
+                return;
+            }
+            sketchLabelPendente = { x: arred1(p.x), y: arred1(p.y) };
+            const coords = document.getElementById('sketchLabelCoords');
+            if (coords) coords.textContent = `${Math.round(p.x)}, ${Math.round(p.y)}`;
+            const input = document.getElementById('inputSketchLabel');
+            if (input) input.value = '';
+            document.getElementById('modalSketchLabel').classList.add('open');
+            if (input) input.focus();
+        }
+    });
+
+    function confirmarLabelSketch() {
+        const texto = (document.getElementById('inputSketchLabel').value || '').trim().slice(0, 80);
+        if (!texto || !sketchLabelPendente) return;
+        const tamanho = Number(document.getElementById('selectSketchLabelTamanho').value) || 20;
+        adicionarAoDraftSketch({ kind: 'label', label: texto, path: [[sketchLabelPendente.x, sketchLabelPendente.y]], width: tamanho });
+        sketchLabelPendente = null;
+        fecharModal('modalSketchLabel');
+    }
+
+    // Hold Space to pan the map while sketching; Ctrl+Z undoes the last change in your draft
+    window.addEventListener('keydown', function(e) {
+        if (!modoSketch || isInputElementActive()) return;
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (!sketchEspacoPan) {
+                sketchEspacoPan = true;
+                if (sketchTracoAtual) terminarFantasmaSketch();
+                cancelarTracoSketch();
+                map.dragging.enable();
+                map.getContainer().classList.add('jk-sketch-pan');
+            }
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+            e.preventDefault();
+            desfazerUltimoSketch();
+        }
+    });
+
+    window.addEventListener('keyup', function(e) {
+        if (e.code === 'Space' && sketchEspacoPan) {
+            sketchEspacoPan = false;
+            if (modoSketch) map.dragging.disable();
+            map.getContainer().classList.remove('jk-sketch-pan');
+        }
+    });
+
+    // ==============================================================
     // CONTROLE UNIFICADO DE MODOS DE INTERAÇÃO (BARRA SUPERIOR)
     // ==============================================================
     function definirModoInteracao(modo) {
@@ -3750,10 +5266,16 @@
             'ponto':   'modeBtnPonto',
             'estrada': 'modeBtnEstrada',
             'ponte':   'modeBtnPonte',
-            'area':    'modeBtnArea'
+            'area':    'modeBtnArea',
+            'sketch':  'modeBtnSketch'
         };
         const el = document.getElementById(btnMap[modo]);
         if (el) el.classList.add('active');
+
+        if (modo !== 'sketch' && modoSketch) {
+            desativarModoSketch();
+            if (el) el.classList.add('active');
+        }
 
         if (modo !== 'ponto' && modoAdicionar) {
             modoAdicionar = false;
@@ -3787,10 +5309,13 @@
             iniciarTracado('bridge');
         } else if (modo === 'area') {
             ativarModoMedicaoArea();
+        } else if (modo === 'sketch') {
+            ativarModoSketch();
         }
     }
 
     function ativarModoAdicionarPonto() {
+        if (modoSketch) desativarModoSketch();
         if (modoTracado) cancelarTracado();
         if (modoMedicaoArea) desativarModoMedicaoArea();
         modoAdicionar = true;
@@ -3853,7 +5378,7 @@
 
     // CLIQUE NO MAPA: CAPTURA DIRETA E EXATA DE COORDENADAS (ESTILO HARMONY ATLAS)
     map.on('click', function(e) {
-        if (modoMedicaoArea) return;
+        if (modoMedicaoArea || modoSketch) return;
 
         // 1. Se estiver traçando rota de infraestrutura (Snap 45°)
         if (modoTracado) {
@@ -4030,7 +5555,11 @@
             if (modoTracado) {
                 cancelarTracado();
             }
-            const modais = ['modalAddPonto', 'modalNovoObjetivo', 'modalNickWurm', 'modalEditarPonto', 'modalSalvarRota'];
+            const modalSketchAberto = ['modalSketchLabel', 'modalSketchCommit'].some(id => document.getElementById(id)?.classList.contains('open'));
+            if (modoSketch && !modalSketchAberto) {
+                desativarModoSketch();
+            }
+            const modais = ['modalAddPonto', 'modalNovoObjetivo', 'modalNickWurm', 'modalEditarPonto', 'modalSalvarRota', 'modalSketchLabel', 'modalSketchCommit'];
             modais.forEach(id => fecharModal(id));
             const dd = document.getElementById('buscaDropdown');
             if (dd) dd.style.display = 'none';
@@ -4297,6 +5826,43 @@
             modoEstrada: 'Traçar Estrada',
             modoPonte: 'Traçar Ponte',
             modoArea: 'Medir Área',
+            modoSketch: 'Esboço',
+            baseParchment: '📜 Pergaminho em Branco (Round 2)',
+            baseOldMap: 'Mapa antigo do Jackal (Round 1):',
+            camadaSketch: '✏️ Camada de Esboço',
+            skTitulo: '✏️ Esboço:',
+            skAgua: 'Água',
+            skFloresta: 'Floresta',
+            skCrista: 'Crista',
+            skAreia: 'Areia',
+            skRocha: 'Rocha',
+            skSeta: '➡️ Seta',
+            skRotulo: '🔤 Rótulo',
+            skBorracha: '🧽 Apagar',
+            skTamanho: 'Tam.',
+            skDesfazer: '↩ Desfazer',
+            skDescartar: '🗑️ Descartar',
+            skHistorico: '🕘 Histórico',
+            skRevisar: '📝 Revisar',
+            skFechar: '✕ Fechar',
+            skHistTitulo: '🕘 Histórico do Esboço',
+            skFiltroTodos: 'Todos',
+            skFiltroPendentes: 'Pendentes',
+            skFiltroMeus: 'Meus',
+            skHistDica: 'Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.',
+            skVendoVersao: '🕘 Vendo o mapa como estava em',
+            skVoltarAoVivo: 'Voltar ao vivo',
+            skCommitTitulo: '💾 Commit do Esboço',
+            skCommitPergunta: 'O que você mudou? (obrigatório)',
+            skCancelar: 'Cancelar',
+            skRotuloTitulo: '🔤 Rótulo no Mapa',
+            skTexto: 'Texto',
+            skTamanhoTexto: 'Tamanho',
+            skPequeno: 'Pequeno',
+            skMedio: 'Médio',
+            skGrande: 'Grande',
+            skRegiao: 'Nome de região',
+            skColocarRotulo: 'Colocar Rótulo',
             fauna: '🦎 Montarias & Criaturas',
             faunaSub: 'Fauna',
             weta: '🦗 Spots de Weta (Montaria Inicial)',
@@ -4382,6 +5948,43 @@
             modoEstrada: 'Trace Road',
             modoPonte: 'Trace Bridge',
             modoArea: 'Measure Area',
+            modoSketch: 'Sketch',
+            baseParchment: '📜 Blank Parchment (Round 2)',
+            baseOldMap: 'Old Jackal map (Round 1):',
+            camadaSketch: '✏️ Sketch Layer',
+            skTitulo: '✏️ Sketch:',
+            skAgua: 'Water',
+            skFloresta: 'Forest',
+            skCrista: 'Ridge',
+            skAreia: 'Sand',
+            skRocha: 'Rock',
+            skSeta: '➡️ Arrow',
+            skRotulo: '🔤 Label',
+            skBorracha: '🧽 Erase',
+            skTamanho: 'Size',
+            skDesfazer: '↩ Undo',
+            skDescartar: '🗑️ Discard',
+            skHistorico: '🕘 History',
+            skRevisar: '📝 Review',
+            skFechar: '✕ Close',
+            skHistTitulo: '🕘 Sketch History',
+            skFiltroTodos: 'All',
+            skFiltroPendentes: 'Pending',
+            skFiltroMeus: 'Mine',
+            skHistDica: 'Hover a commit to outline it on the map: gold = added, red = erased.',
+            skVendoVersao: '🕘 Viewing the map as of',
+            skVoltarAoVivo: 'Back to live',
+            skCommitTitulo: '💾 Commit Sketch',
+            skCommitPergunta: 'What did you change? (required)',
+            skCancelar: 'Cancel',
+            skRotuloTitulo: '🔤 Map Label',
+            skTexto: 'Text',
+            skTamanhoTexto: 'Size',
+            skPequeno: 'Small',
+            skMedio: 'Medium',
+            skGrande: 'Large',
+            skRegiao: 'Region name',
+            skColocarRotulo: 'Place Label',
             fauna: '🦎 Mounts & Creatures',
             faunaSub: 'Fauna',
             weta: '🦗 Weta Spots (Starter Mount)',
@@ -4451,6 +6054,11 @@
         // Placeholder busca
         const busca = document.getElementById('inputBusca');
         if (busca) busca.placeholder = dic.searchPlaceholder;
+
+        // Textos dinâmicos da camada de esboço • Dynamic Sketch layer texts
+        atualizarStatusSketch();
+        atualizarBarraDraftSketch();
+        if (historicoSketchAberto()) renderizarHistoricoSketch();
     }
 
     // Inicializar idioma
@@ -4786,11 +6394,9 @@
         const sidebarRightSalva = localStorage.getItem('jackal_sidebar_right_open');
         toggleSidebarDireita(sidebarRightSalva === 'true');
 
-        // 3. Restaurar Base do Mapa (Goldfish, Terrain, Iso, Topo)
+        // 3. Restaurar Base do Mapa (Pergaminho em branco por padrão no Round 2; Goldfish, Terrain, Iso e Topo são o mapa antigo do Round 1)
         const baseSalva = localStorage.getItem('jackal_base_map');
-        if (baseSalva) {
-            trocarBase(baseSalva);
-        }
+        trocarBase(baseSalva || 'parchment');
 
         // 4. Restaurar Tema Visual (Dark / Light)
         const temaSalvo = localStorage.getItem('jackal_theme');
@@ -4806,6 +6412,15 @@
         await carregarObjetivosDoBanco('all');
         await carregarEventosDoBanco();
         await carregarRotasDoBanco();
+
+        // Camada de esboço (localStorage, ou Supabase se config.js tiver sketchShared: true) • Sketch layer
+        const opacidadeSketch = localStorage.getItem('jackal_sketch_opacity');
+        if (opacidadeSketch) {
+            const slider = document.getElementById('sliderSketchOpacity');
+            if (slider) slider.value = opacidadeSketch;
+            ajustarOpacidadeSketch(opacidadeSketch);
+        }
+        await inicializarSketch();
 
         // Escuta em tempo real (Realtime WebSocket)
         if (supabaseClient) {
