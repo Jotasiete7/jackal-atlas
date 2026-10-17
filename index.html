@@ -491,6 +491,9 @@
             content: ''; position: absolute; left: 50%; top: 11px;
             width: 1.5px; height: 10px; margin-left: -0.75px; background: #60a5fa;
         }
+        .sw-hud-trigger-tab.jk-sketch-hist-tab { top: 62px; border-color: rgba(96,165,250,0.6); color: #60a5fa; }
+        .sw-hud-trigger-tab.jk-sketch-hist-tab:hover { background: #60a5fa; color: #000; }
+        .jk-hist-tab-count { background: #f5a623; color: #000; font-size: 9.5px; font-weight: 900; padding: 0 5px; border-radius: 8px; }
         .jk-sketch-cor-custom { width: 22px; height: 18px; padding: 0; border: 1px solid var(--sw-border); border-radius: 4px; background: transparent; cursor: pointer; }
         .jk-sketch-tool.jk-sketch-commit:not(:disabled) { background: var(--jk-accent); border-color: var(--jk-accent); color: #000; }
         .jk-sketch-ghost-tag {
@@ -621,6 +624,11 @@
     <!-- LINGUETA DIREITA (PAINEL DE ATIVIDADES) -->
     <div id="hudTab" class="sw-hud-trigger-tab alerta-ativo" style="display:flex;" onclick="toggleSidebarDireita()">
         ◀ 📋 <span style="font-size:11px;">Atividades</span>
+    </div>
+
+    <!-- ABA DO HISTÓRICO DO ESBOÇO (só no modo esboço) • SKETCH HISTORY TAB (sketch mode only) -->
+    <div id="sketchHistTab" class="sw-hud-trigger-tab jk-sketch-hist-tab" style="display:none;" onclick="toggleHistoricoSketch(true)" title="Histórico de commits do esboço • Sketch commit history">
+        ◀ 🕘 <span style="font-size:11px;" data-i18n="skHistTab">Histórico</span> <span id="sketchHistTabCount" class="jk-hist-tab-count" style="display:none;"></span>
     </div>
 
     <!-- ================================================================
@@ -3143,6 +3151,7 @@
             tab.style.display = 'flex';
         }
         localStorage.setItem('jackal_sidebar_right_open', novoEstadoAberto ? 'true' : 'false');
+        if (typeof atualizarAbaHistoricoSketch === 'function') atualizarAbaHistoricoSketch();
     }
 
     // Pergaminho em branco (Round 2): folha lisa cobrindo o mapa 4096x4096, com moldura para ver as bordas
@@ -4581,6 +4590,7 @@
         const cntPend = document.getElementById('sketchPendentesCount');
         if (cntPend) cntPend.textContent = pendentes;
         if (btn) btn.style.display = (sketchModoArmazenamento === 'shared' && sketchIsStaff() && pendentes > 0) ? 'flex' : 'none';
+        atualizarAbaHistoricoSketch();
         const btnLimpar = document.getElementById('btnSketchLimparTudo');
         if (btnLimpar) btnLimpar.style.display = (sketchIsStaff() && sketchPodeDesenhar()) ? 'flex' : 'none';
     }
@@ -4937,6 +4947,24 @@
         p.style.display = abrir ? 'flex' : 'none';
         if (abrir) renderizarHistoricoSketch();
         else destacarCommitSketch(null);
+        atualizarAbaHistoricoSketch();
+    }
+
+    // History tab under Activity: visible in sketch mode while the panel is closed and the right sidebar is collapsed
+    function atualizarAbaHistoricoSketch() {
+        const aba = document.getElementById('sketchHistTab');
+        if (!aba) return;
+        const lateral = document.getElementById('sidebarRight');
+        const lateralAberta = !!(lateral && !lateral.classList.contains('recolhida'));
+        aba.style.display = (modoSketch && !historicoSketchAberto() && !lateralAberta) ? 'flex' : 'none';
+        const cnt = document.getElementById('sketchHistTabCount');
+        if (cnt) {
+            const pend = [...sketchCommits.values()].filter(c => c.status === 'pending').length;
+            const mostrar = pend > 0 && sketchModoArmazenamento === 'shared' && sketchIsStaff();
+            cnt.textContent = pend;
+            cnt.style.display = mostrar ? 'inline-block' : 'none';
+            cnt.title = txt(`${pend} commit(s) para revisar`, `${pend} commit(s) to review`);
+        }
     }
 
     function filtrarHistoricoSketch(filtro) {
@@ -5404,6 +5432,7 @@
         if (chk && !chk.checked) { chk.checked = true; toggleCamada('sketch', true); }
 
         selecionarFerramentaSketch(sketchFerramenta, sketchStampAtual);
+        atualizarAbaHistoricoSketch();
         let corSalva = null, opacSalva = null;
         try { corSalva = localStorage.getItem('jackal_sketch_color'); opacSalva = localStorage.getItem('jackal_sketch_brush_opacity'); } catch (e) {}
         selecionarCorSketch(corSalva || sketchCorAtual, false);
@@ -5430,6 +5459,7 @@
 
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('modeBtnNavegar')?.classList.add('active');
+        atualizarAbaHistoricoSketch();
     }
 
     function cancelarTracoSketch() {
@@ -6564,6 +6594,7 @@
             skFiltroForaMain: 'Fora do main',
             skLimparTudo: '🧹 Limpar mapa',
             skSelecionar: '↖ Selecionar',
+            skHistTab: 'Histórico',
             skFiltroMeus: 'Meus',
             skHistDica: 'Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.',
             skVendoVersao: '🕘 Vendo o mapa como estava em',
@@ -6694,6 +6725,7 @@
             skFiltroForaMain: 'Not merged',
             skLimparTudo: '🧹 Clear map',
             skSelecionar: '↖ Select',
+            skHistTab: 'History',
             skFiltroMeus: 'Mine',
             skHistDica: 'Hover a commit to outline it on the map: gold = added, red = erased.',
             skVendoVersao: '🕘 Viewing the map as of',
