@@ -7363,21 +7363,26 @@
                     </button>
                 ` : '';
 
-                const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
-                                  (currentUser && r.created_by === currentUser.id);
+                // Same rules as the database: creator or officers change the status; creator or admins delete
+                const ehCriador = !!(currentUser && r.created_by === currentUser.id);
+                const podeAlterar = ehCriador || !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
+                const podeExcluir = ehCriador || !!(currentProfile && currentProfile.role === 'admin');
 
-                const actionBtns = canManage ? `
+                const actionBtns = (podeAlterar || podeExcluir) ? `
                     <div style="display:flex; gap:6px; margin-top:6px;">
-                        <button onclick="alternarStatusRota('${r.id}', '${nextKind}')" style="flex:1; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
+                        ${podeAlterar ? `<button onclick="alternarStatusRota('${r.id}', '${nextKind}')" style="flex:1; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
                             ${flipText}
-                        </button>
-                        <button onclick="excluirRota('${r.id}', '${safeName}')" style="background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:#ff4444; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
-                            🗑️
-                        </button>
+                        </button>` : ''}
+                        ${podeExcluir ? `<button onclick="excluirRota('${r.id}', '${safeName}')" style="background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:#ff4444; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
+                            🗑️ ${txt('Excluir', 'Delete')}
+                        </button>` : ''}
                     </div>
                 ` : '';
 
-                line.bindPopup(`
+                // Wide invisible line on top so thin roads and bridges are easy to click
+                const alvoClique = L.polyline(latlngs, { weight: 18, opacity: 0, renderer: tacticalCanvasRenderer });
+                const grupoRota = L.featureGroup([line, alvoClique]);
+                grupoRota.bindPopup(`
                     <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
                             <span>${isBridge ? '🌉' : '🛣️'} ${sanitize(r.name)}</span>
@@ -7391,7 +7396,7 @@
                     </div>
                 `);
 
-                line.addTo(targetLayer);
+                grupoRota.addTo(targetLayer);
             });
         } catch (e) {
             console.error('Erro ao carregar rotas:', e);
