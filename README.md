@@ -76,6 +76,10 @@ Scripts SQL na pasta `migrations/`:
 8. `008_point_management_policies.sql` — Políticas RLS para edição e exclusão de anotações pelos criadores e oficiais.
 9. `009_admin_only_objectives.sql` — Restrição exclusiva para Administradores criarem Metas da Guilda e Topônimos.
 10. `010_security_patches.sql` — Acesso público de leitura para visitantes (pontos confirmados e rotas) e bloqueio de auto-aprovação via UPDATE.
+12. `012_security_fixes.sql` — Perfis só podem ser criados pelo gatilho de cadastro (fim do INSERT anônimo), o último administrador não pode ser rebaixado nem apagado, eventos aprovados são aplicados uma única vez (sem reforço contado em dobro) e oficiais podem aprovar topônimos e registrar eventos neles (só administradores editam o conteúdo). • Profiles only via the sign-up trigger, last admin protected, approved events applied once, officers can approve landmarks.
+13. `013_profile_discord_identity.sql` — Guarda nome e avatar do Discord no perfil (no cadastro, atualizado a cada login e preenchido para usuários existentes) para o painel admin mostrar nomes em vez de IDs; membros não podem alterá-los. • Stores Discord name and avatar so the admin panel shows names instead of IDs.
+
+> `011` faz parte do PR da camada de esboço (Sketch Layer). `012` e `013` não dependem dele. • `011` belongs to the Sketch Layer PR; `012` and `013` do not depend on it.
 
 ---
 
