@@ -1002,7 +1002,7 @@
             </div>
             <div class="jk-sketch-group" title="Opacidade do pincel: quão transparentes ficam os novos traços • Brush opacity: how see-through new strokes are">
                 <span style="font-size:10px; color:var(--sw-text-muted); font-weight:700;" data-i18n="skOpacidadeTraco">Opac.</span>
-                <input type="range" id="sliderSketchOpacidadeTraco" min="10" max="100" value="85" step="5" oninput="ajustarOpacidadeTracoSketch(this.value)" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
+                <input type="range" id="sliderSketchOpacidadeTraco" min="10" max="100" value="85" step="5" oninput="ajustarOpacidadeTracoSketch(this.value)" onchange="aplicarOpacidadeSelecaoSketch()" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
                 <span id="labelSketchOpacidadeTraco" style="font-family:'JetBrains Mono'; font-size:10px; color:#fff; font-weight:800; min-width:32px;">85%</span>
             </div>
             <div class="jk-sketch-group">
@@ -5354,7 +5354,23 @@
         const custom = document.getElementById('inputSketchCorCustom');
         if (custom && custom.value.toLowerCase() !== sketchCorAtual) custom.value = sketchCorAtual;
         try { localStorage.setItem('jackal_sketch_color', sketchCorAtual); } catch (e) {}
+        // With text selected, the colour applies to that text • com texto selecionado, a cor vai para o texto
+        if (trocarParaCaneta && sketchSelecaoId) {
+            const ent = sketchCamadaPorId.get(sketchSelecaoId);
+            if (ent && ent.s.kind === 'label' && (ent.s.color || '').toLowerCase() !== sketchCorAtual) {
+                aplicarEdicaoTextoSketch(sketchSelecaoId, { color: sketchCorAtual });
+            }
+            return;
+        }
         if (trocarParaCaneta && (sketchFerramenta === 'eraser' || sketchFerramenta === 'stamp')) selecionarFerramentaSketch('pen');
+    }
+
+    function aplicarOpacidadeSelecaoSketch() {
+        if (!sketchSelecaoId) return;
+        const ent = sketchCamadaPorId.get(sketchSelecaoId);
+        if (ent && ent.s.kind === 'label' && Number(ent.s.opacity) !== sketchOpacidadeAtual) {
+            aplicarEdicaoTextoSketch(sketchSelecaoId, { opacity: sketchOpacidadeAtual });
+        }
     }
 
     function ajustarOpacidadeTracoSketch(valor) {
@@ -5658,6 +5674,10 @@
         if (!sketchPodeDesenhar() || sketchVersaoAtual) return;
         sketchSelecaoId = id;
         if (sketchFerramenta !== 'select' && sketchFerramenta !== 'label') selecionarFerramentaSketch('select');
+        // Show the selected text's colour and opacity in the toolbar
+        const ent = sketchCamadaPorId.get(id);
+        if (ent && ent.s.color) selecionarCorSketch(ent.s.color, false);
+        if (ent && ent.s.opacity !== null && ent.s.opacity !== undefined) ajustarOpacidadeTracoSketch(Math.round(Number(ent.s.opacity) * 100));
         desenharEditorTexto();
     }
 
@@ -5667,7 +5687,10 @@
     }
 
     function propsTexto(s) {
-        return { label: s.label, width: Number(s.width), rotation: Number(s.rotation) || 0, path: [[s.path[0][0], s.path[0][1]]] };
+        return {
+            label: s.label, width: Number(s.width), rotation: Number(s.rotation) || 0, path: [[s.path[0][0], s.path[0][1]]],
+            color: s.color || null, opacity: (s.opacity === undefined ? null : s.opacity)
+        };
     }
 
     function desenharEditorTexto(temp = null) {
