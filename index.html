@@ -1159,6 +1159,10 @@
         maxBounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
     });
 
+    // Renderizador canvas compartilhado (grade, círculos de influência, cobertura de torres, Deed Sizer e rotas)
+    // Shared canvas renderer (grid, influence circles, tower coverage, deed sizer and routes)
+    const tacticalCanvasRenderer = L.canvas({ padding: 0.5 });
+
     // Controle de Zoom unificado com Botão de Captura Tática (Modo Print Goldfish®)
     const zoomCtrl = L.control.zoom({ position: 'bottomright' }).addTo(map);
     const zoomContainer = zoomCtrl.getContainer();
