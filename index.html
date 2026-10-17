@@ -988,7 +988,7 @@
             </div>
             <div class="jk-sketch-group">
                 <button class="jk-sketch-tool" data-sketch-tool="arrow" onclick="selecionarFerramentaSketch('arrow')" title="Seta: arraste do início ao fim • Arrow: drag from start to end" data-i18n="skSeta">➡️ Seta</button>
-                <button class="jk-sketch-tool" data-sketch-tool="select" onclick="selecionarFerramentaSketch('select')" title="Selecionar texto: clique para selecionar, arraste para mover, alças para redimensionar e girar, clique duplo para editar, Delete para apagar • Select text: click to select, drag to move, handles to resize and rotate, double-click to edit, Delete to remove" data-i18n="skSelecionar">↖ Selecionar</button>
+                <button class="jk-sketch-tool" data-sketch-tool="select" onclick="selecionarFerramentaSketch('select')" title="Selecionar: clique em texto, setas, traços ou ícones; arraste para mover, alças para redimensionar e girar, clique duplo edita texto, Delete apaga • Select: click text, arrows, strokes or stamps; drag to move, handles to resize and rotate, double-click edits text, Delete removes" data-i18n="skSelecionar">↖ Selecionar</button>
                 <button class="jk-sketch-tool" data-sketch-tool="label" onclick="selecionarFerramentaSketch('label')" title="Texto: clique no mapa onde o texto vai, digite e aperte Enter • Text: click on the map, type, press Enter" data-i18n="skTextoTool">🔤 Texto</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="camp" onclick="selecionarFerramentaSketch('stamp', 'camp')" title="Acampamento • Camp">⛺</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="tunnel" onclick="selecionarFerramentaSketch('stamp', 'tunnel')" title="Saída de túnel • Tunnel exit">🚇</button>
@@ -5357,7 +5357,7 @@
         // With text selected, the colour applies to that text • com texto selecionado, a cor vai para o texto
         if (trocarParaCaneta && sketchSelecaoId) {
             const ent = sketchCamadaPorId.get(sketchSelecaoId);
-            if (ent && ent.s.kind === 'label' && (ent.s.color || '').toLowerCase() !== sketchCorAtual) {
+            if (ent && ent.s.kind !== 'stamp' && corDoTraco(ent.s).toLowerCase() !== sketchCorAtual) {
                 aplicarEdicaoTextoSketch(sketchSelecaoId, { color: sketchCorAtual });
             }
             return;
@@ -5368,7 +5368,7 @@
     function aplicarOpacidadeSelecaoSketch() {
         if (!sketchSelecaoId) return;
         const ent = sketchCamadaPorId.get(sketchSelecaoId);
-        if (ent && ent.s.kind === 'label' && Number(ent.s.opacity) !== sketchOpacidadeAtual) {
+        if (ent && ent.s.kind !== 'stamp' && Number(ent.s.opacity) !== sketchOpacidadeAtual) {
             aplicarEdicaoTextoSketch(sketchSelecaoId, { opacity: sketchOpacidadeAtual });
         }
     }
@@ -5647,37 +5647,70 @@
         if (novo && novo.kind === 'label') selecionarTextoSketch(novo.id);
     }
 
-    // ---------- Text editing: select, move, resize, rotate, edit, delete ----------
-    let sketchSelecaoId = null;      // id of the selected text (draft or live)
+    // ---------- Selecting and editing objects: text, arrows, pen strokes and stamps ----------
+    // Text: move, resize (font size), rotate, double-click to edit. Arrows / strokes: move, scale, rotate
+    // (the points themselves are transformed). Stamps: move. All: Delete to remove, palette to recolour.
+    // Draft objects change in place; live objects are replaced in the draft (old erased, edited copy added).
+    let sketchSelecaoId = null;      // id of the selected object (draft or live)
     let sketchEditorMarker = null;   // selection box with handles
     let sketchEdicao = null;         // drag in progress
     let sketchLabelEditando = null;  // id being edited in the label modal
 
-    function textoNoPontoSketch(e) {
+    function entradaSelecionavel(ent) {
+        return ent && (ent.estado === 'normal' || ent.estado === 'draft');
+    }
+
+    function rectContem(r, cx, cy, folga) {
+        return cx >= r.left - folga && cx <= r.right + folga && cy >= r.top - folga && cy <= r.bottom + folga;
+    }
+
+    // Topmost object under the pointer. somenteTexto = true limits it to text (used by the Text tool).
+    function objetoNoPontoSketch(e, somenteTexto = false) {
         const cx = e.originalEvent ? e.originalEvent.clientX : null;
         const cy = e.originalEvent ? e.originalEvent.clientY : null;
         if (cx === null) return null;
         const entradas = [...sketchCamadaPorId.values()];
+        // 1. Text and stamps (HTML markers): exact on-screen box
         for (let i = entradas.length - 1; i >= 0; i--) {
             const ent = entradas[i];
-            if (ent.s.kind !== 'label' || (ent.estado !== 'normal' && ent.estado !== 'draft')) continue;
+            if (!entradaSelecionavel(ent)) continue;
+            if (ent.s.kind !== 'label' && (somenteTexto || ent.s.kind !== 'stamp')) continue;
             const el = ent.camada.getElement && ent.camada.getElement();
-            const span = el && el.querySelector('.jk-sketch-label');
-            if (!span) continue;
-            const r = span.getBoundingClientRect();
-            if (cx >= r.left - 4 && cx <= r.right + 4 && cy >= r.top - 4 && cy <= r.bottom + 4) return ent;
+            const alvo = el && el.querySelector(ent.s.kind === 'label' ? '.jk-sketch-label' : '.jk-sketch-stamp');
+            if (alvo && rectContem(alvo.getBoundingClientRect(), cx, cy, 4)) return ent;
+        }
+        if (somenteTexto) return null;
+        // 2. Arrows and strokes: distance to the line, in tiles
+        const p = tileDoEvento(e);
+        const tolerancia = 6 / pxPorTile();
+        for (let i = entradas.length - 1; i >= 0; i--) {
+            const ent = entradas[i];
+            if (!entradaSelecionavel(ent) || ent.s.kind === 'label' || ent.s.kind === 'stamp') continue;
+            const pts = ent.s.path;
+            const limite = Number(ent.s.width) / 2 + tolerancia;
+            if (pts.length === 1 && Math.hypot(p.x - pts[0][0], p.y - pts[0][1]) <= limite) return ent;
+            for (let k = 1; k < pts.length; k++) {
+                if (distanciaPontoSegmento(p.x, p.y, pts[k - 1][0], pts[k - 1][1], pts[k][0], pts[k][1]) <= limite) return ent;
+            }
         }
         return null;
+    }
+
+    // Kept for the Text tool: only text is selectable there
+    function textoNoPontoSketch(e) {
+        return objetoNoPontoSketch(e, sketchFerramenta === 'label');
     }
 
     function selecionarTextoSketch(id) {
         if (!sketchPodeDesenhar() || sketchVersaoAtual) return;
         sketchSelecaoId = id;
         if (sketchFerramenta !== 'select' && sketchFerramenta !== 'label') selecionarFerramentaSketch('select');
-        // Show the selected text's colour and opacity in the toolbar
+        // Show the selected object's colour and opacity in the toolbar
         const ent = sketchCamadaPorId.get(id);
-        if (ent && ent.s.color) selecionarCorSketch(ent.s.color, false);
-        if (ent && ent.s.opacity !== null && ent.s.opacity !== undefined) ajustarOpacidadeTracoSketch(Math.round(Number(ent.s.opacity) * 100));
+        if (ent && ent.s.kind !== 'stamp') {
+            selecionarCorSketch(corDoTraco(ent.s), false);
+            if (ent.s.opacity !== null && ent.s.opacity !== undefined) ajustarOpacidadeTracoSketch(Math.round(Number(ent.s.opacity) * 100));
+        }
         desenharEditorTexto();
     }
 
@@ -5686,31 +5719,55 @@
         if (sketchEditorMarker) { map.removeLayer(sketchEditorMarker); sketchEditorMarker = null; }
     }
 
+    // Editable properties (also the undo snapshot)
     function propsTexto(s) {
         return {
-            label: s.label, width: Number(s.width), rotation: Number(s.rotation) || 0, path: [[s.path[0][0], s.path[0][1]]],
+            label: s.label, width: Number(s.width), rotation: Number(s.rotation) || 0,
+            path: s.path.map(pt => [pt[0], pt[1]]),
             color: s.color || null, opacity: (s.opacity === undefined ? null : s.opacity)
         };
+    }
+
+    // Selection box for a stroke: bounding box of its points on screen, padded by the line width
+    function caixaDoTraco(props, s) {
+        const cps = props.path.map(pt => map.latLngToContainerPoint([MAP_SIZE - pt[1], pt[0]]));
+        const xs = cps.map(c => c.x), ys = cps.map(c => c.y);
+        const folga = Math.max(8, Number(s.width) * pxPorTile() / 2 + 6);
+        const minX = Math.min(...xs) - folga, maxX = Math.max(...xs) + folga;
+        const minY = Math.min(...ys) - folga, maxY = Math.max(...ys) + folga;
+        return { centro: L.point((minX + maxX) / 2, (minY + maxY) / 2), w: maxX - minX, h: maxY - minY };
     }
 
     function desenharEditorTexto(temp = null) {
         if (sketchEditorMarker) { map.removeLayer(sketchEditorMarker); sketchEditorMarker = null; }
         if (!sketchSelecaoId || !modoSketch) return;
         const ent = sketchCamadaPorId.get(sketchSelecaoId);
-        if (!ent || ent.s.kind !== 'label') { sketchSelecaoId = null; return; }
-        const el = ent.camada.getElement && ent.camada.getElement();
-        const span = el && el.querySelector('.jk-sketch-label');
-        const w = (span ? span.offsetWidth : 60) + 14;
-        const h = (span ? span.offsetHeight : 20) + 10;
-        const props = temp || propsTexto(ent.s);
-        const [x, y] = props.path[0];
-        sketchEditorMarker = L.marker([MAP_SIZE - y, x], {
+        if (!entradaSelecionavel(ent)) { sketchSelecaoId = null; return; }
+        const s = ent.s;
+        const props = temp || propsTexto(s);
+        let latlng, w, h, rot = 0, alcas = true;
+        if (s.kind === 'label' || s.kind === 'stamp') {
+            const el = ent.camada.getElement && ent.camada.getElement();
+            const alvo = el && el.querySelector(s.kind === 'label' ? '.jk-sketch-label' : '.jk-sketch-stamp');
+            w = (alvo ? alvo.offsetWidth : 60) + 14;
+            h = (alvo ? alvo.offsetHeight : 20) + 10;
+            latlng = [MAP_SIZE - props.path[0][1], props.path[0][0]];
+            if (s.kind === 'label') rot = props.rotation; else alcas = false;
+        } else {
+            const cx = caixaDoTraco(props, s);
+            latlng = map.containerPointToLatLng(cx.centro);
+            w = cx.w; h = cx.h;
+        }
+        const dica = s.kind === 'label'
+            ? txt('Arraste para mover • clique duplo para editar • Delete apaga', 'Drag to move • double-click to edit • Delete removes')
+            : txt('Arraste para mover • Delete apaga', 'Drag to move • Delete removes');
+        sketchEditorMarker = L.marker(latlng, {
             interactive: true, keyboard: false, bubblingMouseEvents: false, zIndexOffset: 5000,
             icon: L.divIcon({
                 className: '', iconSize: [0, 0],
-                html: `<div class="jk-text-editor" style="width:${w}px; height:${h}px; transform:translate(-50%,-50%) rotate(${props.rotation}deg);" title="${txt('Arraste para mover • clique duplo para editar • Delete apaga', 'Drag to move • double-click to edit • Delete removes')}">
-                           <div class="jk-te-rotate" data-h="rotate" title="${txt('Girar (Shift = passos de 15°)', 'Rotate (Shift = 15° steps)')}"></div>
-                           <div class="jk-te-resize" data-h="resize" title="${txt('Redimensionar', 'Resize')}"></div>
+                html: `<div class="jk-text-editor" style="width:${w}px; height:${h}px; transform:translate(-50%,-50%) rotate(${rot}deg);" title="${dica}">
+                           ${alcas ? `<div class="jk-te-rotate" data-h="rotate" title="${txt('Girar (Shift = passos de 15°)', 'Rotate (Shift = 15° steps)')}"></div>
+                           <div class="jk-te-resize" data-h="resize" title="${txt('Redimensionar', 'Resize')}"></div>` : ''}
                        </div>`
             })
         }).addTo(map);
@@ -5718,7 +5775,7 @@
         if (!caixa) return;
         L.DomEvent.disableClickPropagation(caixa);
         L.DomEvent.on(caixa, 'mousedown', iniciarEdicaoTextoSketch);
-        L.DomEvent.on(caixa, 'dblclick', (ev) => { L.DomEvent.stop(ev); abrirEdicaoTextoSketch(sketchSelecaoId); });
+        L.DomEvent.on(caixa, 'dblclick', (ev) => { L.DomEvent.stop(ev); if (s.kind === 'label') abrirEdicaoTextoSketch(sketchSelecaoId); });
     }
 
     function iniciarEdicaoTextoSketch(ev) {
@@ -5727,41 +5784,73 @@
         const ent = sketchCamadaPorId.get(sketchSelecaoId);
         if (!ent) return;
         const base = propsTexto(ent.s);
-        const centro = map.latLngToContainerPoint([MAP_SIZE - base.path[0][1], base.path[0][0]]);
+        const ehPonto = ent.s.kind === 'label' || ent.s.kind === 'stamp';
+        // Strokes are transformed in screen pixels from the drag start, then converted back to tiles
+        const pontosTela = base.path.map(pt => map.latLngToContainerPoint([MAP_SIZE - pt[1], pt[0]]));
+        const centro = ehPonto ? pontosTela[0] : caixaDoTraco(base, ent.s).centro;
         const inicio = map.mouseEventToContainerPoint(ev);
         sketchEdicao = {
             modo: (ev.target && ev.target.dataset && ev.target.dataset.h) || 'move',
-            id: sketchSelecaoId, base, atual: JSON.parse(JSON.stringify(base)), ent,
-            centro, inicio,
+            id: sketchSelecaoId, base, atual: JSON.parse(JSON.stringify(base)), ent, ehPonto,
+            pontosTela, centro, inicio,
             distInicio: Math.max(8, centro.distanceTo(inicio)),
+            angInicio: Math.atan2(inicio.y - centro.y, inicio.x - centro.x),
             mudou: false
         };
         document.addEventListener('mousemove', moverEdicaoTextoSketch);
         document.addEventListener('mouseup', terminarEdicaoTextoSketch);
     }
 
+    function telaParaTile(c) {
+        const ll = map.containerPointToLatLng(c);
+        return [arred1(Math.max(0, Math.min(MAP_SIZE, ll.lng))), arred1(Math.max(0, Math.min(MAP_SIZE, MAP_SIZE - ll.lat)))];
+    }
+
     function moverEdicaoTextoSketch(ev) {
         const ed = sketchEdicao;
         if (!ed) return;
         const p = map.mouseEventToContainerPoint(ev);
+        const s = ed.ent.s;
         if (ed.modo === 'move') {
-            const alvo = ed.centro.add(p.subtract(ed.inicio));
-            const ll = map.containerPointToLatLng(alvo);
-            ed.atual.path = [[arred1(Math.max(0, Math.min(MAP_SIZE, ll.lng))), arred1(Math.max(0, Math.min(MAP_SIZE, MAP_SIZE - ll.lat)))]];
+            const delta = p.subtract(ed.inicio);
+            ed.atual.path = ed.pontosTela.map(c => telaParaTile(c.add(delta)));
         } else if (ed.modo === 'resize') {
-            const escala = ed.centro.distanceTo(p) / ed.distInicio;
-            ed.atual.width = arred1(Math.max(4, Math.min(120, ed.base.width * escala)));
+            const escala = Math.max(0.05, ed.centro.distanceTo(p) / ed.distInicio);
+            if (s.kind === 'label') {
+                ed.atual.width = arred1(Math.max(4, Math.min(120, ed.base.width * escala)));
+            } else {
+                ed.atual.path = ed.pontosTela.map(c => telaParaTile(ed.centro.add(c.subtract(ed.centro).multiplyBy(escala))));
+            }
         } else if (ed.modo === 'rotate') {
-            let ang = Math.atan2(p.y - ed.centro.y, p.x - ed.centro.x) * 180 / Math.PI + 90;
-            if (ev.shiftKey) ang = Math.round(ang / 15) * 15;
-            ang = ((ang + 540) % 360) - 180;
-            ed.atual.rotation = Math.round(ang);
+            if (s.kind === 'label') {
+                let ang = Math.atan2(p.y - ed.centro.y, p.x - ed.centro.x) * 180 / Math.PI + 90;
+                if (ev.shiftKey) ang = Math.round(ang / 15) * 15;
+                ang = ((ang + 540) % 360) - 180;
+                ed.atual.rotation = Math.round(ang);
+            } else {
+                let delta = Math.atan2(p.y - ed.centro.y, p.x - ed.centro.x) - ed.angInicio;
+                if (ev.shiftKey) delta = Math.round(delta / (Math.PI / 12)) * (Math.PI / 12);
+                const cos = Math.cos(delta), sin = Math.sin(delta);
+                ed.atual.path = ed.pontosTela.map(c => {
+                    const dx = c.x - ed.centro.x, dy = c.y - ed.centro.y;
+                    return telaParaTile(L.point(ed.centro.x + dx * cos - dy * sin, ed.centro.y + dx * sin + dy * cos));
+                });
+            }
         }
         ed.mudou = true;
-        // Live preview of the label and its box
-        const previa = Object.assign({}, ed.ent.s, ed.atual);
-        ed.ent.camada.setLatLng([MAP_SIZE - ed.atual.path[0][1], ed.atual.path[0][0]]);
-        ed.ent.camada.setIcon(iconeLabelSketch(previa, ed.ent.estado));
+        // Live preview of the object and its box
+        const previa = Object.assign({}, s, ed.atual);
+        const camada = ed.ent.camada;
+        if (s.kind === 'label') {
+            camada.setLatLng([MAP_SIZE - ed.atual.path[0][1], ed.atual.path[0][0]]);
+            camada.setIcon(iconeLabelSketch(previa, ed.ent.estado));
+        } else if (s.kind === 'stamp') {
+            camada.setLatLng([MAP_SIZE - ed.atual.path[0][1], ed.atual.path[0][0]]);
+        } else if (s.kind === 'arrow' && camada.getLayers) {
+            camada.getLayers().forEach(l => l.setLatLngs(latlngsDoTraco(previa)));
+        } else if (camada.setLatLngs) {
+            camada.setLatLngs(latlngsDoTraco(previa));
+        }
         desenharEditorTexto(ed.atual);
     }
 
@@ -5770,10 +5859,13 @@
         document.removeEventListener('mouseup', terminarEdicaoTextoSketch);
         const ed = sketchEdicao;
         sketchEdicao = null;
-        if (ed && ed.mudou) aplicarEdicaoTextoSketch(ed.id, { path: ed.atual.path, width: ed.atual.width, rotation: ed.atual.rotation });
+        if (!ed || !ed.mudou) return;
+        const mudancas = { path: ed.atual.path };
+        if (ed.ent.s.kind === 'label') { mudancas.width = ed.atual.width; mudancas.rotation = ed.atual.rotation; }
+        aplicarEdicaoTextoSketch(ed.id, mudancas);
     }
 
-    // Draft text is changed in place; live text is replaced: erase the old one, add the edited copy
+    // Draft objects are changed in place; live objects are replaced: erase the old one, add the edited copy
     function aplicarEdicaoTextoSketch(id, mudancas) {
         const ent = sketchCamadaPorId.get(id);
         if (!ent || !sketchPodeDesenhar()) return;
@@ -5788,15 +5880,16 @@
                 mostrarToastCartografico(txt('Faça o commit do rascunho antes de editar mais.', 'Commit your draft before editing more.'));
                 return;
             }
-            const novo = Object.assign({
-                id: 'draft-' + novoIdLocal(), kind: 'label', color: ent.s.color || null,
-                opacity: (ent.s.opacity === undefined ? null : ent.s.opacity)
-            }, propsTexto(ent.s), mudancas);
+            const novo = Object.assign(
+                { id: 'draft-' + novoIdLocal(), kind: ent.s.kind, stamp: ent.s.stamp || null },
+                propsTexto(ent.s),
+                mudancas
+            );
             sketchDraft.erase.push(ent.s.id);
             sketchDraft.strokes.push(novo);
             sketchDraft.ops.push({ tipo: 'replace', eraseId: ent.s.id, addId: novo.id });
             sketchSelecaoId = novo.id;
-            mostrarToastCartografico(txt('✏️ Texto editado no rascunho. Faça o <strong>Commit</strong> para publicar.', '✏️ Text edited in your draft. <strong>Commit</strong> to publish it.'));
+            mostrarToastCartografico(txt('✏️ Editado no rascunho. Faça o <strong>Commit</strong> para publicar.', '✏️ Edited in your draft. <strong>Commit</strong> to publish it.'));
         }
         gravarDraftSketch();
         renderizarSketch();
