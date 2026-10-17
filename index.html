@@ -1620,10 +1620,6 @@
         posicionarMiraTarget(hashCoords.x, hashCoords.y, !jaNoPonto, hashCoords.z || 5.0);
     }
 
-    // Posiciona a mira inicial se veio por URL
-    if (hashInicial) {
-        posicionarMiraTarget(hashInicial.x, hashInicial.y, false, hashInicial.z || 5.0);
-    }
     window.addEventListener('hashchange', verificarHashUrl);
 
     // ==============================================================
@@ -1659,6 +1655,13 @@
 
     const gridLayer = L.layerGroup();
     const quadranteHighlightLayer = L.layerGroup().addTo(map);
+
+    // Posiciona a mira inicial se veio por URL (#X,Y). Fica depois das constantes da grade e da camada de
+    // destaque, que posicionarMiraTarget usa; antes, abrir um link compartilhado travava o script.
+    // Initial crosshair from a #X,Y link. Placed after the grid constants it uses; it used to crash the page.
+    if (hashInicial) {
+        posicionarMiraTarget(hashInicial.x, hashInicial.y, false, hashInicial.z || 5.0);
+    }
 
     function desenharGridYaga() {
         gridLayer.clearLayers();
