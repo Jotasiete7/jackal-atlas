@@ -978,6 +978,7 @@
                 <span id="sketchDraftChip" class="jk-sketch-status jk-sketch-draft-chip" title="Suas alterações sem commit. Só você vê até fazer o commit. • Your uncommitted changes. Only you can see them until you commit.">✏️ Rascunho: vazio</span>
                 <button class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" onclick="desfazerUltimoSketch()" title="Desfazer a última alteração do rascunho (Ctrl+Z) • Undo the last change in your draft (Ctrl+Z)" data-i18n="skDesfazer">↩ Desfazer</button>
                 <button id="btnSketchDescartar" class="jk-sketch-tool" onclick="descartarDraftSketch()" title="Descartar todo o rascunho • Throw away your whole draft" disabled data-i18n="skDescartar">🗑️ Descartar</button>
+                <button id="btnSketchLimparTudo" class="jk-sketch-tool" style="display:none;" onclick="limparMapaSketch()" title="Marcar tudo do mapa principal para apagar (num commit que pode ser revertido) • Mark everything on the main map for erasing (in one revertible commit)" data-i18n="skLimparTudo">🧹 Limpar mapa</button>
                 <button id="btnSketchCommit" class="jk-sketch-tool jk-sketch-commit" onclick="abrirModalCommitSketch()" title="Salvar o rascunho como um commit com mensagem • Save your draft as a commit with a message" disabled>💾 Commit…</button>
             </div>
             <div class="jk-sketch-group">
@@ -4441,6 +4442,8 @@
         const cntPend = document.getElementById('sketchPendentesCount');
         if (cntPend) cntPend.textContent = pendentes;
         if (btn) btn.style.display = (sketchModoArmazenamento === 'shared' && sketchIsStaff() && pendentes > 0) ? 'flex' : 'none';
+        const btnLimpar = document.getElementById('btnSketchLimparTudo');
+        if (btnLimpar) btnLimpar.style.display = (sketchIsStaff() && sketchPodeDesenhar()) ? 'flex' : 'none';
     }
 
     function atualizarBarraDraftSketch() {
@@ -4606,12 +4609,51 @@
             sketchDraft.strokes = sketchDraft.strokes.filter(s => s.id !== op.id);
         } else if (op.tipo === 'erase') {
             sketchDraft.erase = sketchDraft.erase.filter(id => id !== op.id);
+        } else if (op.tipo === 'erase-bulk' && Array.isArray(op.ids)) {
+            const remover = new Set(op.ids);
+            sketchDraft.erase = sketchDraft.erase.filter(id => !remover.has(id));
         } else if (op.tipo === 'remove-draft' && op.stroke) {
             sketchDraft.strokes.splice(Math.min(op.indice, sketchDraft.strokes.length), 0, op.stroke);
         }
         gravarDraftSketch();
         renderizarSketch();
         mostrarToastCartografico(txt('↩ Desfeito.', '↩ Undone.'));
+    }
+
+    let sketchDicaApagarMostrada = false;
+
+    // Officers/admins: mark everything on the main map for erasing in one commit (revertible from History)
+    function limparMapaSketch() {
+        if (sketchBloqueadoPorHistorico()) return;
+        if (!sketchIsStaff() || !sketchPodeDesenhar()) {
+            mostrarToastCartografico(txt('🔒 Só oficiais e administradores podem limpar o mapa.', '🔒 Only officers and admins can clear the map.'));
+            return;
+        }
+        const jaMarcados = new Set(sketchDraft.erase);
+        const alvos = calcularVisiveisSketch()
+            .filter(i => i.estado === 'normal' && !jaMarcados.has(i.s.id))
+            .map(i => i.s.id);
+        if (!alvos.length) {
+            mostrarToastCartografico(txt('Não há nada no mapa principal para limpar.', 'There is nothing on the main map to clear.'));
+            return;
+        }
+        const espaco = Math.max(0, SKETCH_MAX_POR_COMMIT - sketchDraft.erase.length);
+        const lote = alvos.slice(0, espaco);
+        const msg = txt(
+            `Marcar ${lote.length} traço(s) do mapa principal para apagar?\n\nEles somem quando você fizer o commit, e o commit pode ser revertido no Histórico.`,
+            `Mark ${lote.length} stroke(s) on the main map for erasing?\n\nThey disappear when you commit, and the commit can be reverted from History.`
+        );
+        if (!lote.length || !confirm(msg)) return;
+        sketchDraft.erase.push(...lote);
+        sketchDraft.ops.push({ tipo: 'erase-bulk', ids: lote });
+        gravarDraftSketch();
+        renderizarSketch();
+        if (alvos.length > lote.length) {
+            mostrarToastCartografico(txt(`Um commit apaga até ${SKETCH_MAX_POR_COMMIT} traços. Faça o commit e clique em Limpar de novo para o resto.`, `A commit can erase up to ${SKETCH_MAX_POR_COMMIT} strokes. Commit, then press Clear again for the rest.`));
+        }
+        abrirModalCommitSketch();
+        const input = document.getElementById('inputSketchCommitMsg');
+        if (input && !input.value) input.value = txt('Limpar o mapa (recomeçar)', 'Clear the map (start over)');
     }
 
     function descartarDraftSketch() {
@@ -5280,6 +5322,10 @@
                 }
                 sketchDraft.erase.push(s.id);
                 sketchDraft.ops.push({ tipo: 'erase', id: s.id });
+                if (!sketchDicaApagarMostrada) {
+                    sketchDicaApagarMostrada = true;
+                    mostrarToastCartografico(txt('🧽 Marcado para apagar (fica apagado/claro). Clique em <strong>Commit</strong> para remover do mapa.', '🧽 Marked for erasing (faded). Press <strong>Commit</strong> to remove it from the map.'));
+                }
             }
             gravarDraftSketch();
             renderizarSketch();
@@ -6035,6 +6081,7 @@
             skFiltroPendentes: 'Para revisar',
             skFiltroMain: 'Main',
             skFiltroForaMain: 'Fora do main',
+            skLimparTudo: '🧹 Limpar mapa',
             skFiltroMeus: 'Meus',
             skHistDica: 'Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.',
             skVendoVersao: '🕘 Vendo o mapa como estava em',
@@ -6162,6 +6209,7 @@
             skFiltroPendentes: 'Needs review',
             skFiltroMain: 'Main',
             skFiltroForaMain: 'Not merged',
+            skLimparTudo: '🧹 Clear map',
             skFiltroMeus: 'Mine',
             skHistDica: 'Hover a commit to outline it on the map: gold = added, red = erased.',
             skVendoVersao: '🕘 Viewing the map as of',
