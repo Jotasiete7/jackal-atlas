@@ -13,6 +13,10 @@ window.JACKAL_CONFIG = {
     // Nova publishable key (compatibilidade)
     publishableKey: 'sb_publishable_sX4zAXSzEqRHWSHT28Tzvw_PJOyn_mo',
 
+    // Compartilhar esboços pela tabela sketch_strokes (migrações 011 e 014 aplicadas neste projeto)
+    // Share sketches through Supabase (migrations 011 and 014 are applied on this project)
+    sketchShared: true,
+
     // Chave de API ImgBB (obtenha gratuitamente em https://api.imgbb.com para links que viram imagem no Discord)
     imgbbApiKey: 'ea391a78c4c3c286593571423f9e279a',
 

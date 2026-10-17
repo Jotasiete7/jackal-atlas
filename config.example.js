@@ -11,6 +11,12 @@ window.JACKAL_CONFIG = {
     // Chave pública anônima (anon public key)
     supabaseKey: 'SUA_ANON_PUBLIC_KEY_AQUI',
 
+    // Armazenamento da camada de esboço. false (padrão) guarda os esboços só no navegador de cada visitante.
+    // Use true depois de rodar migrations/011_sketch_strokes.sql e 014_sketch_commits.sql neste projeto Supabase
+    // para compartilhar com a guilda (commits, histórico, aprovação de oficiais e traços ao vivo).
+    // Sketch layer storage: false = browser only; true = shared via Supabase (needs migrations 011 and 014).
+    sketchShared: false,
+
     // URLs dos tiles do mapa (Round 1 como base/placeholder temporário)
     tiles: {
         terrain: 'https://wurmmaps.xyz/Jackal/tiles/{z}/{x}/{y}-terrain.png',
