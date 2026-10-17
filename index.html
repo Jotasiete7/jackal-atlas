@@ -520,6 +520,24 @@
         .jk-hist-badge.pending { color: #f5a623; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.4); }
         .jk-hist-badge.rejected { color: #ff6b6b; background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.4); }
         .jk-hist-badge.reverted { color: #94a3b8; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.4); }
+        .jk-hist-badge.current { color: #000; background: #60a5fa; border: 1px solid #60a5fa; }
+        .jk-hist-filters { flex-wrap: wrap; }
+        .jk-hist-resumo { font-size: 10px; font-weight: 700; color: var(--sw-text-sub); padding: 0 12px 6px; font-family: 'JetBrains Mono', monospace; }
+        .jk-hist-section { margin: 6px 0 10px; border-radius: 6px; border: 1px solid var(--sw-border-subtle); overflow: hidden; }
+        .jk-hist-section-title { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; background: rgba(255,255,255,0.04); }
+        .jk-hist-section-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: 0.8; }
+        .jk-hist-section-hint { font-size: 9.5px; color: var(--sw-text-muted); padding: 4px 8px 2px; }
+        .jk-hist-section.draft { border-color: rgba(96,165,250,0.5); }
+        .jk-hist-section.draft .jk-hist-section-title { color: #60a5fa; background: rgba(96,165,250,0.1); }
+        .jk-hist-section.review { border-color: rgba(245,166,35,0.5); }
+        .jk-hist-section.review .jk-hist-section-title { color: #f5a623; background: rgba(245,166,35,0.1); }
+        .jk-hist-section.main { border-color: rgba(0,230,118,0.4); }
+        .jk-hist-section.main .jk-hist-section-title { color: #00e676; background: rgba(0,230,118,0.08); }
+        .jk-hist-section.unmerged .jk-hist-section-title { color: #94a3b8; }
+        .jk-hist-section .jk-hist-row:last-child { border-bottom: none; }
+        .jk-hist-row.status-rejected, .jk-hist-row.status-reverted { opacity: 0.75; }
+        .jk-hist-note { font-size: 9.5px; color: #f5a623; margin-top: 3px; }
+        .jk-hist-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
         .jk-hist-empty { font-size: 11px; color: var(--sw-text-muted); padding: 16px 8px; text-align: center; }
         .jk-version-banner {
             position: fixed;
@@ -965,7 +983,7 @@
             <div class="jk-sketch-group">
                 <span id="sketchStatusChip" class="jk-sketch-status">💾 Só local</span>
                 <button class="jk-sketch-tool" onclick="toggleHistoricoSketch()" title="Histórico: versões antigas, revisão e reversão • History: old versions, review and revert" data-i18n="skHistorico">🕘 Histórico</button>
-                <button id="btnSketchRevisar" class="jk-sketch-tool" style="display:none; color:#f5a623; border-color:rgba(245,166,35,0.45);" onclick="toggleHistoricoSketch(true, 'pending')" title="Commits de membros aguardando revisão • Members' commits waiting for review"><span data-i18n="skRevisar">📝 Revisar</span> (<span id="sketchPendentesCount">0</span>)</button>
+                <button id="btnSketchRevisar" class="jk-sketch-tool" style="display:none; color:#f5a623; border-color:rgba(245,166,35,0.45);" onclick="toggleHistoricoSketch(true, 'review')" title="Commits de membros aguardando revisão • Members' commits waiting for review"><span data-i18n="skRevisar">📝 Revisar</span> (<span id="sketchPendentesCount">0</span>)</button>
                 <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;" title="Fechar o modo esboço (Esc). O rascunho é mantido. Segure Espaço e arraste para mover o mapa. • Close sketch mode (Esc). Your draft is kept. Hold Space and drag to pan." data-i18n="skFechar">✕ Fechar</button>
             </div>
         </div>
@@ -981,9 +999,12 @@
         </div>
         <div class="jk-hist-filters">
             <button class="jk-hist-filter active" data-filtro="all" onclick="filtrarHistoricoSketch('all')" data-i18n="skFiltroTodos">Todos</button>
-            <button class="jk-hist-filter" data-filtro="pending" onclick="filtrarHistoricoSketch('pending')"><span data-i18n="skFiltroPendentes">Pendentes</span> <span id="sketchHistPendCount"></span></button>
+            <button class="jk-hist-filter" data-filtro="review" onclick="filtrarHistoricoSketch('review')"><span data-i18n="skFiltroPendentes">Para revisar</span> <span id="sketchHistPendCount"></span></button>
+            <button class="jk-hist-filter" data-filtro="main" onclick="filtrarHistoricoSketch('main')" data-i18n="skFiltroMain">Main</button>
+            <button class="jk-hist-filter" data-filtro="unmerged" onclick="filtrarHistoricoSketch('unmerged')" data-i18n="skFiltroForaMain">Fora do main</button>
             <button class="jk-hist-filter" data-filtro="mine" onclick="filtrarHistoricoSketch('mine')" data-i18n="skFiltroMeus">Meus</button>
         </div>
+        <div id="sketchHistResumo" class="jk-hist-resumo"></div>
         <div class="jk-hist-hint" data-i18n="skHistDica">Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.</div>
         <div id="sketchHistoryList" class="jk-hist-list"></div>
     </div>
@@ -4742,32 +4763,50 @@
         return new Date(iso).toLocaleString(localeSketch(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
+    // History panel, organised like a git branch view:
+    //   ✏️ your draft (not committed) → 📝 needs review → 🌿 main map (live, newest = CURRENT) → ⛔ not merged
     function renderizarHistoricoSketch() {
         const lista = document.getElementById('sketchHistoryList');
         if (!lista) return;
         destacarCommitSketch(null); // rows are rebuilt, so a hovered row never gets its mouseleave
         const meuId = sketchMeuId();
         const staff = sketchIsStaff();
+        const filtro = sketchHistoricoFiltro;
 
         document.querySelectorAll('#sketchHistoryPanel .jk-hist-filter').forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-filtro') === sketchHistoricoFiltro);
+            b.classList.toggle('active', b.getAttribute('data-filtro') === filtro);
         });
-        const nPend = [...sketchCommits.values()].filter(c => c.status === 'pending').length;
-        const cntFiltro = document.getElementById('sketchHistPendCount');
-        if (cntFiltro) cntFiltro.textContent = nPend ? `(${nPend})` : '';
 
-        let commits = [...sketchCommits.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        if (sketchHistoricoFiltro === 'pending') commits = commits.filter(c => c.status === 'pending');
-        else if (sketchHistoricoFiltro === 'mine') commits = commits.filter(c => c.author === meuId);
+        const todos = [...sketchCommits.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const pendentes = todos.filter(c => c.status === 'pending');
+        const principal = todos.filter(c => c.status === 'approved');
+        const foraDoMain = todos.filter(c => c.status === 'rejected' || c.status === 'reverted');
+        const atualId = principal.length ? principal[0].id : null;
+        const draftAdds = sketchDraft.strokes.length;
+        const draftErases = sketchDraft.erase.length;
+        const legado = sketchStrokes.filter(s => !s.commit_id && s.confirmed).length;
+
+        const cntFiltro = document.getElementById('sketchHistPendCount');
+        if (cntFiltro) cntFiltro.textContent = pendentes.length ? `(${pendentes.length})` : '';
+
+        const resumo = document.getElementById('sketchHistResumo');
+        if (resumo) {
+            const partes = [
+                `🌿 ${txt('Main', 'Main')}: ${principal.length} commit${principal.length === 1 ? '' : 's'}`,
+                `📝 ${txt('Para revisar', 'Needs review')}: ${pendentes.length}`
+            ];
+            if (draftAdds || draftErases) partes.push(`✏️ ${txt('Seu rascunho', 'Your draft')}: +${draftAdds}/−${draftErases}`);
+            resumo.textContent = partes.join(' • ');
+        }
 
         const badges = {
-            approved: `<span class="jk-hist-badge approved">${txt('NO AR', 'LIVE')}</span>`,
-            pending: `<span class="jk-hist-badge pending">${txt('PENDENTE', 'PENDING')}</span>`,
-            rejected: `<span class="jk-hist-badge rejected">${txt('REJEITADO', 'REJECTED')}</span>`,
-            reverted: `<span class="jk-hist-badge reverted">${txt('REVERTIDO', 'REVERTED')}</span>`
+            approved: `<span class="jk-hist-badge approved" title="${txt('Faz parte do mapa principal (main)', 'Merged into the main map')}">MAIN</span>`,
+            pending: `<span class="jk-hist-badge pending" title="${txt('Ainda não está no main: aguardando um oficial', 'Not on main yet: waiting for an officer')}">${txt('PARA REVISAR', 'NEEDS REVIEW')}</span>`,
+            rejected: `<span class="jk-hist-badge rejected" title="${txt('Recusado por um oficial: nunca entrou no main', 'Turned down by an officer: never merged into main')}">${txt('REJEITADO', 'REJECTED')}</span>`,
+            reverted: `<span class="jk-hist-badge reverted" title="${txt('Estava no main e foi revertido (oculto, pode ser restaurado)', 'Was on main and was reverted (hidden, can be restored)')}">${txt('REVERTIDO', 'REVERTED')}</span>`
         };
 
-        let html = commits.map(c => {
+        const linhaCommit = (c) => {
             const nome = (c.author_profile && c.author_profile.discord_username) || (c.author === meuId ? txt('Você', 'You') : txt('Membro da guilda', 'Clan member'));
             const avatar = (c.author_profile && /^https:\/\/cdn\.discordapp\.com\/[A-Za-z0-9_./?=&-]+$/.test(c.author_profile.avatar_url || ''))
                 ? `<img src="${c.author_profile.avatar_url}" alt="">`
@@ -4778,41 +4817,101 @@
                 acoes.push(`<button onclick="verVersaoSketch('${id}')" title="${txt('Mostrar o mapa como estava logo após este commit', 'Show the map as it was right after this commit')}">👁 ${txt('Ver neste ponto', 'View at this point')}</button>`);
             }
             if (staff && c.status === 'pending' && sketchModoArmazenamento === 'shared') {
-                acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'approve')">✓ ${txt('Aprovar', 'Approve')}</button>`);
+                acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'approve')" title="${txt('Aprovar e juntar ao mapa principal', 'Approve and merge into the main map')}">✓ ${txt('Aprovar e juntar', 'Approve & merge')}</button>`);
                 acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'reject')">✕ ${txt('Rejeitar', 'Reject')}</button>`);
             }
-            if (staff && c.status === 'approved') acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'revert')">↩ ${txt('Reverter', 'Revert')}</button>`);
-            if (staff && c.status === 'reverted') acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'restore')">⟲ ${txt('Restaurar', 'Restore')}</button>`);
+            if (staff && c.status === 'approved') acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'revert')" title="${txt('Tirar do mapa principal (pode ser restaurado)', 'Take it off the main map (can be restored)')}">↩ ${txt('Reverter', 'Revert')}</button>`);
+            if (staff && c.status === 'reverted') acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'restore')" title="${txt('Colocar de volta no mapa principal', 'Put it back on the main map')}">⟲ ${txt('Restaurar no main', 'Restore to main')}</button>`);
             const ativo = sketchVersaoAtual === c.id ? ' viewing' : '';
+            const atual = c.id === atualId ? `<span class="jk-hist-badge current" title="${txt('Commit mais recente do mapa principal', 'Newest commit on the main map')}">${txt('ATUAL', 'CURRENT')}</span>` : '';
+            let extra = '';
+            if (c.status === 'pending' && !staff) extra = `<div class="jk-hist-note">${txt('Aguardando um oficial revisar.', 'Waiting for an officer to review.')}</div>`;
             return `
-                <div class="jk-hist-row${ativo}" onmouseenter="destacarCommitSketch('${id}')" onmouseleave="destacarCommitSketch(null)">
+                <div class="jk-hist-row status-${c.status}${ativo}" onmouseenter="destacarCommitSketch('${id}')" onmouseleave="destacarCommitSketch(null)">
                     <div class="jk-hist-avatar">${avatar}</div>
                     <div class="jk-hist-body">
-                        <div class="jk-hist-top"><strong>${sanitize(nome)}</strong>${badges[c.status] || ''}</div>
+                        <div class="jk-hist-top"><strong>${sanitize(nome)}</strong>${badges[c.status] || ''}${atual}</div>
                         <div class="jk-hist-msg">${sanitize(c.message)}</div>
                         <div class="jk-hist-meta">${tempoRelativoSketch(c.created_at)} • +${Number(c.stroke_count) || 0} / −${Number(c.erase_count) || 0}</div>
+                        ${extra}
                         ${acoes.length ? `<div class="jk-hist-actions">${acoes.join('')}</div>` : ''}
                     </div>
                 </div>`;
-        }).join('');
+        };
 
-        const legado = sketchStrokes.filter(s => !s.commit_id && s.confirmed).length;
-        if (legado && sketchHistoricoFiltro === 'all') {
+        const secao = (icone, titulo, dica, linhas, classe = '', contagem = null) => `
+            <div class="jk-hist-section ${classe}">
+                <div class="jk-hist-section-title"><span>${icone} ${titulo}</span><span class="jk-hist-section-count">${contagem === null ? linhas.length : contagem}</span></div>
+                ${dica ? `<div class="jk-hist-section-hint">${dica}</div>` : ''}
+                ${linhas.join('')}
+            </div>`;
+
+        let html = '';
+
+        // Your uncommitted draft
+        if ((draftAdds || draftErases) && (filtro === 'all' || filtro === 'mine')) {
+            const podeCommitar = !sketchVersaoAtual;
             html += `
-                <div class="jk-hist-row legacy">
-                    <div class="jk-hist-avatar"><span class="jk-hist-avatar-vazio">📜</span></div>
-                    <div class="jk-hist-body">
-                        <div class="jk-hist-top"><strong>${txt('Antes do versionamento', 'Before versioning')}</strong></div>
-                        <div class="jk-hist-meta">${txt(`${legado} traço${legado === 1 ? '' : 's'} desenhado${legado === 1 ? '' : 's'} antes dos commits`, `${legado} stroke${legado === 1 ? '' : 's'} drawn before commits existed`)}</div>
+                <div class="jk-hist-section draft">
+                    <div class="jk-hist-section-title"><span>✏️ ${txt('Seu rascunho (sem commit)', 'Your draft (not committed)')}</span><span class="jk-hist-section-count">+${draftAdds}/−${draftErases}</span></div>
+                    <div class="jk-hist-section-hint">${txt('Só você vê. Faça o commit para enviar.', 'Only you can see this. Commit it to send it in.')}</div>
+                    <div class="jk-hist-actions" style="padding:0 6px 6px;">
+                        <button class="ok" onclick="abrirModalCommitSketch()" ${podeCommitar ? '' : 'disabled'}>💾 Commit…</button>
+                        <button class="danger" onclick="descartarDraftSketch()">🗑️ ${txt('Descartar', 'Discard')}</button>
                     </div>
                 </div>`;
         }
+
+        const mine = c => c.author === meuId;
+        const filtrar = arr => (filtro === 'mine' ? arr.filter(mine) : arr);
+
+        if (filtro === 'all' || filtro === 'review' || filtro === 'mine') {
+            const p = filtrar(pendentes);
+            if (p.length || filtro === 'review') {
+                html += secao('📝', txt('Para revisar (ainda não no main)', 'Needs review (not merged yet)'),
+                    staff ? txt('Aprove para juntar ao mapa principal, ou rejeite.', 'Approve to merge into the main map, or reject.')
+                          : txt('Commits aguardando um oficial.', 'Commits waiting for an officer.'),
+                    p.map(linhaCommit), 'review');
+            }
+        }
+        if (filtro === 'all' || filtro === 'main' || filtro === 'mine') {
+            const m = filtrar(principal);
+            const linhas = m.map(linhaCommit);
+            if (legado && filtro !== 'mine') {
+                linhas.push(`
+                    <div class="jk-hist-row legacy">
+                        <div class="jk-hist-avatar"><span class="jk-hist-avatar-vazio">📜</span></div>
+                        <div class="jk-hist-body">
+                            <div class="jk-hist-top"><strong>${txt('Antes do versionamento', 'Before versioning')}</strong><span class="jk-hist-badge approved">MAIN</span></div>
+                            <div class="jk-hist-meta">${txt(`${legado} traço${legado === 1 ? '' : 's'} desenhado${legado === 1 ? '' : 's'} antes dos commits`, `${legado} stroke${legado === 1 ? '' : 's'} drawn before commits existed`)}</div>
+                        </div>
+                    </div>`);
+            }
+            if (linhas.length || filtro === 'main') {
+                html += secao('🌿', txt('Mapa principal (main)', 'Main map'),
+                    txt('O que todos veem agora. O mais recente fica no topo.', 'What everyone sees now. Newest at the top.'),
+                    linhas, 'main', m.length);
+            }
+        }
+        if (filtro === 'all' || filtro === 'unmerged' || filtro === 'mine') {
+            const f = filtrar(foraDoMain);
+            if (f.length || filtro === 'unmerged') {
+                html += secao('⛔', txt('Fora do main', 'Not merged'),
+                    txt('Rejeitados ou revertidos: não aparecem no mapa.', 'Rejected or reverted: not shown on the map.'),
+                    f.map(linhaCommit), 'unmerged');
+            }
+        }
+
         const vazio = {
             all: txt('Nenhum commit ainda. Desenhe algo e clique em <strong>Commit</strong>.', 'No commits yet. Sketch something, then press <strong>Commit</strong>.'),
-            pending: txt('Nada aguardando revisão.', 'Nothing waiting for review.'),
+            review: txt('Nada aguardando revisão.', 'Nothing waiting for review.'),
+            main: txt('Nada no mapa principal ainda.', 'Nothing on the main map yet.'),
+            unmerged: txt('Nenhum commit rejeitado ou revertido.', 'No rejected or reverted commits.'),
             mine: txt('Você ainda não fez nenhum commit.', 'You have not committed anything yet.')
         };
-        lista.innerHTML = html || `<div class="jk-hist-empty">${vazio[sketchHistoricoFiltro] || vazio.all}</div>`;
+        // Section headers for empty filters still show; only an entirely empty panel gets the message
+        const temLinhas = /jk-hist-row|jk-hist-section draft/.test(html);
+        lista.innerHTML = temLinhas ? html : `<div class="jk-hist-empty">${vazio[filtro] || vazio.all}</div>`;
     }
 
     // Hovering a commit outlines what it added (gold) and erased (red)
@@ -5933,7 +6032,9 @@
             skFechar: '✕ Fechar',
             skHistTitulo: '🕘 Histórico do Esboço',
             skFiltroTodos: 'Todos',
-            skFiltroPendentes: 'Pendentes',
+            skFiltroPendentes: 'Para revisar',
+            skFiltroMain: 'Main',
+            skFiltroForaMain: 'Fora do main',
             skFiltroMeus: 'Meus',
             skHistDica: 'Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.',
             skVendoVersao: '🕘 Vendo o mapa como estava em',
@@ -6058,7 +6159,9 @@
             skFechar: '✕ Close',
             skHistTitulo: '🕘 Sketch History',
             skFiltroTodos: 'All',
-            skFiltroPendentes: 'Pending',
+            skFiltroPendentes: 'Needs review',
+            skFiltroMain: 'Main',
+            skFiltroForaMain: 'Not merged',
             skFiltroMeus: 'Mine',
             skHistDica: 'Hover a commit to outline it on the map: gold = added, red = erased.',
             skVendoVersao: '🕘 Viewing the map as of',
