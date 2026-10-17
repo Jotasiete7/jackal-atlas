@@ -242,7 +242,7 @@ assert(pendentesCount === 2, `Cálculo da fila de pendentes correto: ${pendentes
 console.log('\n🌐 BATERIA 6: Conectividade e Políticas RLS no Supabase');
 
 async function testSupabase() {
-    const supabaseUrl = 'https://grkqxztxxelebdflhnlv.supabase.co';
+    const supabaseUrl = 'https://ndeepjongrkeldzrssis.supabase.co';
     const anonKey = indexHtml.match(/supabaseKey:\s*['"]([^'"]+)['"]/)?.[1];
 
     if (!anonKey) {

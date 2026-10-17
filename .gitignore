@@ -1,6 +1,7 @@
 # Segredos e Configurações de Ambiente
 .env
-.env.local
+.env*
+atlas.env
 *.log
 
 # Dependências

@@ -5,13 +5,13 @@
 
 window.JACKAL_CONFIG = {
     // URL do projeto Supabase
-    supabaseUrl: 'https://grkqxztxxelebdflhnlv.supabase.co',
+    supabaseUrl: 'https://ndeepjongrkeldzrssis.supabase.co',
 
     // Chave pública anônima (anon public key)
-    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdya3F4enR4eGVsZWJkZmxobmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjA0NjQsImV4cCI6MjA5NDA5NjQ2NH0.hR_DpTLuZYAlvdIBNfG9yk4wFW6mCwxsU9PvwPta94w',
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kZWVwam9uZ3JrZWxkenJzc2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNzA3NTUsImV4cCI6MjEwNzg0Njc1NX0.p7Tqg-EHAW3LhJVX3GX_COFIAJ4L94UufV0sUxdutFI',
 
     // Nova publishable key (compatibilidade)
-    publishableKey: 'sb_publishable_y44HqaybQIc7KhldlxAEeg_pXP2wNQP',
+    publishableKey: 'sb_publishable_sX4zAXSzEqRHWSHT28Tzvw_PJOyn_mo',
 
     // Chave de API ImgBB (obtenha gratuitamente em https://api.imgbb.com para links que viram imagem no Discord)
     imgbbApiKey: 'ea391a78c4c3c286593571423f9e279a',
