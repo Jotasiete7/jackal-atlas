@@ -465,6 +465,32 @@
             cursor: pointer;
         }
         .jk-sketch-cor.active { border-color: #fff; box-shadow: 0 0 0 2px var(--jk-accent); }
+        #map.jk-sketching.jk-sketch-select { cursor: default; }
+        .jk-text-editor {
+            position: absolute; left: 0; top: 0;
+            box-sizing: border-box;
+            border: 1.5px dashed #60a5fa;
+            border-radius: 3px;
+            background: rgba(96,165,250,0.06);
+            cursor: move;
+            pointer-events: auto;
+        }
+        .jk-te-resize {
+            position: absolute; right: -7px; bottom: -7px;
+            width: 12px; height: 12px;
+            background: #fff; border: 2px solid #60a5fa; border-radius: 2px;
+            cursor: nwse-resize;
+        }
+        .jk-te-rotate {
+            position: absolute; left: 50%; top: -24px;
+            width: 13px; height: 13px; margin-left: -6.5px;
+            background: #fff; border: 2px solid #60a5fa; border-radius: 50%;
+            cursor: grab;
+        }
+        .jk-te-rotate::after {
+            content: ''; position: absolute; left: 50%; top: 11px;
+            width: 1.5px; height: 10px; margin-left: -0.75px; background: #60a5fa;
+        }
         .jk-sketch-cor-custom { width: 22px; height: 18px; padding: 0; border: 1px solid var(--sw-border); border-radius: 4px; background: transparent; cursor: pointer; }
         .jk-sketch-tool.jk-sketch-commit:not(:disabled) { background: var(--jk-accent); border-color: var(--jk-accent); color: #000; }
         .jk-sketch-ghost-tag {
@@ -962,6 +988,7 @@
             </div>
             <div class="jk-sketch-group">
                 <button class="jk-sketch-tool" data-sketch-tool="arrow" onclick="selecionarFerramentaSketch('arrow')" title="Seta: arraste do início ao fim • Arrow: drag from start to end" data-i18n="skSeta">➡️ Seta</button>
+                <button class="jk-sketch-tool" data-sketch-tool="select" onclick="selecionarFerramentaSketch('select')" title="Selecionar texto: clique para selecionar, arraste para mover, alças para redimensionar e girar, clique duplo para editar, Delete para apagar • Select text: click to select, drag to move, handles to resize and rotate, double-click to edit, Delete to remove" data-i18n="skSelecionar">↖ Selecionar</button>
                 <button class="jk-sketch-tool" data-sketch-tool="label" onclick="selecionarFerramentaSketch('label')" title="Texto: clique no mapa onde o texto vai, digite e aperte Enter • Text: click on the map, type, press Enter" data-i18n="skTextoTool">🔤 Texto</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="camp" onclick="selecionarFerramentaSketch('stamp', 'camp')" title="Acampamento • Camp">⛺</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="tunnel" onclick="selecionarFerramentaSketch('stamp', 'tunnel')" title="Saída de túnel • Tunnel exit">🚇</button>
@@ -4456,10 +4483,11 @@
             if (lum > 0.72) cor += 'text-shadow:0 0 3px #111,0 0 3px #111,0 0 2px #111;';
         }
         const opac = (estado === 'normal' && s.opacity !== null && s.opacity !== undefined) ? `opacity:${opacidadeDoTraco(s)};` : '';
+        const rot = Number(s.rotation) || 0;
         return L.divIcon({
             className: '',
             iconSize: [0, 0],
-            html: `<span class="jk-sketch-label ${estado !== 'normal' ? estado : ''}" style="font-size:${fonte.toFixed(1)}px;${cor}${opac}">${sanitize(s.label)}</span>`
+            html: `<span class="jk-sketch-label ${estado !== 'normal' ? estado : ''}" style="font-size:${fonte.toFixed(1)}px;${cor}${opac}transform:translate(-50%,-50%) rotate(${rot}deg);">${sanitize(s.label)}</span>`
         });
     }
 
@@ -4481,8 +4509,30 @@
         if (s.kind === 'stamp') {
             return L.marker([MAP_SIZE - y0, x0], { icon: iconeStampSketch(s, estado), pane: 'sketchLabelPane', interactive: false, keyboard: false });
         }
-        if (s.kind === 'arrow' && s.path.length < 2) return null;
+        if (s.kind === 'arrow') {
+            if (s.path.length < 2) return null;
+            // Contorno contrastante sob a seta • contrasting outline under the arrow
+            return L.featureGroup([
+                L.polyline(latlngsDoTraco(s), estiloContornoSeta(s, estado)),
+                L.polyline(latlngsDoTraco(s), estiloTraco(s, estado))
+            ]);
+        }
         return L.polyline(latlngsDoTraco(s), estiloTraco(s, estado));
+    }
+
+    function estiloContornoSeta(s, estado) {
+        const base = estiloTraco(s, estado);
+        const n = parseInt(corDoTraco(s).slice(1), 16);
+        const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+        return Object.assign({}, base, {
+            color: lum > 0.5 ? '#111827' : '#ffffff',
+            weight: base.weight + 4,
+            opacity: base.opacity * 0.9
+        });
+    }
+
+    function pesoSeta(s) {
+        return Math.max(1, Number(s.width) * pxPorTile());
     }
 
     function renderizarSketch() {
@@ -4499,14 +4549,21 @@
         atualizarContadoresSketch(lista);
         atualizarBarraDraftSketch();
         if (historicoSketchAberto()) renderizarHistoricoSketch();
+        desenharEditorTexto();
     }
 
     // Brush widths and label sizes are in tiles, so they are rescaled on every zoom
     map.on('zoomend', function() {
         sketchCamadaPorId.forEach(({ camada, s, estado }) => {
             if (s.kind === 'label') camada.setIcon(iconeLabelSketch(s, estado));
+            else if (s.kind === 'arrow' && camada.getLayers) {
+                const [contorno, seta] = camada.getLayers();
+                if (contorno) contorno.setStyle({ weight: pesoSeta(s) + 4 });
+                if (seta) seta.setStyle({ weight: pesoSeta(s) });
+            }
             else if (s.kind !== 'stamp') camada.setStyle({ weight: Math.max(1, Number(s.width) * pxPorTile()) });
         });
+        desenharEditorTexto();
         if (sketchPreview && sketchTracoAtual) {
             sketchPreview.setStyle({ weight: Math.max(1, larguraSketchAtual() * pxPorTile()) });
         }
@@ -4696,6 +4753,13 @@
             sketchDraft.erase = sketchDraft.erase.filter(id => !remover.has(id));
         } else if (op.tipo === 'remove-draft' && op.stroke) {
             sketchDraft.strokes.splice(Math.min(op.indice, sketchDraft.strokes.length), 0, op.stroke);
+        } else if (op.tipo === 'modify-draft' && op.antes) {
+            const alvo = sketchDraft.strokes.find(d => d.id === op.id);
+            if (alvo) Object.assign(alvo, op.antes);
+        } else if (op.tipo === 'replace') {
+            sketchDraft.strokes = sketchDraft.strokes.filter(d => d.id !== op.addId);
+            sketchDraft.erase = sketchDraft.erase.filter(id => id !== op.eraseId);
+            if (sketchSelecaoId === op.addId) sketchSelecaoId = op.eraseId;
         }
         gravarDraftSketch();
         renderizarSketch();
@@ -4787,7 +4851,8 @@
         try {
             const strokes = sketchDraft.strokes.map(s => ({
                 kind: s.kind, path: s.path, width: s.width, label: s.label || null, stamp: s.stamp || null,
-                color: s.color || null, opacity: (s.opacity === undefined ? null : s.opacity)
+                color: s.color || null, opacity: (s.opacity === undefined ? null : s.opacity),
+                rotation: (s.rotation === undefined ? null : s.rotation)
             }));
             const erase = sketchDraft.erase.filter(id => !String(id).startsWith('draft-'));
 
@@ -5267,6 +5332,8 @@
         }
 
         map.getContainer().classList.toggle('jk-sketch-erase', ferramenta === 'eraser');
+        map.getContainer().classList.toggle('jk-sketch-select', ferramenta === 'select');
+        if (ferramenta !== 'select' && ferramenta !== 'label') deselecionarTextoSketch();
     }
 
     function ajustarTamanhoSketch(valor, lembrar = true) {
@@ -5331,6 +5398,7 @@
     }
 
     function desativarModoSketch() {
+        deselecionarTextoSketch();
         if (sketchTracoAtual) terminarFantasmaSketch();
         cancelarTracoSketch();
         modoSketch = false;
@@ -5513,6 +5581,12 @@
     map.on('click', function(e) {
         if (!modoSketch || sketchEspacoPan) return;
         const p = tileDoEvento(e);
+        if (sketchFerramenta === 'select' || sketchFerramenta === 'label') {
+            const alvo = textoNoPontoSketch(e);
+            if (alvo) { selecionarTextoSketch(alvo.s.id); return; }
+            if (sketchFerramenta === 'select') { deselecionarTextoSketch(); return; }
+            if (sketchSelecaoId) { deselecionarTextoSketch(); return; } // first click away just deselects
+        }
         if (sketchFerramenta === 'stamp') {
             adicionarAoDraftSketch({ kind: 'stamp', stamp: sketchStampAtual, path: [[arred1(p.x), arred1(p.y)]], width: 1 });
         } else if (sketchFerramenta === 'label') {
@@ -5522,6 +5596,7 @@
                 return;
             }
             sketchLabelPendente = { x: arred1(p.x), y: arred1(p.y) };
+            sketchLabelEditando = null;
             const coords = document.getElementById('sketchLabelCoords');
             if (coords) coords.textContent = `${Math.round(p.x)}, ${Math.round(p.y)}`;
             const input = document.getElementById('inputSketchLabel');
@@ -5533,11 +5608,214 @@
 
     function confirmarLabelSketch() {
         const texto = (document.getElementById('inputSketchLabel').value || '').trim().slice(0, 80);
-        if (!texto || !sketchLabelPendente) return;
-        const tamanho = Number(document.getElementById('selectSketchLabelTamanho').value) || 20;
-        adicionarAoDraftSketch({ kind: 'label', label: texto, path: [[sketchLabelPendente.x, sketchLabelPendente.y]], width: tamanho, color: sketchCorAtual, opacity: sketchOpacidadeAtual });
+        const select = document.getElementById('selectSketchLabelTamanho');
+        const tamanho = Number(select.value) || 20;
+        if (!texto) return;
+        // Release focus so Delete / Ctrl+Z go to the map again once the dialog closes
+        if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+        if (sketchLabelEditando) {
+            const entrada = sketchCamadaPorId.get(sketchLabelEditando);
+            if (entrada) {
+                const mudouTamanho = select.value !== select.dataset.inicial;
+                aplicarEdicaoTextoSketch(sketchLabelEditando, { label: texto, width: mudouTamanho ? tamanho : Number(entrada.s.width) });
+            }
+            sketchLabelEditando = null;
+            fecharModal('modalSketchLabel');
+            return;
+        }
+        if (!sketchLabelPendente) return;
+        adicionarAoDraftSketch({ kind: 'label', label: texto, path: [[sketchLabelPendente.x, sketchLabelPendente.y]], width: tamanho, color: sketchCorAtual, opacity: sketchOpacidadeAtual, rotation: 0 });
         sketchLabelPendente = null;
         fecharModal('modalSketchLabel');
+        const novo = sketchDraft.strokes[sketchDraft.strokes.length - 1];
+        if (novo && novo.kind === 'label') selecionarTextoSketch(novo.id);
+    }
+
+    // ---------- Text editing: select, move, resize, rotate, edit, delete ----------
+    let sketchSelecaoId = null;      // id of the selected text (draft or live)
+    let sketchEditorMarker = null;   // selection box with handles
+    let sketchEdicao = null;         // drag in progress
+    let sketchLabelEditando = null;  // id being edited in the label modal
+
+    function textoNoPontoSketch(e) {
+        const cx = e.originalEvent ? e.originalEvent.clientX : null;
+        const cy = e.originalEvent ? e.originalEvent.clientY : null;
+        if (cx === null) return null;
+        const entradas = [...sketchCamadaPorId.values()];
+        for (let i = entradas.length - 1; i >= 0; i--) {
+            const ent = entradas[i];
+            if (ent.s.kind !== 'label' || (ent.estado !== 'normal' && ent.estado !== 'draft')) continue;
+            const el = ent.camada.getElement && ent.camada.getElement();
+            const span = el && el.querySelector('.jk-sketch-label');
+            if (!span) continue;
+            const r = span.getBoundingClientRect();
+            if (cx >= r.left - 4 && cx <= r.right + 4 && cy >= r.top - 4 && cy <= r.bottom + 4) return ent;
+        }
+        return null;
+    }
+
+    function selecionarTextoSketch(id) {
+        if (!sketchPodeDesenhar() || sketchVersaoAtual) return;
+        sketchSelecaoId = id;
+        if (sketchFerramenta !== 'select' && sketchFerramenta !== 'label') selecionarFerramentaSketch('select');
+        desenharEditorTexto();
+    }
+
+    function deselecionarTextoSketch() {
+        sketchSelecaoId = null;
+        if (sketchEditorMarker) { map.removeLayer(sketchEditorMarker); sketchEditorMarker = null; }
+    }
+
+    function propsTexto(s) {
+        return { label: s.label, width: Number(s.width), rotation: Number(s.rotation) || 0, path: [[s.path[0][0], s.path[0][1]]] };
+    }
+
+    function desenharEditorTexto(temp = null) {
+        if (sketchEditorMarker) { map.removeLayer(sketchEditorMarker); sketchEditorMarker = null; }
+        if (!sketchSelecaoId || !modoSketch) return;
+        const ent = sketchCamadaPorId.get(sketchSelecaoId);
+        if (!ent || ent.s.kind !== 'label') { sketchSelecaoId = null; return; }
+        const el = ent.camada.getElement && ent.camada.getElement();
+        const span = el && el.querySelector('.jk-sketch-label');
+        const w = (span ? span.offsetWidth : 60) + 14;
+        const h = (span ? span.offsetHeight : 20) + 10;
+        const props = temp || propsTexto(ent.s);
+        const [x, y] = props.path[0];
+        sketchEditorMarker = L.marker([MAP_SIZE - y, x], {
+            interactive: true, keyboard: false, bubblingMouseEvents: false, zIndexOffset: 5000,
+            icon: L.divIcon({
+                className: '', iconSize: [0, 0],
+                html: `<div class="jk-text-editor" style="width:${w}px; height:${h}px; transform:translate(-50%,-50%) rotate(${props.rotation}deg);" title="${txt('Arraste para mover • clique duplo para editar • Delete apaga', 'Drag to move • double-click to edit • Delete removes')}">
+                           <div class="jk-te-rotate" data-h="rotate" title="${txt('Girar (Shift = passos de 15°)', 'Rotate (Shift = 15° steps)')}"></div>
+                           <div class="jk-te-resize" data-h="resize" title="${txt('Redimensionar', 'Resize')}"></div>
+                       </div>`
+            })
+        }).addTo(map);
+        const caixa = sketchEditorMarker.getElement();
+        if (!caixa) return;
+        L.DomEvent.disableClickPropagation(caixa);
+        L.DomEvent.on(caixa, 'mousedown', iniciarEdicaoTextoSketch);
+        L.DomEvent.on(caixa, 'dblclick', (ev) => { L.DomEvent.stop(ev); abrirEdicaoTextoSketch(sketchSelecaoId); });
+    }
+
+    function iniciarEdicaoTextoSketch(ev) {
+        if (ev.button !== 0 || !sketchSelecaoId) return;
+        L.DomEvent.stop(ev);
+        const ent = sketchCamadaPorId.get(sketchSelecaoId);
+        if (!ent) return;
+        const base = propsTexto(ent.s);
+        const centro = map.latLngToContainerPoint([MAP_SIZE - base.path[0][1], base.path[0][0]]);
+        const inicio = map.mouseEventToContainerPoint(ev);
+        sketchEdicao = {
+            modo: (ev.target && ev.target.dataset && ev.target.dataset.h) || 'move',
+            id: sketchSelecaoId, base, atual: JSON.parse(JSON.stringify(base)), ent,
+            centro, inicio,
+            distInicio: Math.max(8, centro.distanceTo(inicio)),
+            mudou: false
+        };
+        document.addEventListener('mousemove', moverEdicaoTextoSketch);
+        document.addEventListener('mouseup', terminarEdicaoTextoSketch);
+    }
+
+    function moverEdicaoTextoSketch(ev) {
+        const ed = sketchEdicao;
+        if (!ed) return;
+        const p = map.mouseEventToContainerPoint(ev);
+        if (ed.modo === 'move') {
+            const alvo = ed.centro.add(p.subtract(ed.inicio));
+            const ll = map.containerPointToLatLng(alvo);
+            ed.atual.path = [[arred1(Math.max(0, Math.min(MAP_SIZE, ll.lng))), arred1(Math.max(0, Math.min(MAP_SIZE, MAP_SIZE - ll.lat)))]];
+        } else if (ed.modo === 'resize') {
+            const escala = ed.centro.distanceTo(p) / ed.distInicio;
+            ed.atual.width = arred1(Math.max(4, Math.min(120, ed.base.width * escala)));
+        } else if (ed.modo === 'rotate') {
+            let ang = Math.atan2(p.y - ed.centro.y, p.x - ed.centro.x) * 180 / Math.PI + 90;
+            if (ev.shiftKey) ang = Math.round(ang / 15) * 15;
+            ang = ((ang + 540) % 360) - 180;
+            ed.atual.rotation = Math.round(ang);
+        }
+        ed.mudou = true;
+        // Live preview of the label and its box
+        const previa = Object.assign({}, ed.ent.s, ed.atual);
+        ed.ent.camada.setLatLng([MAP_SIZE - ed.atual.path[0][1], ed.atual.path[0][0]]);
+        ed.ent.camada.setIcon(iconeLabelSketch(previa, ed.ent.estado));
+        desenharEditorTexto(ed.atual);
+    }
+
+    function terminarEdicaoTextoSketch() {
+        document.removeEventListener('mousemove', moverEdicaoTextoSketch);
+        document.removeEventListener('mouseup', terminarEdicaoTextoSketch);
+        const ed = sketchEdicao;
+        sketchEdicao = null;
+        if (ed && ed.mudou) aplicarEdicaoTextoSketch(ed.id, { path: ed.atual.path, width: ed.atual.width, rotation: ed.atual.rotation });
+    }
+
+    // Draft text is changed in place; live text is replaced: erase the old one, add the edited copy
+    function aplicarEdicaoTextoSketch(id, mudancas) {
+        const ent = sketchCamadaPorId.get(id);
+        if (!ent || !sketchPodeDesenhar()) return;
+        if (ent.estado === 'draft') {
+            const alvo = sketchDraft.strokes.find(d => d.id === id);
+            if (!alvo) return;
+            sketchDraft.ops.push({ tipo: 'modify-draft', id, antes: propsTexto(alvo) });
+            Object.assign(alvo, mudancas);
+        } else {
+            if (sketchDraft.erase.includes(ent.s.id)) return;
+            if (sketchDraft.strokes.length >= SKETCH_MAX_POR_COMMIT) {
+                mostrarToastCartografico(txt('Faça o commit do rascunho antes de editar mais.', 'Commit your draft before editing more.'));
+                return;
+            }
+            const novo = Object.assign({
+                id: 'draft-' + novoIdLocal(), kind: 'label', color: ent.s.color || null,
+                opacity: (ent.s.opacity === undefined ? null : ent.s.opacity)
+            }, propsTexto(ent.s), mudancas);
+            sketchDraft.erase.push(ent.s.id);
+            sketchDraft.strokes.push(novo);
+            sketchDraft.ops.push({ tipo: 'replace', eraseId: ent.s.id, addId: novo.id });
+            sketchSelecaoId = novo.id;
+            mostrarToastCartografico(txt('✏️ Texto editado no rascunho. Faça o <strong>Commit</strong> para publicar.', '✏️ Text edited in your draft. <strong>Commit</strong> to publish it.'));
+        }
+        gravarDraftSketch();
+        renderizarSketch();
+    }
+
+    function abrirEdicaoTextoSketch(id) {
+        const ent = sketchCamadaPorId.get(id);
+        if (!ent || ent.s.kind !== 'label') return;
+        sketchLabelEditando = id;
+        sketchLabelPendente = null;
+        const input = document.getElementById('inputSketchLabel');
+        const select = document.getElementById('selectSketchLabelTamanho');
+        const coords = document.getElementById('sketchLabelCoords');
+        if (coords) coords.textContent = `${Math.round(ent.s.path[0][0])}, ${Math.round(ent.s.path[0][1])}`;
+        if (input) input.value = ent.s.label || '';
+        if (select) {
+            const largura = Number(ent.s.width) || 20;
+            const opcoes = [...select.options].map(o => Number(o.value));
+            const maisPerto = opcoes.reduce((a, b) => Math.abs(b - largura) < Math.abs(a - largura) ? b : a, opcoes[0]);
+            select.value = String(maisPerto);
+            select.dataset.inicial = select.value;
+        }
+        document.getElementById('modalSketchLabel').classList.add('open');
+        if (input) { input.focus(); input.select(); }
+    }
+
+    function apagarTextoSelecionadoSketch() {
+        const ent = sketchSelecaoId && sketchCamadaPorId.get(sketchSelecaoId);
+        if (!ent) return;
+        if (ent.estado === 'draft') {
+            const indice = sketchDraft.strokes.findIndex(d => d.id === ent.s.id);
+            if (indice !== -1) {
+                sketchDraft.strokes.splice(indice, 1);
+                sketchDraft.ops.push({ tipo: 'remove-draft', stroke: ent.s, indice });
+            }
+        } else if (!sketchDraft.erase.includes(ent.s.id)) {
+            sketchDraft.erase.push(ent.s.id);
+            sketchDraft.ops.push({ tipo: 'erase', id: ent.s.id });
+        }
+        deselecionarTextoSketch();
+        gravarDraftSketch();
+        renderizarSketch();
     }
 
     // Hold Space to pan the map while sketching; Ctrl+Z undoes the last change in your draft
@@ -5555,6 +5833,9 @@
         } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
             e.preventDefault();
             desfazerUltimoSketch();
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && sketchSelecaoId) {
+            e.preventDefault();
+            apagarTextoSelecionadoSketch();
         }
     });
 
@@ -5867,7 +6148,8 @@
             }
             const modalSketchAberto = ['modalSketchLabel', 'modalSketchCommit'].some(id => document.getElementById(id)?.classList.contains('open'));
             if (modoSketch && !modalSketchAberto) {
-                desativarModoSketch();
+                if (sketchSelecaoId) deselecionarTextoSketch();
+                else desativarModoSketch();
             }
             const modais = ['modalAddPonto', 'modalNovoObjetivo', 'modalNickWurm', 'modalEditarPonto', 'modalSalvarRota', 'modalSketchLabel', 'modalSketchCommit'];
             modais.forEach(id => fecharModal(id));
@@ -6165,6 +6447,7 @@
             skFiltroMain: 'Main',
             skFiltroForaMain: 'Fora do main',
             skLimparTudo: '🧹 Limpar mapa',
+            skSelecionar: '↖ Selecionar',
             skFiltroMeus: 'Meus',
             skHistDica: 'Passe o mouse sobre um commit para destacá-lo no mapa: dourado = adicionado, vermelho = apagado.',
             skVendoVersao: '🕘 Vendo o mapa como estava em',
@@ -6294,6 +6577,7 @@
             skFiltroMain: 'Main',
             skFiltroForaMain: 'Not merged',
             skLimparTudo: '🧹 Clear map',
+            skSelecionar: '↖ Select',
             skFiltroMeus: 'Mine',
             skHistDica: 'Hover a commit to outline it on the map: gold = added, red = erased.',
             skVendoVersao: '🕘 Viewing the map as of',

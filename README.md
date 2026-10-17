@@ -85,6 +85,7 @@ Scripts SQL na pasta `migrations/`:
 13. `013_profile_discord_identity.sql` — Guarda nome e avatar do Discord no perfil (no cadastro, atualizado a cada login e preenchido para usuários existentes) para o painel admin mostrar nomes em vez de IDs; membros não podem alterá-los. • Stores Discord name and avatar so the admin panel shows names instead of IDs.
 14. `014_sketch_commits.sql` — Versionamento estilo git: `sketch_commits` e `sketch_commit_erasures`, RPCs `sketch_commit_create` (atômica) e `sketch_commit_review` (aprovar, rejeitar, reverter, restaurar; só oficiais), histórico legível para "ver neste ponto", limites por commit para membros e tempo real. Só cadastros via Discord podem virar o primeiro admin. Depende de 011 e 013. • Git-style commits for sketches; depends on 011 and 013.
 15. `015_sketch_colors.sql` — Tipo de traço `pen` com cor livre (hex) e opacidade por traço, imutáveis após o commit e gravados pela RPC de commit. • Free colours and per-stroke opacity for sketches.
+16. `016_sketch_text_rotation.sql` — Rotação de textos (graus), imutável após o commit e gravada pela RPC; mover/redimensionar usam o caminho e a largura existentes. • Rotated text for sketches.
 
 > Depois de rodar 011, 014 e 015, defina `sketchShared: true` no `config.js`. • After running 011, 014 and 015, set `sketchShared: true` in `config.js`.
 
