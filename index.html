@@ -610,7 +610,7 @@
         <button id="modeBtnPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
             <span>🌉</span> <span data-i18n="modoPonte">Traçar Ponte</span>
         </button>
-        <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles">
+        <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles" data-i18n-title="ttModoArea">
             <span>📐</span> <span data-i18n="modoArea">Medir Área</span>
         </button>
         <button id="modeBtnSketch" class="sw-mode-btn" onclick="definirModoInteracao('sketch')" title="Esboço: desenhe água, floresta, cristas, rótulos e setas no mapa compartilhado • Sketch: hand-draw water, forest, ridges, labels and arrows on the shared map">
@@ -623,7 +623,7 @@
 
     <!-- LINGUETA DIREITA (PAINEL DE ATIVIDADES) -->
     <div id="hudTab" class="sw-hud-trigger-tab alerta-ativo" style="display:flex;" onclick="toggleSidebarDireita()">
-        ◀ 📋 <span style="font-size:11px;">Atividades</span>
+        ◀ 📋 <span style="font-size:11px;" data-i18n="abaAtividades">Atividades</span>
     </div>
 
     <!-- ABA DO HISTÓRICO DO ESBOÇO (só no modo esboço) • SKETCH HISTORY TAB (sketch mode only) -->
@@ -642,7 +642,7 @@
                 <div class="sw-crest-badge" style="background:#1e202c; font-size:20px;">🌙</div>
                 <div class="sw-institution-titles">
                     <div class="sw-institution-main">JACKAL ATLAS</div>
-                    <div class="sw-institution-sub" data-i18n="subTitle">Community Tactical Map • Wurm Online</div>
+                    <div class="sw-institution-sub" data-i18n="subTitle">Mapa Tático Comunitário • Wurm Online</div>
                     <div class="jk-event-badge" data-i18n="eventBadge">Round 2 • 20/10/2026</div>
                 </div>
             </div>
@@ -673,12 +673,12 @@
                         <div style="font-size:10px; color:var(--sw-text-muted); cursor:pointer; text-decoration:underline;" onclick="editarNickPrompt()">⚔️ <span id="userWurmNick">Definir Nick Wurm</span></div>
                     </div>
                     <span class="jk-role-badge" id="userRoleBadge">...</span>
-                    <button onclick="logoutUsuario()" style="background:transparent; border:none; color:var(--sw-text-muted); cursor:pointer; font-size:12px;" title="Desconectar">⏻</button>
+                    <button onclick="logoutUsuario()" style="background:transparent; border:none; color:var(--sw-text-muted); cursor:pointer; font-size:12px;" title="Desconectar" data-i18n-title="ttDesconectar">⏻</button>
                 </div>
                 <!-- Link rápido admin -->
                 <div id="adminLinkBox" style="display:none; margin-top:8px;">
                     <button class="sw-btn-action" style="font-size:10px; border-color:var(--jk-accent-border); color:var(--jk-accent);" onclick="window.location.href='admin.html'">
-                        👑 Painel Admin / Fila (<span id="adminPendingCount">0</span>)
+                        👑 <span data-i18n="painelAdmin">Painel Admin / Fila</span> (<span id="adminPendingCount">0</span>)
                     </button>
                 </div>
             </div>
@@ -710,7 +710,7 @@
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
                         <button id="btnCustom" class="sw-base-btn" onclick="trocarBase('custom', this)">Goldfish®</button>
                         <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
-                        <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)">Isométrico</button>
+                        <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)" data-i18n="baseIso">Isométrico</button>
                         <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
                     </div>
                     <label class="sw-filter-row">
@@ -753,7 +753,7 @@
                         <span data-i18n="torres">🏰 Torres de Guarda</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntTowers">(0)</span>
                     </label>
                     <div id="subOpcoesTorresContainer" style="margin-left:20px; margin-top:-3px; margin-bottom:5px; display:flex; flex-direction:column; gap:3px;">
-                        <label class="sw-filter-row" style="font-size:10px; color:#38bdf8; cursor:pointer;" title="Atalho: tecla [Y]">
+                        <label class="sw-filter-row" style="font-size:10px; color:#38bdf8; cursor:pointer;" title="Atalho: tecla [Y]" data-i18n-title="ttAtalhoY">
                             <input type="checkbox" id="chkFilterCoberturaTorres" onchange="toggleCoberturaTorres(this.checked)">
                             <span data-i18n="coberturaTorres">📐 Cobertura (100x100 tiles)</span>
                             <span style="font-size:8.5px; font-family:'JetBrains Mono'; margin-left:auto; border:1px solid rgba(56,189,248,0.4); padding:0 4px; border-radius:3px; color:#38bdf8; background:rgba(56,189,248,0.1);">Y</span>
@@ -776,7 +776,7 @@
                         <span data-i18n="beaconsFreedom">🟢 Beacons Freedom</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntBeaconsFreedom">(0)</span>
                     </label>
                     <div id="subOpcoesBeaconsContainer" style="margin-left:20px; margin-top:-3px; margin-bottom:5px; display:flex; flex-direction:column; gap:3px;">
-                        <label class="sw-filter-row" style="font-size:10px; color:#10b981; cursor:pointer;" title="Atalho: tecla [I]">
+                        <label class="sw-filter-row" style="font-size:10px; color:#10b981; cursor:pointer;" title="Atalho: tecla [I]" data-i18n-title="ttAtalhoI">
                             <input type="checkbox" id="chkFilterInfluenciaBeacons" checked onchange="toggleInfluenciaBeacons(this.checked)">
                             <span data-i18n="radarInfluencia">📡 Radar de Influência</span>
                             <span style="font-size:8.5px; font-family:'JetBrains Mono'; margin-left:auto; border:1px solid rgba(16,185,129,0.4); padding:0 4px; border-radius:3px; color:#10b981; background:rgba(16,185,129,0.1);">I</span>
@@ -812,11 +812,11 @@
                     </label>
                     <label class="sw-filter-row" style="color:#86efac;">
                         <input type="checkbox" data-layer="fauna_spots" checked onchange="toggleCamada('fauna_spots', this.checked)">
-                        <span>🦗 Fauna & Montarias</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntFauna">(0)</span>
+                        <span data-i18n="faunaMontarias">🦗 Fauna & Montarias</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntFauna">(0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#cbd5e1;">
                         <input type="checkbox" data-layer="landmarks" checked onchange="toggleCamada('landmarks', this.checked)">
-                        <span>🏷️ Topônimos / Regiões</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLandmarks">(0)</span>
+                        <span data-i18n="toponimos">🏷️ Topônimos / Regiões</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLandmarks">(0)</span>
                     </label>
                 </div>
             </div>
@@ -850,8 +850,8 @@
             <!-- 4. METAS DA GUILDA (CRIAR = ADMIN) -->
             <div class="sw-accordion-item" id="accObjetivos">
                 <div class="sw-acc-header" onclick="toggleAccordion(this)">
-                    <div><span class="sw-acc-arrow">▶</span> <span>🎯 Metas da Guilda</span></div>
-                    <span style="font-size:9.5px; opacity:0.8;">Prioridades</span>
+                    <div><span class="sw-acc-arrow">▶</span> <span data-i18n="objetivos">🎯 Metas da Guilda</span></div>
+                    <span style="font-size:9.5px; opacity:0.8;" data-i18n="prioridades">Prioridades</span>
                 </div>
                 <div class="sw-acc-content">
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr); margin-bottom:8px;">
@@ -865,7 +865,7 @@
                         <!-- Inserido dinamicamente via JS -->
                     </div>
 
-                    <button id="btnAdminNovoObjetivo" class="sw-btn-action jk-accent-btn" style="display:none;" onclick="abrirModalObjetivo()">
+                    <button id="btnAdminNovoObjetivo" class="sw-btn-action jk-accent-btn" style="display:none;" onclick="abrirModalObjetivo()" data-i18n="criarMetaAdmin">
                         ➕ Criar Meta (Admin)
                     </button>
                 </div>
@@ -874,7 +874,7 @@
         </div><!-- /sw-accordion-container -->
 
         <!-- LINK DISCRETO KO-FI -->
-        <a href="https://ko-fi.com/aguildanode" target="_blank" rel="noopener noreferrer" class="sw-kofi-link" title="Apoie os custos de servidor e desenvolvimento no Ko-fi">
+        <a href="https://ko-fi.com/aguildanode" target="_blank" rel="noopener noreferrer" class="sw-kofi-link" title="Apoie os custos de servidor e desenvolvimento no Ko-fi" data-i18n-title="ttKofi">
             <span data-i18n="supportKofi">☕ Apoie o Atlas no Ko-fi</span>
         </a>
 
@@ -892,20 +892,20 @@
             <div style="display:flex; align-items:center; gap:8px;">
                 <span style="font-size:14px;">📋</span>
                 <div>
-                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);">PAINEL DE ATIVIDADES</div>
-                    <div style="font-size:9px; color:var(--sw-text-muted);">Registros & Ocorrências de Campo</div>
+                    <div style="font-size:11.5px; font-weight:900; letter-spacing:0.5px; color:var(--sw-text-main);" data-i18n="painelAtividades">PAINEL DE ATIVIDADES</div>
+                    <div style="font-size:9px; color:var(--sw-text-muted);" data-i18n="painelAtividadesSub">Registros & Ocorrências de Campo</div>
                 </div>
             </div>
-            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()">Recolher ▶</button>
+            <button class="sw-btn-action" style="width:auto; padding:3px 8px; font-size:10px;" onclick="toggleSidebarDireita()" data-i18n="recolherHud">Recolher ▶</button>
         </div>
 
         <div style="overflow-y:auto; overflow-x:hidden; flex:1; scrollbar-width:thin; scrollbar-color:var(--sw-border) transparent;">
 
             <!-- DETALHES DO PONTO SELECIONADO -->
             <div class="jk-card">
-                <div class="jk-card-title">🎯 Ponto Selecionado</div>
+                <div class="jk-card-title" data-i18n="pontoSelecionado">🎯 Ponto Selecionado</div>
                 <div style="font-size:10px; color:var(--sw-text-muted); margin-bottom:8px;" id="acoTargetDesc">
-                    Selecione um ponto no mapa para visualizar ações e detalhes.
+                    <span data-i18n="selecionePonto">Selecione um ponto no mapa para visualizar ações e detalhes.</span>
                 </div>
                 <div class="jk-quick-grid" id="boxQuickActionsBeacon" style="display:none;">
                     <button class="jk-quick-btn freedom" onclick="reportarEvento('converted_freedom')">
@@ -929,11 +929,11 @@
             <!-- FEED DE ATIVIDADES RECENTES -->
             <div class="jk-card">
                 <div class="jk-card-title">
-                    <span>📡 Atividades da Guilda</span>
-                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';">ao vivo</span>
+                    <span data-i18n="atividadesGuilda">📡 Atividades da Guilda</span>
+                    <span style="font-size:9px; color:var(--sw-text-muted); font-family:'JetBrains Mono';" data-i18n="aoVivo">ao vivo</span>
                 </div>
                 <div id="eventLogList">
-                    <div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">
+                    <div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;" data-i18n="semAtividade">
                         📡 Nenhuma atividade recente registrada.
                     </div>
                 </div>
@@ -958,19 +958,19 @@
         <div id="hudBottomFoco" class="sw-focus-bar" style="display:none; align-items:center; gap:10px;">
             <span id="hudFocoTitulo" style="color:var(--jk-accent); font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;">🛣️ Traçar Obra:</span>
             <span id="hudLiveDistancia" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;">0 tiles (0 pts)</span>
-            <span style="font-size:9.5px; font-weight:800; color:#38bdf8; border:1px solid rgba(56,189,248,0.4); background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:3px; font-family:'JetBrains Mono';" title="Somente 0°/45°/90°. Botão direito ou Espaço + arrastar = mover o mapa">⊞ Snap 45°</span>
-            <button onclick="desfazerUltimoPontoTracado()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Desfazer último nó">↩ Desfazer</button>
-            <button onclick="abrirModalSalvarRota()" style="background:var(--jk-accent); color:#000; border:none; padding:6px 14px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">✓ Salvar Obra</button>
-            <button onclick="cancelarTracado()" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Cancelar</button>
+            <span style="font-size:9.5px; font-weight:800; color:#38bdf8; border:1px solid rgba(56,189,248,0.4); background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:3px; font-family:'JetBrains Mono';" title="Somente 0°/45°/90°. Botão direito ou Espaço + arrastar = mover o mapa" data-i18n-title="ttSnap">⊞ Snap 45°</span>
+            <button onclick="desfazerUltimoPontoTracado()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Desfazer último nó" data-i18n-title="ttDesfazerNo" data-i18n="btnDesfazer">↩ Desfazer</button>
+            <button onclick="abrirModalSalvarRota()" style="background:var(--jk-accent); color:#000; border:none; padding:6px 14px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;" data-i18n="salvarObra">✓ Salvar Obra</button>
+            <button onclick="cancelarTracado()" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;" data-i18n="btnCancelarX">✕ Cancelar</button>
         </div>
 
         <!-- BARRA DO MODO MEDIÇÃO DE ÁREA (DEED SIZER) -->
         <div id="hudBottomArea" class="sw-focus-bar" style="display:none; align-items:center; gap:10px;">
             <span style="color:#f59e0b; font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;">📐 Deed Sizer:</span>
-            <span id="hudAreaDimensao" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;">Clique e arraste no mapa</span>
+            <span id="hudAreaDimensao" style="font-family:'JetBrains Mono'; font-weight:800; font-size:12px; color:#fff;"><span data-i18n="cliqueArraste">Clique e arraste no mapa</span></span>
             <span id="hudAreaMetricas" style="font-family:'JetBrains Mono'; font-size:10.5px; color:#94a3b8;"></span>
-            <button onclick="limparMedicaoArea()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Limpar retângulo">🗑️ Limpar</button>
-            <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">✕ Fechar</button>
+            <button onclick="limparMedicaoArea()" class="sw-btn-action" style="width:auto; padding:5px 8px; font-size:10.5px;" title="Limpar retângulo" data-i18n-title="ttLimparRet" data-i18n="btnLimpar">🗑️ Limpar</button>
+            <button onclick="definirModoInteracao('navegar')" style="background:transparent; border:1px solid var(--sw-border); color:var(--sw-text-sub); padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;" data-i18n="btnFecharX">✕ Fechar</button>
         </div>
 
         <!-- BARRA DO MODO ESBOÇO (MAPA DESENHADO À MÃO, COLABORATIVO) • SKETCH MODE BAR -->
@@ -1110,14 +1110,14 @@
     <div id="modalAddPonto" class="jk-modal-overlay">
         <div class="sw-modal-window" style="width:420px; max-width:92vw;">
             <div class="sw-modal-header">
-                <div class="sw-modal-title">
+                <div class="sw-modal-title" data-i18n="tituloAddPonto">
                     📍 Adicionar Ponto de Interesse
                 </div>
                 <button class="sw-modal-close" onclick="fecharModal('modalAddPonto')">✕</button>
             </div>
 
             <div class="sw-coord-pill-badge" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>📍 Coordenadas Wurm</span>
+                <span data-i18n="coordWurm">📍 Coordenadas Wurm</span>
                 <span id="modalAddQuadBadge" style="font-family:'JetBrains Mono',monospace; color:var(--jk-accent); font-weight:700; font-size:11px;">-</span>
             </div>
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
@@ -1131,61 +1131,61 @@
                 </div>
             </div>
             <div style="font-size:10px; color:var(--sw-text-muted); margin-top:-6px; margin-bottom:12px;">
-                💡 <em>Dica:</em> Cole <code>2897,2845</code> ou <code>/vamp 2897 2845</code> para autocompletar X e Y instantaneamente.
+                💡 <em data-i18n="dica">Dica:</em> <span data-i18n="dicaCole">Cole</span> <code>2897,2845</code> <span data-i18n="ou">ou</span> <code>/vamp 2897 2845</code> <span data-i18n="dicaAutoInst">para autocompletar X e Y instantaneamente.</span>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Tipo de Ponto / Anotação</label>
+                <label class="sw-form-label" data-i18n="tipoPontoAnot">Tipo de Ponto / Anotação</label>
                 <div class="jk-kind-chips" id="kindChipsContainer">
                     <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed</span>
-                    <span class="jk-kind-chip" data-kind="tower">🏰 Torre de Guarda</span>
+                    <span class="jk-kind-chip" data-kind="tower" data-i18n="kindTorre">🏰 Torre de Guarda</span>
                     <span class="jk-kind-chip" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
-                    <span class="jk-kind-chip" data-kind="cave">🕳️ Caverna</span>
-                    <span class="jk-kind-chip" data-kind="resource_node">⛏️ Minério/Recurso</span>
+                    <span class="jk-kind-chip" data-kind="cave" data-i18n="kindCaverna">🕳️ Caverna</span>
+                    <span class="jk-kind-chip" data-kind="resource_node" data-i18n="chipRecurso">⛏️ Minério/Recurso</span>
                     <span class="jk-kind-chip" data-kind="idol">✨ Idol / Plinth</span>
-                    <span class="jk-kind-chip" data-kind="supply_point">📦 Suprimento</span>
-                    <span class="jk-kind-chip" data-kind="fauna">🦗 Fauna / Montaria</span>
-                    <span class="jk-kind-chip" id="chipToponimo" data-kind="landmark" style="display:none;">🏷️ Topônimo (Admin)</span>
+                    <span class="jk-kind-chip" data-kind="supply_point" data-i18n="chipSuprimento">📦 Suprimento</span>
+                    <span class="jk-kind-chip" data-kind="fauna" data-i18n="kindFauna">🦗 Fauna / Montaria</span>
+                    <span class="jk-kind-chip" id="chipToponimo" data-kind="landmark" style="display:none;" data-i18n="kindToponimo">🏷️ Topônimo (Admin)</span>
                 </div>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Facção</label>
+                <label class="sw-form-label" data-i18n="faccao">Facção</label>
                 <div class="jk-faction-row">
                     <button class="jk-faction-btn jackal" onclick="selecionarFaccao('jackal', this)">🔴 Jackal</button>
                     <button class="jk-faction-btn freedom selected" onclick="selecionarFaccao('freedom', this)">🟢 Freedom</button>
-                    <button class="jk-faction-btn unknown" onclick="selecionarFaccao('unknown', this)">❓ Desc.</button>
+                    <button class="jk-faction-btn unknown" onclick="selecionarFaccao('unknown', this)" data-i18n="faccaoDesc">❓ Desc.</button>
                 </div>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Nome / Descrição</label>
-                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Torre Norte, Spot de Weta...">
+                <label class="sw-form-label" data-i18n="nomeDescricao">Nome / Descrição</label>
+                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Torre Norte, Spot de Weta..." data-i18n-placeholder="phNomePonto">
             </div>
 
             <div class="sw-form-group" id="rowMayor" style="display:block;">
-                <label class="sw-form-label">👑 Prefeito / Responsável (Mayor)</label>
-                <input type="text" class="sw-form-input" id="inputMayor" placeholder="Ex: Kuropr, ShadowHunter...">
+                <label class="sw-form-label" data-i18n="prefeito">👑 Prefeito / Responsável (Mayor)</label>
+                <input type="text" class="sw-form-input" id="inputMayor" placeholder="Ex: Kuropr, ShadowHunter..." data-i18n-placeholder="phMayor">
             </div>
 
             <div class="sw-form-group" id="rowDificuldade">
-                <label class="sw-form-label">Dificuldade Estimada (1–5)</label>
+                <label class="sw-form-label" data-i18n="dificuldade">Dificuldade Estimada (1–5)</label>
                 <select class="sw-form-select" id="selectDificuldade">
-                    <option value="">— Não Informado —</option>
-                    <option value="1">1 — Fácil (Poucos Mobs)</option>
-                    <option value="2">2 — Moderado</option>
-                    <option value="3">3 — Difícil</option>
-                    <option value="4">4 — Muito Difícil</option>
-                    <option value="5">5 — Extremo / Boss</option>
+                    <option value="" data-i18n="difNao">— Não Informado —</option>
+                    <option value="1" data-i18n="dif1">1 — Fácil (Poucos Mobs)</option>
+                    <option value="2" data-i18n="dif2">2 — Moderado</option>
+                    <option value="3" data-i18n="dif3">3 — Difícil</option>
+                    <option value="4" data-i18n="dif4">4 — Muito Difícil</option>
+                    <option value="5" data-i18n="dif5">5 — Extremo / Boss</option>
                 </select>
             </div>
 
             <div class="sw-modal-actions">
-                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalAddPonto')">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarPontoSubmissao()">✓ Salvar Anotação</button>
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalAddPonto')" data-i18n="cancelar">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarPontoSubmissao()" data-i18n="salvarAnotacao">✓ Salvar Anotação</button>
             </div>
-            <div style="font-size:9.5px; color:var(--sw-text-muted); margin-top:8px; text-align:center;">
+            <div style="font-size:9.5px; color:var(--sw-text-muted); margin-top:8px; text-align:center;" data-i18n="notaModeracao">
                 Anotações de membros passam pela confirmação de um Oficial ou Administrador antes de ficarem visíveis a todos.
             </div>
         </div>
@@ -1206,16 +1206,16 @@
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Título 🇧🇷 (PT)</label>
-                <input type="text" class="sw-form-input" id="inputObjTitulo" placeholder="Ex: Pavimentar Estrada do Vale Norte...">
+                <label class="sw-form-label" data-i18n="tituloPT">Título 🇧🇷 (PT)</label>
+                <input type="text" class="sw-form-input" id="inputObjTitulo" placeholder="Ex: Pavimentar Estrada do Vale Norte..." data-i18n-placeholder="phObjTitulo">
             </div>
             <div class="sw-form-group">
-                <label class="sw-form-label">Title 🇺🇸 (EN) — opcional</label>
-                <input type="text" class="sw-form-input" id="inputObjTituloEn" placeholder="Ex: Pave the North Valley Road...">
+                <label class="sw-form-label" data-i18n="tituloEN">Title 🇺🇸 (EN) — opcional</label>
+                <input type="text" class="sw-form-input" id="inputObjTituloEn" placeholder="Ex: Pave the North Valley Road..." data-i18n-placeholder="phObjTituloEn">
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Nível de Prioridade</label>
+                <label class="sw-form-label" data-i18n="nivelPrioridade">Nível de Prioridade</label>
                 <div class="jk-faction-row">
                     <button class="jk-faction-btn jackal selected" id="btnP1" onclick="selecionarPrioridadeModal('p1', this)">🔴 P1</button>
                     <button class="jk-faction-btn neutral" id="btnP2" onclick="selecionarPrioridadeModal('p2', this)">🟡 P2</button>
@@ -1224,20 +1224,20 @@
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Categoria</label>
+                <label class="sw-form-label" data-i18n="categoria">Categoria</label>
                 <select class="sw-form-select" id="selectObjTipo">
                     <option value="beacon_hold">🔴 Beacon</option>
-                    <option value="road">🛣️ Estrada / Road</option>
-                    <option value="bridge">🌉 Ponte / Bridge</option>
-                    <option value="explore">🕳️ Exploração / Explore</option>
-                    <option value="supply">📦 Suprimento / Supply</option>
-                    <option value="custom">🎯 Outro / Other</option>
+                    <option value="road" data-i18n="catRoad">🛣️ Estrada / Road</option>
+                    <option value="bridge" data-i18n="catBridge">🌉 Ponte / Bridge</option>
+                    <option value="explore" data-i18n="catExplore">🕳️ Exploração / Explore</option>
+                    <option value="supply" data-i18n="catSupply">📦 Suprimento / Supply</option>
+                    <option value="custom" data-i18n="catCustom">🎯 Outro / Other</option>
                 </select>
             </div>
 
             <div class="sw-modal-actions">
-                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNovoObjetivo')">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarNovoObjetivo()">✓ Publicar Objetivo</button>
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNovoObjetivo')" data-i18n="cancelar">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarNovoObjetivo()" data-i18n="publicarObjetivo">✓ Publicar Objetivo</button>
             </div>
         </div>
     </div>
@@ -1248,16 +1248,16 @@
     <div id="modalNickWurm" class="jk-modal-overlay">
         <div class="sw-modal-window" style="width:340px; max-width:92vw;">
             <div class="sw-modal-header">
-                <div class="sw-modal-title">⚔️ Nick no Wurm Online</div>
+                <div class="sw-modal-title" data-i18n="tituloNick">⚔️ Nick no Wurm Online</div>
                 <button class="sw-modal-close" onclick="fecharModal('modalNickWurm')">✕</button>
             </div>
             <div class="sw-form-group">
-                <label class="sw-form-label">Nome do seu Personagem</label>
-                <input type="text" class="sw-form-input" id="inputNovoNick" placeholder="Ex: ShadowHunter">
+                <label class="sw-form-label" data-i18n="nomePersonagem">Nome do seu Personagem</label>
+                <input type="text" class="sw-form-input" id="inputNovoNick" placeholder="Ex: ShadowHunter" data-i18n-placeholder="phNick">
             </div>
             <div class="sw-modal-actions">
-                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNickWurm')">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarNickModal()">Salvar</button>
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNickWurm')" data-i18n="cancelar">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarNickModal()" data-i18n="salvar">Salvar</button>
             </div>
         </div>
     </div>
@@ -1268,7 +1268,7 @@
     <div id="modalEditarPonto" class="jk-modal-overlay">
         <div class="sw-modal-window" style="width:420px; max-width:92vw;">
             <div class="sw-modal-header">
-                <div class="sw-modal-title">
+                <div class="sw-modal-title" data-i18n="tituloEditarPonto">
                     ✏️ Editar Ponto / Deed
                 </div>
                 <button class="sw-modal-close" onclick="fecharModal('modalEditarPonto')">✕</button>
@@ -1277,7 +1277,7 @@
             <input type="hidden" id="inputEditPontoId">
 
             <div class="sw-coord-pill-badge" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>📍 Coordenadas Wurm</span>
+                <span data-i18n="coordWurm">📍 Coordenadas Wurm</span>
                 <span id="modalEditQuadBadge" style="font-family:'JetBrains Mono',monospace; color:var(--jk-accent); font-weight:700; font-size:11px;">-</span>
             </div>
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
@@ -1291,49 +1291,49 @@
                 </div>
             </div>
             <div style="font-size:10px; color:var(--sw-text-muted); margin-top:-6px; margin-bottom:12px;">
-                💡 <em>Dica:</em> Cole <code>2897,2845</code> ou <code>/vamp 2897 2845</code> para autocompletar X e Y.
+                💡 <em data-i18n="dica">Dica:</em> <span data-i18n="dicaCole">Cole</span> <code>2897,2845</code> <span data-i18n="ou">ou</span> <code>/vamp 2897 2845</code> <span data-i18n="dicaAuto">para autocompletar X e Y.</span>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Tipo de Ponto</label>
+                <label class="sw-form-label" data-i18n="tipoPonto">Tipo de Ponto</label>
                 <select class="sw-form-select" id="selectEditKind" onchange="alternarCamposEdicao(this.value)">
                     <option value="village">🏘️ Deed</option>
-                    <option value="tower">🏰 Torre de Guarda</option>
+                    <option value="tower" data-i18n="kindTorre">🏰 Torre de Guarda</option>
                     <option value="beacon">🔴 Beacon</option>
                     <option value="lodestone">🪨 Lodestone</option>
-                    <option value="cave">🕳️ Caverna</option>
-                    <option value="resource_node">⛏️ Recursos Minerais</option>
+                    <option value="cave" data-i18n="kindCaverna">🕳️ Caverna</option>
+                    <option value="resource_node" data-i18n="recursos">⛏️ Recursos Minerais</option>
                     <option value="idol">✨ Idol / Plinth</option>
-                    <option value="supply_point">📦 Ponto de Suprimento</option>
-                    <option value="fauna">🦗 Fauna / Montaria</option>
-                    <option value="landmark">🏷️ Topônimo (Admin)</option>
+                    <option value="supply_point" data-i18n="kindSupplyPoint">📦 Ponto de Suprimento</option>
+                    <option value="fauna" data-i18n="kindFauna">🦗 Fauna / Montaria</option>
+                    <option value="landmark" data-i18n="kindToponimo">🏷️ Topônimo (Admin)</option>
                 </select>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Facção</label>
+                <label class="sw-form-label" data-i18n="faccao">Facção</label>
                 <select class="sw-form-select" id="selectEditFaccao">
                     <option value="jackal">🔴 Jackal</option>
                     <option value="freedom">🟢 Freedom</option>
-                    <option value="unknown">❓ Desconhecido</option>
+                    <option value="unknown" data-i18n="desconhecido">❓ Desconhecido</option>
                 </select>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Nome / Título</label>
-                <input type="text" class="sw-form-input" id="inputEditNomePonto" placeholder="Nome do ponto ou da Deed...">
+                <label class="sw-form-label" data-i18n="nomeTitulo">Nome / Título</label>
+                <input type="text" class="sw-form-input" id="inputEditNomePonto" placeholder="Nome do ponto ou da Deed..." data-i18n-placeholder="phEditNome">
             </div>
 
             <div class="sw-form-group" id="rowEditMayor" style="display:none;">
-                <label class="sw-form-label">👑 Prefeito / Responsável (Mayor)</label>
-                <input type="text" class="sw-form-input" id="inputEditMayor" placeholder="Ex: Kuropr, ShadowHunter...">
+                <label class="sw-form-label" data-i18n="prefeito">👑 Prefeito / Responsável (Mayor)</label>
+                <input type="text" class="sw-form-input" id="inputEditMayor" placeholder="Ex: Kuropr, ShadowHunter..." data-i18n-placeholder="phMayor">
             </div>
 
             <div class="sw-modal-actions" style="display:flex; justify-content:space-between; gap:10px;">
-                <button class="sw-btn-modal-cancel" style="border-color:rgba(255,68,68,0.4); color:var(--jk-jackal);" onclick="excluirPontoDoModal()">🗑️ Excluir</button>
+                <button class="sw-btn-modal-cancel" style="border-color:rgba(255,68,68,0.4); color:var(--jk-jackal);" onclick="excluirPontoDoModal()" data-i18n="btnExcluir">🗑️ Excluir</button>
                 <div style="display:flex; gap:8px;">
-                    <button class="sw-btn-modal-cancel" onclick="fecharModal('modalEditarPonto')">Cancelar</button>
-                    <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarEdicaoPonto()">✓ Salvar</button>
+                    <button class="sw-btn-modal-cancel" onclick="fecharModal('modalEditarPonto')" data-i18n="cancelar">Cancelar</button>
+                    <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="salvarEdicaoPonto()" data-i18n="btnSalvarCheck">✓ Salvar</button>
                 </div>
             </div>
         </div>
@@ -1350,26 +1350,26 @@
             </div>
 
             <div style="background:var(--sw-bg-subtle); border:1px solid var(--sw-border-subtle); border-radius:6px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:11px; color:var(--sw-text-muted);">Extensão Total da Obra:</span>
+                <span style="font-size:11px; color:var(--sw-text-muted);" data-i18n="extensaoTotal">Extensão Total da Obra:</span>
                 <strong id="modalRotaDistancia" style="color:var(--jk-accent); font-family:'JetBrains Mono'; font-size:13px;">0 tiles</strong>
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Nome da Estrada / Ponte</label>
-                <input type="text" class="sw-form-input" id="inputNomeRota" placeholder="Ex: Estrada Real do Leste, Ponte do Desfiladeiro...">
+                <label class="sw-form-label" data-i18n="nomeRota">Nome da Estrada / Ponte</label>
+                <input type="text" class="sw-form-input" id="inputNomeRota" placeholder="Ex: Estrada Real do Leste, Ponte do Desfiladeiro..." data-i18n-placeholder="phNomeRota">
             </div>
 
             <div class="sw-form-group">
-                <label class="sw-form-label">Estado da Obra</label>
+                <label class="sw-form-label" data-i18n="estadoObra">Estado da Obra</label>
                 <select class="sw-form-select" id="selectStatusRota">
-                    <option value="planned">🟡 Planejada (Linha Tracejada)</option>
-                    <option value="built">🟢 Concluída / Pavimentada (Linha Sólida)</option>
+                    <option value="planned" data-i18n="rotaPlanejada">🟡 Planejada (Linha Tracejada)</option>
+                    <option value="built" data-i18n="rotaConcluida">🟢 Concluída / Pavimentada (Linha Sólida)</option>
                 </select>
             </div>
 
             <div class="sw-modal-actions">
-                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalSalvarRota')">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarSalvarRota()">✓ Salvar Obra</button>
+                <button class="sw-btn-modal-cancel" onclick="fecharModal('modalSalvarRota')" data-i18n="cancelar">Cancelar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarSalvarRota()" data-i18n="salvarObra">✓ Salvar Obra</button>
             </div>
         </div>
     </div>
@@ -1382,27 +1382,27 @@
         <div class="tactical-print-toolbar">
             <!-- FERRAMENTAS TÁTICAS BÁSICAS -->
             <div class="tactical-tool-group">
-                <button id="toolPencil" class="tactical-tool-btn active" onclick="definirFerramentaPrint('pencil')" data-i18n="toolPencil" title="Caneta Livre">✏️ Caneta</button>
-                <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')" data-i18n="toolArrow" title="Seta Tática">➡️ Seta</button>
-                <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')" data-i18n="toolCircle" title="Círculo de Alvo / Perímetro">⭕ Alvo</button>
-                <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')" data-i18n="toolText" title="Texto">🔤 Texto</button>
+                <button id="toolPencil" class="tactical-tool-btn active" onclick="definirFerramentaPrint('pencil')" data-i18n="toolPencil" title="Caneta Livre" data-i18n-title="ttPencil">✏️ Caneta</button>
+                <button id="toolArrow" class="tactical-tool-btn" onclick="definirFerramentaPrint('arrow')" data-i18n="toolArrow" title="Seta Tática" data-i18n-title="ttArrow">➡️ Seta</button>
+                <button id="toolCircle" class="tactical-tool-btn" onclick="definirFerramentaPrint('circle')" data-i18n="toolCircle" title="Círculo de Alvo / Perímetro" data-i18n-title="ttCircle">⭕ Alvo</button>
+                <button id="toolText" class="tactical-tool-btn" onclick="definirFerramentaPrint('text')" data-i18n="toolText" title="Texto" data-i18n-title="ttText">🔤 Texto</button>
             </div>
 
             <div class="tactical-separator"></div>
 
             <!-- ENGENHARIA DE VIAS (TRAÇADOS CARTOGRÁFICOS) -->
             <div class="tactical-tool-group">
-                <button id="toolRoad" class="tactical-tool-btn" onclick="definirFerramentaPrint('road')" data-i18n="toolRoad" title="Estrada Feita (Contínua)">🛣️ Estrada</button>
-                <button id="toolRoadPlan" class="tactical-tool-btn" onclick="definirFerramentaPrint('road_plan')" data-i18n="toolRoadPlan" title="Estrada Projeto (Tracejada)">🚧 Projeto</button>
-                <button id="toolBridge" class="tactical-tool-btn" onclick="definirFerramentaPrint('bridge')" data-i18n="toolBridge" title="Ponte (Madeira / Estrutura)">🌉 Ponte</button>
-                <button id="toolTunnel" class="tactical-tool-btn" onclick="definirFerramentaPrint('tunnel')" data-i18n="toolTunnel" title="Túnel Subterrâneo">🚇 Túnel</button>
+                <button id="toolRoad" class="tactical-tool-btn" onclick="definirFerramentaPrint('road')" data-i18n="toolRoad" title="Estrada Feita (Contínua)" data-i18n-title="ttRoad">🛣️ Estrada</button>
+                <button id="toolRoadPlan" class="tactical-tool-btn" onclick="definirFerramentaPrint('road_plan')" data-i18n="toolRoadPlan" title="Estrada Projeto (Tracejada)" data-i18n-title="ttRoadPlan">🚧 Projeto</button>
+                <button id="toolBridge" class="tactical-tool-btn" onclick="definirFerramentaPrint('bridge')" data-i18n="toolBridge" title="Ponte (Madeira / Estrutura)" data-i18n-title="ttBridge">🌉 Ponte</button>
+                <button id="toolTunnel" class="tactical-tool-btn" onclick="definirFerramentaPrint('tunnel')" data-i18n="toolTunnel" title="Túnel Subterrâneo" data-i18n-title="ttTunnel">🚇 Túnel</button>
             </div>
 
             <div class="tactical-separator"></div>
 
             <!-- MARCADORES CLEAN (SEM TEXTO) -->
             <div class="tactical-stamp-container" style="position:relative; display:inline-block;">
-                <button id="toolStamp" class="tactical-tool-btn" onclick="toggleMenuCarimbos(event)" title="Carimbos Táticos Clean">
+                <button id="toolStamp" class="tactical-tool-btn" onclick="toggleMenuCarimbos(event)" title="Carimbos Táticos Clean" data-i18n-title="ttStamp">
                     <span id="stampCurrentIcon">🏰</span> <span data-i18n="toolStamp">Ícones</span> ▼
                 </button>
                 <div id="tacticalStampMenu" class="tactical-stamp-menu" style="display:none;">
@@ -1418,28 +1418,28 @@
 
             <!-- PALETA DE ALTO CONTRASTE -->
             <div class="tactical-color-picker">
-                <div class="tactical-color-dot" style="background:#000000; border:1px solid #777;" onclick="definirCorPrint('#000000', this)" title="Preto Tático"></div>
-                <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco Puro"></div>
-                <div class="tactical-color-dot" style="background:#ffee00;" onclick="definirCorPrint('#ffee00', this)" title="Amarelo Neon"></div>
-                <div class="tactical-color-dot" style="background:#ff007f;" onclick="definirCorPrint('#ff007f', this)" title="Rosa / Magenta Neon"></div>
-                <div class="tactical-color-dot" style="background:#00ff66;" onclick="definirCorPrint('#00ff66', this)" title="Verde Neon"></div>
-                <div class="tactical-color-dot" style="background:#00f0ff;" onclick="definirCorPrint('#00f0ff', this)" title="Ciano Elétrico"></div>
-                <div class="tactical-color-dot active" style="background:#ff2222;" onclick="definirCorPrint('#ff2222', this)" title="Vermelho Jackal"></div>
-                <div class="tactical-color-dot" style="background:#ff7700;" onclick="definirCorPrint('#ff7700', this)" title="Laranja Fogo"></div>
+                <div class="tactical-color-dot" style="background:#000000; border:1px solid #777;" onclick="definirCorPrint('#000000', this)" title="Preto Tático" data-i18n-title="ttCorPreto"></div>
+                <div class="tactical-color-dot" style="background:#ffffff;" onclick="definirCorPrint('#ffffff', this)" title="Branco Puro" data-i18n-title="ttCorBranco"></div>
+                <div class="tactical-color-dot" style="background:#ffee00;" onclick="definirCorPrint('#ffee00', this)" title="Amarelo Neon" data-i18n-title="ttCorAmarelo"></div>
+                <div class="tactical-color-dot" style="background:#ff007f;" onclick="definirCorPrint('#ff007f', this)" title="Rosa / Magenta Neon" data-i18n-title="ttCorRosa"></div>
+                <div class="tactical-color-dot" style="background:#00ff66;" onclick="definirCorPrint('#00ff66', this)" title="Verde Neon" data-i18n-title="ttCorVerde"></div>
+                <div class="tactical-color-dot" style="background:#00f0ff;" onclick="definirCorPrint('#00f0ff', this)" title="Ciano Elétrico" data-i18n-title="ttCorCiano"></div>
+                <div class="tactical-color-dot active" style="background:#ff2222;" onclick="definirCorPrint('#ff2222', this)" title="Vermelho Jackal" data-i18n-title="ttCorVermelho"></div>
+                <div class="tactical-color-dot" style="background:#ff7700;" onclick="definirCorPrint('#ff7700', this)" title="Laranja Fogo" data-i18n-title="ttCorLaranja"></div>
             </div>
 
             <div class="tactical-tool-group">
-                <button class="tactical-tool-btn" onclick="desfazerPrint()" title="Desfazer">↩️</button>
-                <button class="tactical-tool-btn" onclick="limparAnotacoesPrint()" title="Limpar">🗑️</button>
+                <button class="tactical-tool-btn" onclick="desfazerPrint()" title="Desfazer" data-i18n-title="ttDesfazer">↩️</button>
+                <button class="tactical-tool-btn" onclick="limparAnotacoesPrint()" title="Limpar" data-i18n-title="ttLimpar">🗑️</button>
             </div>
 
             <div class="tactical-separator"></div>
 
             <div class="tactical-tool-group">
-                <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" data-i18n="btnUploadLink" title="Upload instantâneo para link direto de imagem">🔗 Gerar Link</button>
-                <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" data-i18n="btnCopyImg" title="Copiar para colar no Discord com Ctrl+V">📋 Copiar Imagem</button>
-                <button class="tactical-btn-action" onclick="baixarPrintPNG()" data-i18n="btnSavePng" title="Baixar arquivo PNG">💾 Salvar</button>
-                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" data-i18n="btnClosePrint" title="Fechar Modo Print (ou pressione ESC)">✕ (Esc)</button>
+                <button id="btnUploadLink" class="tactical-btn-action tactical-btn-link" onclick="uploadPrintLink()" data-i18n="btnUploadLink" title="Upload instantâneo para link direto de imagem" data-i18n-title="ttUploadLink">🔗 Gerar Link</button>
+                <button id="btnCopyImg" class="tactical-btn-action tactical-btn-copy" onclick="copiarPrintClipboard()" data-i18n="btnCopyImg" title="Copiar para colar no Discord com Ctrl+V" data-i18n-title="ttCopyImg">📋 Copiar Imagem</button>
+                <button class="tactical-btn-action" onclick="baixarPrintPNG()" data-i18n="btnSavePng" title="Baixar arquivo PNG" data-i18n-title="ttSavePng">💾 Salvar</button>
+                <button class="tactical-btn-action tactical-btn-close" onclick="fecharModoPrint()" data-i18n="btnClosePrint" title="Fechar Modo Print (ou pressione ESC)" data-i18n-title="ttClosePrint">✕ (Esc)</button>
             </div>
         </div>
 
@@ -1476,6 +1476,9 @@
     }, window.JACKAL_CONFIG || {});
 
     CFG.tiles = Object.assign({}, defaultTiles, (window.JACKAL_CONFIG && window.JACKAL_CONFIG.tiles) || {});
+
+    // Idioma atual (declarado cedo para que txt() funcione em qualquer ponto do script) • Current UI language, declared early so txt() works anywhere in the script
+    let idiomaAtual = localStorage.getItem('jackal_atlas_lang') || 'pt';
 
     // Inicialização do cliente Supabase
     const supabaseClient = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
@@ -1555,8 +1558,10 @@
         const btnPrint = L.DomUtil.create('a', 'leaflet-control-zoom-print', zoomContainer);
         btnPrint.href = 'javascript:void(0)';
         btnPrint.title = 'Captura Tática / Print (Goldfish®)';
+        btnPrint.setAttribute('data-i18n-title', 'ttPrint');
         btnPrint.setAttribute('role', 'button');
         btnPrint.setAttribute('aria-label', 'Captura Tática');
+        btnPrint.setAttribute('data-i18n-aria', 'ariaPrint');
         btnPrint.innerHTML = '📷';
         L.DomEvent.disableClickPropagation(btnPrint);
         btnPrint.onclick = function(e) {
@@ -1624,7 +1629,7 @@
         const iconMira = L.divIcon({
             className: 'target-mira-icon-container',
             html: `
-                <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="Alvo Marcado (${x}, ${y}) - Clique para remover">
+                <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${txt(`Alvo Marcado (${x}, ${y}) - Clique para remover`, `Marked Target (${x}, ${y}) - Click to remove`)}">
                     <div style="position:absolute; width:28px; height:28px; border-radius:50%; border:2px solid #ef4444; animation:sw-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity:0.85;"></div>
                     <div style="position:absolute; width:18px; height:18px; border-radius:50%; background:rgba(239, 68, 68, 0.25); border:1.5px solid #ef4444;"></div>
                     <div style="width:4px; height:4px; border-radius:50%; background:#ef4444;"></div>
@@ -1928,10 +1933,10 @@
     function copiarVamp(x, y, btn) {
         const cmd = `${Math.round(x)},${Math.round(y)}`;
         navigator.clipboard.writeText(cmd).then(() => {
-            mostrarToastCartografico(`📋 Coordenadas • Coordinates <strong>${cmd}</strong> copiadas • copied!`);
+            mostrarToastCartografico(txt(`📋 Coordenadas <strong>${cmd}</strong> copiadas!`, `📋 Coordinates <strong>${cmd}</strong> copied to clipboard!`));
             if (btn) {
                 const oldText = btn.innerHTML;
-                btn.innerHTML = '✓ Copiado';
+                btn.innerHTML = txt('✓ Copiado', '✓ Copied');
                 btn.style.borderColor = '#00e676';
                 btn.style.color = '#00e676';
                 setTimeout(() => {
@@ -1941,7 +1946,7 @@
                 }, 1800);
             }
         }).catch(() => {
-            prompt('Copie as coordenadas • Copy the coordinates:', cmd);
+            prompt(txt('Copie as coordenadas:', 'Copy the coordinates:'), cmd);
         });
     }
 
@@ -2111,8 +2116,8 @@
             exibirInfluenciaBeacons ? map.addLayer(layers.influencia) : map.removeLayer(layers.influencia);
         }
         mostrarToastCartografico(exibirInfluenciaBeacons 
-            ? '📡 Radar de Influência dos Beacons: <strong style="color:#10b981;">Ativo</strong>' 
-            : '📡 Radar de Influência: <strong style="color:var(--sw-text-muted);">Oculto</strong>'
+            ? txt('📡 Radar de Influência dos Beacons: <strong style="color:#10b981;">Ativo</strong>', '📡 Beacon Influence Radar: <strong style="color:#10b981;">On</strong>')
+            : txt('📡 Radar de Influência: <strong style="color:var(--sw-text-muted);">Oculto</strong>', '📡 Influence Radar: <strong style="color:var(--sw-text-muted);">Hidden</strong>')
         );
     }
 
@@ -2190,8 +2195,8 @@
 
         renderizarCoberturaTorres();
         mostrarToastCartografico(exibirCoberturaTorres 
-            ? '🏰 Cobertura de Torres (50t): <strong style="color:#38bdf8;">Ativa (100x100 tiles)</strong>' 
-            : '🏰 Cobertura de Torres: <strong style="color:var(--sw-text-muted);">Oculta</strong>'
+            ? txt('🏰 Cobertura de Torres (50t): <strong style="color:#38bdf8;">Ativa (100x100 tiles)</strong>', '🏰 Tower Coverage (50t): <strong style="color:#38bdf8;">On (100x100 tiles)</strong>')
+            : txt('🏰 Cobertura de Torres: <strong style="color:var(--sw-text-muted);">Oculta</strong>', '🏰 Tower Coverage: <strong style="color:var(--sw-text-muted);">Hidden</strong>')
         );
     }
 
@@ -2268,17 +2273,17 @@
             const isTower = (p.kind === 'tower');
             const mayor = p.attrs?.mayor;
             const faccaoCor = p.faction === 'freedom' ? 'var(--jk-freedom)' : (p.faction === 'jackal' ? 'var(--jk-jackal)' : 'var(--jk-neutral)');
-            const faccaoNome = p.faction === 'freedom' ? 'Freedom' : (p.faction === 'jackal' ? 'Jackal' : 'Neutro');
+            const faccaoNome = p.faction === 'freedom' ? 'Freedom' : (p.faction === 'jackal' ? 'Jackal' : txt('Neutro', 'Neutral'));
 
             const isPendente = (p.confirmed === false);
             const isStaff = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
-            const pendingBadge = isPendente ? `<span style="position:absolute; top:-6px; right:-6px; font-size:9px; background:#f5a623; color:#000; border-radius:50%; width:15px; height:15px; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 1px 3px rgba(0,0,0,0.8);" title="Pendente de Moderação">⏳</span>` : '';
+            const pendingBadge = isPendente ? `<span style="position:absolute; top:-6px; right:-6px; font-size:9px; background:#f5a623; color:#000; border-radius:50%; width:15px; height:15px; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 1px 3px rgba(0,0,0,0.8);" title="${txt('Pendente de Moderação', 'Pending Moderation')}">⏳</span>` : '';
 
             const m = L.marker([mapSize - y, x], {
                 icon: L.divIcon({
                     className: '',
                     iconAnchor: [12, 12],
-                    html: `<div style="position:relative; font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}${isPendente ? ' (Pendente)' : ''}">${conf.icon}${pendingBadge}</div>`
+                    html: `<div style="position:relative; font-size:18px; cursor:pointer; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));" title="${sanitize(p.name || p.kind)}${isPendente ? txt(' (Pendente)', ' (Pending)') : ''}">${conf.icon}${pendingBadge}</div>`
                 })
             });
 
@@ -2294,7 +2299,7 @@
             const safePointName = sanitize(p.name || p.kind).replace(/'/g, "\\'");
             const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
                 <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('point', ${JSON.stringify({id: p.id, name: p.name || p.kind, kind: p.kind, x: p.x, y: p.y}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                    🎯 Tornar Meta da Guilda
+                    ${txt('🎯 Tornar Meta da Guilda', '🎯 Make Guild Objective')}
                 </button>
             ` : '';
 
@@ -2304,18 +2309,18 @@
                     moderacaoHtml = `
                         <div style="background:rgba(245,166,35,0.14); border:1px solid rgba(245,166,35,0.4); border-radius:4px; padding:6px; margin-top:6px;">
                             <div style="font-size:9.5px; color:#f5a623; font-weight:800; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
-                                <span>⏳</span> Proposta Pendente de Moderação
+                                <span>⏳</span> ${txt('Proposta Pendente de Moderação', 'Proposal Awaiting Moderation')}
                             </div>
                             <div style="display:flex; gap:6px;">
-                                <button onclick="event.stopPropagation(); aprovarPontoRapido('${p.id}')" style="flex:1; background:#00e676; color:#000; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">✓ Aprovar</button>
-                                <button onclick="event.stopPropagation(); rejeitarPontoRapido('${p.id}')" style="flex:1; background:#ff4444; color:#fff; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">✕ Rejeitar</button>
+                                <button onclick="event.stopPropagation(); aprovarPontoRapido('${p.id}')" style="flex:1; background:#00e676; color:#000; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">${txt('✓ Aprovar', '✓ Approve')}</button>
+                                <button onclick="event.stopPropagation(); rejeitarPontoRapido('${p.id}')" style="flex:1; background:#ff4444; color:#fff; font-weight:800; border:none; border-radius:3px; padding:4px 6px; font-size:10px; cursor:pointer;">${txt('✕ Rejeitar', '✕ Reject')}</button>
                             </div>
                         </div>
                     `;
                 } else if (currentUser && p.created_by === currentUser.id) {
                     moderacaoHtml = `
                         <div style="background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.3); border-radius:4px; padding:4px 6px; margin-top:6px; font-size:9.5px; color:#f5a623;">
-                            ⏳ <strong>Sua anotação está em análise</strong> e aparecerá para todos após aprovação de um Oficial.
+                            ${txt('⏳ <strong>Sua anotação está em análise</strong> e aparecerá para todos após aprovação de um Oficial.', '⏳ <strong>Your note is under review</strong> and will be visible to everyone once an Officer approves it.')}
                         </div>
                     `;
                 }
@@ -2324,10 +2329,10 @@
             const actionBtns = canManage ? `
                 <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #30363d; padding-top:6px;">
                     <button onclick="event.stopPropagation(); abrirModalEditarPonto('${p.id}')" style="flex:1; background:rgba(245,166,35,0.12); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        ✏️ Editar
+                        ${txt('✏️ Editar', '✏️ Edit')}
                     </button>
                     <button onclick="event.stopPropagation(); excluirPonto('${p.id}', '${safePointName}')" style="flex:1; background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:var(--jk-jackal); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        🗑️ Excluir
+                        ${txt('🗑️ Excluir', '🗑️ Delete')}
                     </button>
                 </div>
             ` : '';
@@ -2337,15 +2342,15 @@
                 popupContent = `
                     <div style="font-family:'Inter',sans-serif; min-width:190px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-                            <span>🏘️</span> <span>${sanitize(p.name || 'Deed Sem Nome')}</span>
+                            <span>🏘️</span> <span>${sanitize(p.name || txt('Deed Sem Nome', 'Unnamed Deed'))}</span>
                         </div>
                         <div style="font-size:10px; color:${faccaoCor}; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
-                            🚩 Facção: ${faccaoNome}
+                            🚩 ${txt('Facção', 'Faction')}: ${faccaoNome}
                         </div>
-                        ${mayor ? `<div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">👑 Prefeito: <strong style="color:#fff;">${sanitize(mayor)}</strong></div>` : ''}
+                        ${mayor ? `<div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">👑 ${txt('Prefeito', 'Mayor')}: <strong style="color:#fff;">${sanitize(mayor)}</strong></div>` : ''}
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="${txt('Copiar coordenadas X,Y (para o Discord ou o formulário de marcador)', 'Copy X,Y coordinates (for Discord or the Add Marker form)')}">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -2356,14 +2361,14 @@
                 popupContent = `
                     <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-                            <span>🏰</span> <span>${sanitize(p.name || 'Torre de Guarda')}</span>
+                            <span>🏰</span> <span>${sanitize(p.name || txt('Torre de Guarda', 'Guard Tower'))}</span>
                         </div>
                         <div style="font-size:10px; color:${faccaoCor}; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
-                            🚩 Facção: ${faccaoNome} &bull; <span style="color:#38bdf8;">Cobertura 100x100t [Y]</span>
+                            🚩 ${txt('Facção', 'Faction')}: ${faccaoNome} &bull; <span style="color:#38bdf8;">${txt('Cobertura 100x100t [Y]', 'Coverage 100x100t [Y]')}</span>
                         </div>
                         <div style="font-size:10px; color:#94a3b8; margin-top:6px; border-top:1px solid #30363d; padding-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 <strong>X: ${x} • Y: ${y}</strong> &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="${txt('Copiar coordenadas X,Y (para o Discord ou o formulário de marcador)', 'Copy X,Y coordinates (for Discord or the Add Marker form)')}">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -2378,7 +2383,7 @@
                         </div>
                         <div style="font-size:10px; color:#94a3b8; border-top:1px solid #30363d; padding-top:4px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                             <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
-                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="Copiar coordenadas X,Y (para o Discord ou o formulário de marcador) • Copy X,Y coordinates">📋 X,Y</button>
+                            <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="${txt('Copiar coordenadas X,Y (para o Discord ou o formulário de marcador)', 'Copy X,Y coordinates (for Discord or the Add Marker form)')}">📋 X,Y</button>
                         </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
@@ -2418,7 +2423,7 @@
         if (boxQuick) boxQuick.style.display = 'grid';
         const btnMeta = document.getElementById('btnTornarMetaPonto');
         if (btnMeta) btnMeta.style.display = (currentProfile && currentProfile.role === 'admin') ? 'block' : 'none';
-        document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${sanitize(b.nome)}</strong> (${sanitize(b.faccao).toUpperCase()}) em X: ${sanitizeCoord(b.x)}, Y: ${sanitizeCoord(b.y)}`;
+        document.getElementById('acoTargetDesc').innerHTML = `🎯 <strong>${sanitize(b.nome)}</strong> (${sanitize(b.faccao).toUpperCase()}) ${txt('em', 'at')} X: ${sanitizeCoord(b.x)}, Y: ${sanitizeCoord(b.y)}`;
         const sbRight = document.getElementById('sidebarRight');
         if (sbRight && sbRight.classList.contains('recolhida')) toggleSidebarDireita();
     }
@@ -2430,17 +2435,17 @@
         const btnMeta = document.getElementById('btnTornarMetaPonto');
         if (btnMeta) btnMeta.style.display = (currentProfile && currentProfile.role === 'admin') ? 'block' : 'none';
         const quad = obterQuadranteWurm(p.y, p.x);
-        document.getElementById('acoTargetDesc').innerHTML = `📍 <strong>${sanitize(p.name || p.kind)}</strong> em X: ${sanitizeCoord(p.x)}, Y: ${sanitizeCoord(p.y)} &bull; ${quad}`;
+        document.getElementById('acoTargetDesc').innerHTML = `📍 <strong>${sanitize(p.name || p.kind)}</strong> ${txt('em', 'at')} X: ${sanitizeCoord(p.x)}, Y: ${sanitizeCoord(p.y)} &bull; ${quad}`;
     }
 
     async function reportarEvento(tipo) {
         if (!pontoSelecionado) {
-            alert('Selecione primeiro um beacon no mapa clicando no marcador.');
+            alert(txt('Selecione primeiro um beacon no mapa clicando no marcador.', 'First select a beacon on the map by clicking its marker.'));
             return;
         }
 
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const actor = sanitize(currentProfile ? (currentProfile.nick || 'Batedor') : 'Você');
+        const actor = sanitize(currentProfile ? (currentProfile.nick || txt('Batedor', 'Scout')) : txt('Você', 'You'));
         const nomeBeacon = sanitize(pontoSelecionado.nome);
 
         if (supabaseClient && pontoSelecionado.id && !String(pontoSelecionado.id).startsWith('local_')) {
@@ -2450,12 +2455,12 @@
                     event_type: tipo
                 });
                 if (error) throw error;
-                alert(`✓ Evento "${tipo}" reportado com sucesso! Se você for Officer/Admin, foi aplicado imediatamente.`);
+                alert(txt(`✓ Evento "${tipo}" reportado com sucesso! Se você for Officer/Admin, foi aplicado imediatamente.`, `✓ Event "${tipo}" reported! If you are an Officer/Admin it was applied immediately.`));
                 await carregarPontosDoBanco();
                 await carregarEventosDoBanco();
                 return;
             } catch (err) {
-                alert(`Erro ao registrar evento no Supabase: ${err.message}`);
+                alert(txt(`Erro ao registrar evento no Supabase: ${err.message}`, `Error logging event in Supabase: ${err.message}`));
                 return;
             }
         }
@@ -2469,11 +2474,11 @@
             pontoSelecionado.reforco = 0;
         } else if (tipo === 'reinforced') {
             if (pontoSelecionado.faccao !== 'freedom') {
-                alert('Apenas beacons sob controle da Freedom podem ser reforçados.');
+                alert(txt('Apenas beacons sob controle da Freedom podem ser reforçados.', 'Only Freedom-controlled beacons can be reinforced.'));
                 return;
             }
             if (pontoSelecionado.reforco >= 2) {
-                alert('Este beacon já atingiu o nível máximo de reforço (2x).');
+                alert(txt('Este beacon já atingiu o nível máximo de reforço (2x).', 'This beacon is already at max reinforcement (2x).'));
                 return;
             }
             pontoSelecionado.reforco += 1;
@@ -2506,8 +2511,8 @@
                 htmlExtraQuadrante = `
                     <div class="sw-search-item" onclick="selecionarQuadranteBusca('${sanitize(letra)}', '${sanitize(num)}')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
                         <div>
-                            <strong style="color:#38bdf8;">🧭 Quadrante Wurm ${sanitize(letra)}${sanitize(num)}</strong>
-                            <div style="font-size:9.5px; color:var(--sw-text-muted);">Navegar e Iluminar Quadrante</div>
+                            <strong style="color:#38bdf8;">🧭 ${txt('Quadrante Wurm', 'Wurm Quadrant')} ${sanitize(letra)}${sanitize(num)}</strong>
+                            <div style="font-size:9.5px; color:var(--sw-text-muted);">${txt('Navegar e Iluminar Quadrante', 'Go to and highlight quadrant')}</div>
                         </div>
                         <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${sanitize(letra)}${sanitize(num)}</span>
                     </div>
@@ -2526,7 +2531,7 @@
         }).slice(0, 15);
 
         if (resultados.length === 0 && !htmlExtraQuadrante) {
-            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum ponto, Deed ou quadrante encontrado</div>`;
+            dd.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">${txt('Nenhum ponto, Deed ou quadrante encontrado', 'No point, Deed or quadrant found')}</div>`;
             dd.style.display = 'block';
             return;
         }
@@ -2613,7 +2618,7 @@
         if (!container) return;
 
         if (!supabaseClient) {
-            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">${txt('Nenhum objetivo registrado ainda.', 'No objectives yet.')}</div>`;
             return;
         }
 
@@ -2629,7 +2634,7 @@
             container.innerHTML = '';
 
             if (objetivosData.length === 0) {
-                container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+                container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">${txt('Nenhum objetivo registrado ainda.', 'No objectives yet.')}</div>`;
                 return;
             }
 
@@ -2652,7 +2657,7 @@
                 try {
                     if (obj.description && obj.description.startsWith('{')) {
                         const parsed = JSON.parse(obj.description);
-                        if (currentLang === 'en' && parsed.title_en) {
+                        if (idiomaAtual === 'en' && parsed.title_en) {
                             titleDisplay = parsed.title_en;
                         }
                     }
@@ -2665,13 +2670,13 @@
                         <div class="jk-obj-name">${sanitize(titleDisplay)}</div>
                         <div class="jk-obj-kind">${sanitize(obj.kind)} • ${sanitize(obj.status)}</div>
                     </div>
-                    ${pathPoint ? '<span class="jk-obj-locate" title="Focar no mapa">📌</span>' : ''}
+                    ${pathPoint ? `<span class="jk-obj-locate" title="${txt('Focar no mapa', 'Focus on map')}">📌</span>` : ''}
                 `;
                 container.appendChild(item);
             });
         } catch (err) {
             console.error('Erro ao carregar objetivos:', err);
-            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">Nenhum objetivo registrado ainda.</div>`;
+            container.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--sw-text-muted); text-align:center;">${txt('Nenhum objetivo registrado ainda.', 'No objectives yet.')}</div>`;
         }
     }
 
@@ -2692,7 +2697,7 @@
 
     function abrirModalObjetivo() {
         if (!currentProfile || currentProfile.role !== 'admin') {
-            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            alert(txt('Apenas Administradores têm permissão para criar metas da guilda.', 'Only Admins can create guild objectives.'));
             return;
         }
         objetivoVinculoPendente = null;
@@ -2707,7 +2712,7 @@
 
     function abrirModalObjetivoVinculado(tipo, item) {
         if (!currentProfile || currentProfile.role !== 'admin') {
-            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            alert(txt('Apenas Administradores têm permissão para criar metas da guilda.', 'Only Admins can create guild objectives.'));
             return;
         }
 
@@ -2753,7 +2758,7 @@
             }
             if (descVinculo) {
                 const quad = obterQuadranteWurm(item.y, item.x);
-                descVinculo.innerHTML = `📍 Vinculado a: <strong>${sanitize(item.name || item.kind)}</strong> (${item.kind}) em X:${item.x} Y:${item.y} [${quad}]`;
+                descVinculo.innerHTML = txt(`📍 Vinculado a: <strong>${sanitize(item.name || item.kind)}</strong> (${item.kind}) em X:${item.x} Y:${item.y} [${quad}]`, `📍 Linked to: <strong>${sanitize(item.name || item.kind)}</strong> (${item.kind}) at X:${item.x} Y:${item.y} [${quad}]`);
             }
         } else if (tipo === 'route') {
             const isBridge = item.kind && item.kind.startsWith('bridge');
@@ -2761,7 +2766,7 @@
             defaultTitleEn = isBridge ? `Build Bridge ${item.name || ''}` : `Pave Road ${item.name || ''}`;
             if (selectTipo) selectTipo.value = isBridge ? 'bridge' : 'road';
             if (descVinculo) {
-                descVinculo.innerHTML = `🛣️ Vinculado a: <strong>${sanitize(item.name)}</strong> (${item.kind}) • ~${Math.round(item.distance || 0)} tiles`;
+                descVinculo.innerHTML = txt(`🛣️ Vinculado a: <strong>${sanitize(item.name)}</strong> (${item.kind}) • ~${Math.round(item.distance || 0)} tiles`, `🛣️ Linked to: <strong>${sanitize(item.name)}</strong> (${item.kind}) • ~${Math.round(item.distance || 0)} tiles`);
             }
         }
 
@@ -2774,14 +2779,14 @@
 
     async function salvarNovoObjetivo() {
         if (!currentProfile || currentProfile.role !== 'admin') {
-            alert('Apenas Administradores têm permissão para criar metas da guilda.');
+            alert(txt('Apenas Administradores têm permissão para criar metas da guilda.', 'Only Admins can create guild objectives.'));
             return;
         }
 
         const tituloPt = document.getElementById('inputObjTitulo').value.trim();
         const tituloEn = document.getElementById('inputObjTituloEn') ? document.getElementById('inputObjTituloEn').value.trim() : '';
         if (!tituloPt) {
-            alert('Por favor, informe o título do objetivo em Português.');
+            alert(txt('Por favor, informe o título do objetivo em Português.', 'Please enter the objective title in Portuguese.'));
             return;
         }
 
@@ -2816,7 +2821,7 @@
                     path: pathCoords
                 });
                 if (error) throw error;
-                mostrarToastCartografico(`✓ Objetivo <strong>${sanitize(tituloPt)}</strong> criado com sucesso!`);
+                mostrarToastCartografico(txt(`✓ Objetivo <strong>${sanitize(tituloPt)}</strong> criado com sucesso!`, `✓ Objective <strong>${sanitize(tituloPt)}</strong> created!`));
                 fecharModal('modalNovoObjetivo');
                 document.getElementById('inputObjTitulo').value = '';
                 if (document.getElementById('inputObjTituloEn')) document.getElementById('inputObjTituloEn').value = '';
@@ -2824,12 +2829,12 @@
                 await carregarObjetivosDoBanco('all');
                 return;
             } catch (e) {
-                alert(`Erro ao salvar objetivo no Supabase: ${e.message}`);
+                alert(txt(`Erro ao salvar objetivo no Supabase: ${e.message}`, `Error saving objective to Supabase: ${e.message}`));
                 return;
             }
         }
 
-        mostrarToastCartografico(`✓ Objetivo "${tituloPt}" registrado localmente.`);
+        mostrarToastCartografico(txt(`✓ Objetivo "${tituloPt}" registrado localmente.`, `✓ Objective "${tituloPt}" saved locally.`));
         fecharModal('modalNovoObjetivo');
         document.getElementById('inputObjTitulo').value = '';
     }
@@ -2866,13 +2871,13 @@
 
         const tituloFoco = document.getElementById('hudFocoTitulo');
         if (tituloFoco) {
-            tituloFoco.textContent = (tipo === 'road') ? '🛣️ Traçar Estrada:' : '🌉 Traçar Ponte:';
+            tituloFoco.textContent = (tipo === 'road') ? txt('🛣️ Traçar Estrada:', '🛣️ Trace Road:') : txt('🌉 Traçar Ponte:', '🌉 Trace Bridge:');
         }
         const distEl = document.getElementById('hudLiveDistancia');
-        if (distEl) distEl.textContent = '0 tiles (0 nós)';
+        if (distEl) distEl.textContent = txt('0 tiles (0 nós)', '0 tiles (0 nodes)');
 
         map.getContainer().style.cursor = 'crosshair';
-        mostrarToastCartografico(`📍 Traçado de <strong>${tipo === 'road' ? 'Estrada' : 'Ponte'}</strong> iniciado. Clique no mapa para adicionar nós.`);
+        mostrarToastCartografico(txt(`📍 Traçado de <strong>${tipo === 'road' ? 'Estrada' : 'Ponte'}</strong> iniciado. Clique no mapa para adicionar nós.`, `📍 <strong>${tipo === 'road' ? 'Road' : 'Bridge'}</strong> tracing started. Click the map to add nodes.`));
     }
 
     let previewPolylineTemp = null;
@@ -2962,7 +2967,7 @@
         limparDesenhoTracadoTemp();
         if (pontosTracado.length === 0) {
             const distEl = document.getElementById('hudLiveDistancia');
-            if (distEl) distEl.textContent = '0 tiles (0 nós)';
+            if (distEl) distEl.textContent = txt('0 tiles (0 nós)', '0 tiles (0 nodes)');
             return;
         }
 
@@ -2992,14 +2997,14 @@
 
         const dist = Math.round(calcularDistanciaRota(pontosTracado));
         const distEl = document.getElementById('hudLiveDistancia');
-        if (distEl) distEl.textContent = `${dist} tiles (${pontosTracado.length} nós)`;
+        if (distEl) distEl.textContent = txt(`${dist} tiles (${pontosTracado.length} nós)`, `${dist} tiles (${pontosTracado.length} nodes)`);
     }
 
     function desfazerUltimoPontoTracado() {
         if (pontosTracado.length > 0) {
             pontosTracado.pop();
             atualizarDesenhoTracado();
-            mostrarToastCartografico('↩ Último nó removido.');
+            mostrarToastCartografico(txt('↩ Último nó removido.', '↩ Last node removed.'));
         }
     }
 
@@ -3016,25 +3021,25 @@
         map.getContainer().style.cursor = '';
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('modeBtnNavegar')?.classList.add('active');
-        mostrarToastCartografico('Traçado de obra cancelado.');
+        mostrarToastCartografico(txt('Traçado de obra cancelado.', 'Build tracing cancelled.'));
     }
 
     function abrirModalSalvarRota() {
         if (!modoTracado || pontosTracado.length < 2) {
-            alert('Adicione pelo menos 2 pontos no mapa antes de salvar a obra.');
+            alert(txt('Adicione pelo menos 2 pontos no mapa antes de salvar a obra.', 'Add at least 2 points on the map before saving the build.'));
             return;
         }
 
         const dist = Math.round(calcularDistanciaRota(pontosTracado));
         const distBadge = document.getElementById('modalRotaDistancia');
-        if (distBadge) distBadge.textContent = `${dist} tiles (${pontosTracado.length} nós)`;
+        if (distBadge) distBadge.textContent = txt(`${dist} tiles (${pontosTracado.length} nós)`, `${dist} tiles (${pontosTracado.length} nodes)`);
 
         const modalTitle = document.getElementById('modalRotaTitle');
-        if (modalTitle) modalTitle.textContent = (modoTracado === 'road') ? '🛣️ Salvar Estrada' : '🌉 Salvar Ponte';
+        if (modalTitle) modalTitle.textContent = (modoTracado === 'road') ? txt('🛣️ Salvar Estrada', '🛣️ Save Road') : txt('🌉 Salvar Ponte', '🌉 Save Bridge');
 
         const inputNome = document.getElementById('inputNomeRota');
         if (inputNome) {
-            const prefixo = (modoTracado === 'road') ? 'Estrada Trecho ' : 'Ponte Trecho ';
+            const prefixo = (modoTracado === 'road') ? txt('Estrada Trecho ', 'Road Section ') : txt('Ponte Trecho ', 'Bridge Section ');
             inputNome.value = prefixo + Date.now().toString().slice(-4);
         }
 
@@ -3044,7 +3049,7 @@
     async function confirmarSalvarRota() {
         if (!modoTracado || pontosTracado.length < 2) return;
 
-        const nome = document.getElementById('inputNomeRota').value.trim() || `${modoTracado.toUpperCase()} Trecho`;
+        const nome = document.getElementById('inputNomeRota').value.trim() || txt(`${modoTracado.toUpperCase()} Trecho`, `${modoTracado.toUpperCase()} Section`);
         const status = document.getElementById('selectStatusRota').value;
         const isBridge = (modoTracado === 'bridge');
         const kind = isBridge
@@ -3066,10 +3071,10 @@
                 fecharModal('modalSalvarRota');
                 cancelarTracado();
                 await carregarRotasDoBanco();
-                mostrarToastCartografico(`✓ <strong>${sanitize(nome)}</strong> salva com sucesso!`);
+                mostrarToastCartografico(txt(`✓ <strong>${sanitize(nome)}</strong> salva com sucesso!`, `✓ <strong>${sanitize(nome)}</strong> saved!`));
                 return;
             } catch (err) {
-                alert('Erro ao salvar obra no Supabase: ' + err.message);
+                alert(txt('Erro ao salvar obra no Supabase: ', 'Error saving build to Supabase: ') + err.message);
                 return;
             }
         }
@@ -3090,7 +3095,7 @@
 
         fecharModal('modalSalvarRota');
         cancelarTracado();
-        mostrarToastCartografico(`✓ ${sanitize(nome)} registrada localmente!`);
+        mostrarToastCartografico(txt(`✓ ${sanitize(nome)} registrada localmente!`, `✓ ${sanitize(nome)} saved locally!`));
     }
 
     // ==============================================================
@@ -3236,7 +3241,7 @@
         if (tabDireita) tabDireita.style.display = 'none';
         if (crosshair) crosshair.style.display = 'none';
 
-        mostrarToastCartografico('📸 Capturando visualização tática em alta definição...');
+        mostrarToastCartografico(txt('📸 Capturando visualização tática em alta definição...', '📸 Capturing high-resolution tactical view...'));
         // Aguarda estabilização de zoom, animações e renderização dos tiles Leaflet
         await new Promise(r => setTimeout(r, 420));
 
@@ -3266,7 +3271,7 @@
             const posX = Math.round(center.lng || 2048);
             const posY = Math.round(center.lat || 2048);
             const qWurm = obterQuadranteWurm(posY, posX);
-            const dataStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            const dataStr = new Date().toLocaleString((idiomaAtual === 'en' ? 'en-GB' : 'pt-BR'), { dateStyle: 'short', timeStyle: 'short' });
 
             const scaleRatio = captureScale / 1.5;
             const barH = Math.round(28 * scaleRatio);
@@ -3287,14 +3292,14 @@
 
             ctxCap.font = `${fontInfoSize}px "JetBrains Mono", monospace`;
             ctxCap.fillStyle = '#cbd5e1';
-            const infoText = `Posição: X ${posX} · Y ${posY} | Quadrante: ${qWurm} | ${dataStr}`;
+            const infoText = txt(`Posição: X ${posX} · Y ${posY} | Quadrante: ${qWurm} | ${dataStr}`, `Position: X ${posX} · Y ${posY} | Quadrant: ${qWurm} | ${dataStr}`);
             const textW = ctxCap.measureText(infoText).width;
             ctxCap.fillText(infoText, capturedCanvas.width - textW - padX, capturedCanvas.height - padY);
 
             abrirOverlayPrint(capturedCanvas);
         } catch (err) {
             console.error('Erro na captura do print:', err);
-            mostrarToastCartografico('[-] Erro ao capturar mapa: ' + err.message);
+            mostrarToastCartografico(txt('[-] Erro ao capturar mapa: ', '[-] Error capturing map: ') + err.message);
             restaurarInterfacesPosPrint();
         }
     }
@@ -3361,7 +3366,8 @@
         const menu = document.getElementById('tacticalStampMenu');
         if (menu) menu.style.display = 'none';
         definirFerramentaPrint('stamp');
-        mostrarToastCartografico(`Carimbo ativo: ${emoji} ${label}. Clique no mapa para estampar!`);
+        const nomeCarimboEn = { Mina: 'Mine', Alvo: 'Target', Porto: 'Harbor' }[label] || label;
+        mostrarToastCartografico(txt(`Carimbo ativo: ${emoji} ${label}. Clique no mapa para estampar!`, `Active stamp: ${emoji} ${nomeCarimboEn}. Click the map to stamp it!`));
     }
 
     // Fechar menu de carimbos ao clicar fora
@@ -3959,18 +3965,18 @@
     async function uploadPrintLink() {
         const btn = document.getElementById('btnUploadLink');
         const txtOriginal = btn.innerHTML;
-        btn.innerHTML = '⏳ Enviando...';
+        btn.innerHTML = txt('⏳ Enviando...', '⏳ Uploading...');
         btn.disabled = true;
 
         try {
             printCanvas.toBlob(async (blob) => {
-                if (!blob) throw new Error('Falha ao processar canvas');
+                if (!blob) throw new Error(txt('Falha ao processar canvas', 'Failed to process canvas'));
 
                 // 1. Prioriza ImgBB (Solução definitiva que expande direto como imagem no Discord)
                 let apiKey = (window.JACKAL_CONFIG && window.JACKAL_CONFIG.imgbbApiKey) || localStorage.getItem('jackal_imgbb_api_key');
                 if (!apiKey) {
                     const userInput = prompt(
-                        'Para gerar um link definitivo do ImgBB (que vira imagem grande no Discord), insira sua chave gratuita de API:\n(Obtenha gratuitamente em https://api.imgbb.com)\n\nOu clique em Cancelar para usar o link alternativo do Catbox:'
+                        txt('Para gerar um link definitivo do ImgBB (que vira imagem grande no Discord), insira sua chave gratuita de API:\n(Obtenha gratuitamente em https://api.imgbb.com)\n\nOu clique em Cancelar para usar o link alternativo do Catbox:', 'To generate a permanent ImgBB link (shows as a large image in Discord), enter your free API key:\n(Get one for free at https://api.imgbb.com)\n\nOr click Cancel to use the alternative Catbox link:')
                     );
                     if (userInput && userInput.trim()) {
                         apiKey = userInput.trim();
@@ -3996,9 +4002,9 @@
                         directUrl = json.data.url;
                         serviceName = 'ImgBB';
                     } else {
-                        const errMsg = (json && json.error && json.error.message) || 'Erro no ImgBB';
+                        const errMsg = (json && json.error && json.error.message) || txt('Erro no ImgBB', 'ImgBB error');
                         localStorage.removeItem('jackal_imgbb_api_key');
-                        throw new Error(`ImgBB: ${errMsg}. Chave resetada.`);
+                        throw new Error(txt(`ImgBB: ${errMsg}. Chave resetada.`, `ImgBB: ${errMsg}. Key reset.`));
                     }
                 } else {
                     // Fallback para Catbox Litterbox
@@ -4021,18 +4027,18 @@
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         await navigator.clipboard.writeText(directUrl);
                     }
-                    mostrarToastCartografico(`✓ Link ${serviceName} copiado! Cole no Discord: ${directUrl}`);
-                    btn.innerHTML = '✓ Copiado!';
+                    mostrarToastCartografico(txt(`✓ Link ${serviceName} copiado! Cole no Discord: ${directUrl}`, `✓ ${serviceName} link copied! Paste it in Discord: ${directUrl}`));
+                    btn.innerHTML = txt('✓ Copiado!', '✓ Copied!');
                     setTimeout(() => { btn.innerHTML = txtOriginal; btn.disabled = false; }, 3500);
                 } else {
-                    throw new Error(directUrl || 'Resposta inesperada do serviço de upload');
+                    throw new Error(directUrl || txt('Resposta inesperada do serviço de upload', 'Unexpected response from upload service'));
                 }
             }, 'image/png');
         } catch (err) {
             console.error('Erro no upload de imagem:', err);
             btn.innerHTML = txtOriginal;
             btn.disabled = false;
-            mostrarToastCartografico(`[-] Falha ao subir link: ${err.message}. Use "Copiar Imagem"!`);
+            mostrarToastCartografico(txt(`[-] Falha ao subir link: ${err.message}. Use "Copiar Imagem"!`, `[-] Link upload failed: ${err.message}. Use "Copy Image"!`));
         }
     }
 
@@ -4041,13 +4047,13 @@
         const txtOriginal = btn.innerHTML;
         try {
             printCanvas.toBlob(async (blob) => {
-                if (!blob) throw new Error('Falha ao gerar imagem');
+                if (!blob) throw new Error(txt('Falha ao gerar imagem', 'Failed to generate image'));
                 if (navigator.clipboard && navigator.clipboard.write) {
                     await navigator.clipboard.write([
                         new ClipboardItem({ 'image/png': blob })
                     ]);
-                    mostrarToastCartografico('✓ Imagem copiada! Cole no Discord ou WhatsApp com Ctrl+V');
-                    btn.innerHTML = '✓ Copiado!';
+                    mostrarToastCartografico(txt('✓ Imagem copiada! Cole no Discord ou WhatsApp com Ctrl+V', '✓ Image copied! Paste it in Discord or WhatsApp with Ctrl+V'));
+                    btn.innerHTML = txt('✓ Copiado!', '✓ Copied!');
                     setTimeout(() => { btn.innerHTML = txtOriginal; }, 2500);
                 } else {
                     baixarPrintPNG();
@@ -4055,7 +4061,7 @@
             }, 'image/png');
         } catch (err) {
             console.error('Erro ao copiar imagem:', err);
-            mostrarToastCartografico('[-] Navegador não suporta cópia direta. Baixando arquivo...');
+            mostrarToastCartografico(txt('[-] Navegador não suporta cópia direta. Baixando arquivo...', '[-] Browser does not support direct copy. Downloading file...'));
             baixarPrintPNG();
         }
     }
@@ -4069,7 +4075,7 @@
         a.download = `Jackal_Print_${qWurm}_X${posX}_Y${posY}.png`;
         a.href = printCanvas.toDataURL('image/png');
         a.click();
-        mostrarToastCartografico(`✓ Arquivo salvo: ${a.download}`);
+        mostrarToastCartografico(txt(`✓ Arquivo salvo: ${a.download}`, `✓ File saved: ${a.download}`));
     }
 
 
@@ -4132,7 +4138,7 @@
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('modeBtnArea')?.classList.add('active');
 
-        mostrarToastCartografico('📐 <strong>Deed Sizer</strong>: Clique e arraste no mapa para medir dimensões em tiles.');
+        mostrarToastCartografico(txt('📐 <strong>Deed Sizer</strong>: Clique e arraste no mapa para medir dimensões em tiles.', '📐 <strong>Deed Sizer</strong>: Click and drag on the map to measure dimensions in tiles.'));
     }
 
     function desativarModoMedicaoArea() {
@@ -4162,7 +4168,7 @@
         ultimaMedicaoArea = null;
         const dimEl = document.getElementById('hudAreaDimensao');
         const metEl = document.getElementById('hudAreaMetricas');
-        if (dimEl) dimEl.textContent = 'Clique e arraste no mapa';
+        if (dimEl) dimEl.textContent = txt('Clique e arraste no mapa', 'Click and drag on the map');
         if (metEl) metEl.textContent = '';
     }
 
@@ -4208,7 +4214,8 @@
             dimEl.innerHTML = `<span style="color:#f59e0b; font-weight:900;">${w} × ${h}</span> tiles`;
         }
         if (metEl) {
-            metEl.textContent = `Área ${area.toLocaleString()} tiles² • Diag ${diag}t • Perím ${perim}t`;
+            const areaFmt = area.toLocaleString(idiomaAtual === 'en' ? 'en-GB' : 'pt-BR');
+            metEl.textContent = txt(`Área ${areaFmt} tiles² • Diag ${diag}t • Perím ${perim}t`, `Area ${areaFmt} tiles² • Diag ${diag}t • Perim ${perim}t`);
         }
     }
 
@@ -4228,7 +4235,7 @@
 
         const badgeHtml = `
             <div class="deed-sizer-badge">
-                <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${area.toLocaleString()} tiles²)<br>
+                <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${area.toLocaleString(idiomaAtual === 'en' ? 'en-GB' : 'pt-BR')} tiles²)<br>
                 <span style="font-size:9.5px; opacity:0.8;">[${quadTxt}] • Diag ${diag}t</span>
             </div>
         `;
@@ -4242,7 +4249,8 @@
             interactive: false
         }).addTo(layers.area_measurement);
 
-        mostrarToastCartografico(`📐 Área medida: <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${area.toLocaleString()} tiles²)`);
+        const areaFmt = area.toLocaleString(idiomaAtual === 'en' ? 'en-GB' : 'pt-BR');
+        mostrarToastCartografico(txt(`📐 Área medida: <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${areaFmt} tiles²)`, `📐 Measured area: <strong style="color:#f59e0b;">${w} × ${h} tiles</strong> (${areaFmt} tiles²)`));
     }
 
     // ==============================================================
@@ -6037,7 +6045,7 @@
         }
 
         if (modo === 'navegar') {
-            mostrarToastCartografico('👁️ Modo <strong>Navegação</strong> ativo.');
+            mostrarToastCartografico(txt('👁️ Modo <strong>Navegação</strong> ativo.', '👁️ <strong>Navigate</strong> mode on.'));
         } else if (modo === 'ponto') {
             ativarModoAdicionarPonto();
         } else if (modo === 'estrada') {
@@ -6061,7 +6069,7 @@
         if (tt) tt.style.display = 'block';
         document.querySelectorAll('#floatingModesBar .sw-mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('modeBtnPonto')?.classList.add('active');
-        mostrarToastCartografico('📍 Modo <strong>Anotar Ponto</strong>: clique no mapa com o botão esquerdo.');
+        mostrarToastCartografico(txt('📍 Modo <strong>Anotar Ponto</strong>: clique no mapa com o botão esquerdo.', '📍 <strong>Add Marker</strong> mode: left-click on the map.'));
     }
 
     function desativarModoAdicionarPonto() {
@@ -6287,7 +6295,7 @@
             }
             if (modoAdicionar) {
                 desativarModoAdicionarPonto();
-                mostrarToastCartografico('Modo adição cancelado.');
+                mostrarToastCartografico(txt('Modo adição cancelado.', 'Add mode cancelled.'));
             }
             if (modoTracado) {
                 cancelarTracado();
@@ -6328,7 +6336,7 @@
 
     async function salvarPontoSubmissao() {
         if (kindSelecionado === 'landmark' && (!currentProfile || currentProfile.role !== 'admin')) {
-            alert('Apenas Administradores têm permissão para registrar topônimos / marcos geográficos no mapa.');
+            alert(txt('Apenas Administradores têm permissão para registrar topônimos / marcos geográficos no mapa.', 'Only Admins can add place names / landmarks to the map.'));
             return;
         }
 
@@ -6339,7 +6347,7 @@
             clickCoords.y = inCoordY;
         }
 
-        const nome = document.getElementById('inputNomePonto').value.trim() || `${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`;
+        const nome = document.getElementById('inputNomePonto').value.trim() || txt(`${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`, `${kindSelecionado.toUpperCase()} at ${clickCoords.x}, ${clickCoords.y}`);
         const dificuldade = document.getElementById('selectDificuldade')?.value;
         const mayor = document.getElementById('inputMayor')?.value.trim();
 
@@ -6364,9 +6372,9 @@
                 if (error) throw error;
 
                 if (isConfirmed) {
-                    alert(`✓ Ponto "${nome}" registrado e publicado imediatamente no mapa oficial.`);
+                    alert(txt(`✓ Ponto "${nome}" registrado e publicado imediatamente no mapa oficial.`, `✓ Point "${nome}" saved and published to the official map immediately.`));
                 } else {
-                    alert(`✓ Ponto "${nome}" enviado para moderação!\nComo membro, sua sugestão entrará na fila de revisão e ficará visível publicamente após aprovação de um Oficial ou Admin.`);
+                    alert(txt(`✓ Ponto "${nome}" enviado para moderação!\nComo membro, sua sugestão entrará na fila de revisão e ficará visível publicamente após aprovação de um Oficial ou Admin.`, `✓ Point "${nome}" sent for moderation!\nAs a member, your suggestion goes into the review queue and becomes public once an Officer or Admin approves it.`));
                 }
 
                 fecharModal('modalAddPonto');
@@ -6375,7 +6383,7 @@
                 await carregarPontosDoBanco();
                 return;
             } catch (err) {
-                alert(`Erro ao salvar ponto no Supabase: ${err.message}`);
+                alert(txt(`Erro ao salvar ponto no Supabase: ${err.message}`, `Error saving point to Supabase: ${err.message}`));
                 return;
             }
         }
@@ -6399,7 +6407,7 @@
             selecionarBeacon(novoPonto);
         }
 
-        alert(`✓ Ponto "${nome}" registrado localmente.`);
+        alert(txt(`✓ Ponto "${nome}" registrado localmente.`, `✓ Point "${nome}" saved locally.`));
         fecharModal('modalAddPonto');
         document.getElementById('inputNomePonto').value = '';
     }
@@ -6410,7 +6418,7 @@
     function abrirModalEditarPonto(id) {
         const ponto = todosPontosCache.find(p => String(p.id) === String(id));
         if (!ponto) {
-            alert('Ponto não encontrado.');
+            alert(txt('Ponto não encontrado.', 'Point not found.'));
             return;
         }
 
@@ -6445,7 +6453,7 @@
 
     async function salvarEdicaoPonto() {
         if (!supabaseClient) {
-            alert('Supabase não conectado.');
+            alert(txt('Supabase não conectado.', 'Supabase not connected.'));
             return;
         }
 
@@ -6457,7 +6465,7 @@
         const mayor = document.getElementById('inputEditMayor')?.value.trim();
 
         if (!nome) {
-            alert('Por favor informe um nome ou título.');
+            alert(txt('Por favor informe um nome ou título.', 'Please enter a name or title.'));
             return;
         }
 
@@ -6490,28 +6498,28 @@
 
             fecharModal('modalEditarPonto');
             await carregarPontosDoBanco();
-            alert(`✓ "${nome}" atualizado com sucesso!`);
+            alert(txt(`✓ "${nome}" atualizado com sucesso!`, `✓ "${nome}" updated!`));
         } catch (err) {
-            alert('Erro ao atualizar ponto: ' + err.message);
+            alert(txt('Erro ao atualizar ponto: ', 'Error updating point: ') + err.message);
         }
     }
 
     async function excluirPonto(id, nome) {
         if (!supabaseClient) {
-            alert('Supabase não conectado.');
+            alert(txt('Supabase não conectado.', 'Supabase not connected.'));
             return;
         }
 
-        if (!confirm(`Deseja realmente excluir permanentemente "${nome || 'este ponto'}"?`)) return;
+        if (!confirm(txt(`Deseja realmente excluir permanentemente "${nome || 'este ponto'}"?`, `Permanently delete "${nome || 'this point'}"?`))) return;
 
         try {
             const { error } = await supabaseClient.from('points').delete().eq('id', id);
             if (error) throw error;
 
             await carregarPontosDoBanco();
-            alert(`✓ Ponto removido com sucesso.`);
+            alert(txt(`✓ Ponto removido com sucesso.`, `✓ Point removed.`));
         } catch (err) {
-            alert('Erro ao excluir ponto: ' + err.message);
+            alert(txt('Erro ao excluir ponto: ', 'Error deleting point: ') + err.message);
         }
     }
 
@@ -6655,7 +6663,123 @@
             btnCopyImg: '📋 Copiar Imagem',
             btnSavePng: '💾 Salvar',
             btnClosePrint: '✕ (Esc)',
-            supportKofi: '☕ Apoie o Atlas no Ko-fi'
+            supportKofi: '☕ Apoie o Atlas no Ko-fi',
+            abaAtividades: 'Atividades',
+            ttModoArea: 'Deed Sizer: Medir dimensões e área em tiles',
+            ttDesconectar: 'Desconectar',
+            definirNick: 'Definir Nick Wurm',
+            painelAdmin: 'Painel Admin / Fila',
+            baseIso: 'Isométrico',
+            ttAtalhoY: 'Atalho: tecla [Y]',
+            ttAtalhoI: 'Atalho: tecla [I]',
+            faunaMontarias: '🦗 Fauna & Montarias',
+            toponimos: '🏷️ Topônimos / Regiões',
+            prioridades: 'Prioridades',
+            criarMetaAdmin: '➕ Criar Meta (Admin)',
+            ttKofi: 'Apoie os custos de servidor e desenvolvimento no Ko-fi',
+            painelAtividades: 'PAINEL DE ATIVIDADES',
+            painelAtividadesSub: 'Registros & Ocorrências de Campo',
+            pontoSelecionado: '🎯 Ponto Selecionado',
+            selecionePonto: 'Selecione um ponto no mapa para visualizar ações e detalhes.',
+            atividadesGuilda: '📡 Atividades da Guilda',
+            semAtividade: '📡 Nenhuma atividade recente registrada.',
+            ttSnap: 'Somente 0°/45°/90°. Botão direito ou Espaço + arrastar = mover o mapa',
+            ttDesfazerNo: 'Desfazer último nó',
+            btnDesfazer: '↩ Desfazer',
+            salvarObra: '✓ Salvar Obra',
+            btnCancelarX: '✕ Cancelar',
+            cliqueArraste: 'Clique e arraste no mapa',
+            ttLimparRet: 'Limpar retângulo',
+            btnLimpar: '🗑️ Limpar',
+            btnFecharX: '✕ Fechar',
+            tituloAddPonto: '📍 Adicionar Ponto de Interesse',
+            coordWurm: '📍 Coordenadas Wurm',
+            dica: 'Dica:',
+            dicaCole: 'Cole',
+            ou: 'ou',
+            dicaAutoInst: 'para autocompletar X e Y instantaneamente.',
+            dicaAuto: 'para autocompletar X e Y.',
+            tipoPontoAnot: 'Tipo de Ponto / Anotação',
+            kindTorre: '🏰 Torre de Guarda',
+            kindCaverna: '🕳️ Caverna',
+            chipRecurso: '⛏️ Minério/Recurso',
+            chipSuprimento: '📦 Suprimento',
+            kindFauna: '🦗 Fauna / Montaria',
+            kindToponimo: '🏷️ Topônimo (Admin)',
+            faccao: 'Facção',
+            faccaoDesc: '❓ Desc.',
+            nomeDescricao: 'Nome / Descrição',
+            phNomePonto: 'Ex: Deed Porto do Lobo, Torre Norte, Spot de Weta...',
+            prefeito: '👑 Prefeito / Responsável (Mayor)',
+            phMayor: 'Ex: Kuropr, ShadowHunter...',
+            dificuldade: 'Dificuldade Estimada (1–5)',
+            difNao: '— Não Informado —',
+            dif1: '1 — Fácil (Poucos Mobs)',
+            dif2: '2 — Moderado',
+            dif3: '3 — Difícil',
+            dif4: '4 — Muito Difícil',
+            dif5: '5 — Extremo / Boss',
+            cancelar: 'Cancelar',
+            salvarAnotacao: '✓ Salvar Anotação',
+            notaModeracao: 'Anotações de membros passam pela confirmação de um Oficial ou Administrador antes de ficarem visíveis a todos.',
+            criarMeta: 'Criar Meta da Guilda',
+            vinculadoA: 'Vinculado a',
+            tituloPT: 'Título 🇧🇷 (PT)',
+            phObjTitulo: 'Ex: Pavimentar Estrada do Vale Norte...',
+            tituloEN: 'Title 🇺🇸 (EN) — opcional',
+            phObjTituloEn: 'Ex: Pave the North Valley Road...',
+            nivelPrioridade: 'Nível de Prioridade',
+            categoria: 'Categoria',
+            catRoad: '🛣️ Estrada / Road',
+            catBridge: '🌉 Ponte / Bridge',
+            catExplore: '🕳️ Exploração / Explore',
+            catSupply: '📦 Suprimento / Supply',
+            catCustom: '🎯 Outro / Other',
+            publicarObjetivo: '✓ Publicar Objetivo',
+            tituloNick: '⚔️ Nick no Wurm Online',
+            nomePersonagem: 'Nome do seu Personagem',
+            phNick: 'Ex: ShadowHunter',
+            salvar: 'Salvar',
+            tituloEditarPonto: '✏️ Editar Ponto / Deed',
+            tipoPonto: 'Tipo de Ponto',
+            kindSupplyPoint: '📦 Ponto de Suprimento',
+            desconhecido: '❓ Desconhecido',
+            nomeTitulo: 'Nome / Título',
+            phEditNome: 'Nome do ponto ou da Deed...',
+            btnExcluir: '🗑️ Excluir',
+            btnSalvarCheck: '✓ Salvar',
+            extensaoTotal: 'Extensão Total da Obra:',
+            nomeRota: 'Nome da Estrada / Ponte',
+            phNomeRota: 'Ex: Estrada Real do Leste, Ponte do Desfiladeiro...',
+            estadoObra: 'Estado da Obra',
+            rotaPlanejada: '🟡 Planejada (Linha Tracejada)',
+            rotaConcluida: '🟢 Concluída / Pavimentada (Linha Sólida)',
+            ttPrint: 'Captura Tática / Print (Goldfish®)',
+            ariaPrint: 'Captura Tática',
+            ttPencil: 'Caneta Livre',
+            ttArrow: 'Seta Tática',
+            ttCircle: 'Círculo de Alvo / Perímetro',
+            ttText: 'Texto',
+            ttRoad: 'Estrada Feita (Contínua)',
+            ttRoadPlan: 'Estrada Projeto (Tracejada)',
+            ttBridge: 'Ponte (Madeira / Estrutura)',
+            ttTunnel: 'Túnel Subterrâneo',
+            ttStamp: 'Carimbos Táticos Clean',
+            ttCorPreto: 'Preto Tático',
+            ttCorBranco: 'Branco Puro',
+            ttCorAmarelo: 'Amarelo Neon',
+            ttCorRosa: 'Rosa / Magenta Neon',
+            ttCorVerde: 'Verde Neon',
+            ttCorCiano: 'Ciano Elétrico',
+            ttCorVermelho: 'Vermelho Jackal',
+            ttCorLaranja: 'Laranja Fogo',
+            ttDesfazer: 'Desfazer',
+            ttLimpar: 'Limpar',
+            ttUploadLink: 'Upload instantâneo para link direto de imagem',
+            ttCopyImg: 'Copiar para colar no Discord com Ctrl+V',
+            ttSavePng: 'Baixar arquivo PNG',
+            ttClosePrint: 'Fechar Modo Print (ou pressione ESC)',
+            cliqueMarcar: 'Clique para marcar'
         },
         en: {
             subTitle: 'Community Tactical Map • Wurm Online',
@@ -6751,7 +6875,7 @@
             tacticalSub: 'Field Operations • Jackal R2',
             radarInfluencia: '⭕ Territory Influence',
             tempoReal: 'live',
-            aoVivo: 'live stream',
+            aoVivo: 'live',
             lblNeutro: 'Neutral',
             marcos: '🏆 Guild Milestones',
             primeiroMarco: 'First Milestone',
@@ -6763,7 +6887,7 @@
             btnReforcei: 'Reinforced (+1)',
             btnAtaque: 'Under Attack!',
             btnPerdido: 'Lost to Jackal',
-            tornarMeta: 'Set Guild Objective',
+            tornarMeta: 'Make Guild Objective',
             feedGuerra: '📡 Activity Feed',
             recolherAtlas: '▲ Collapse Atlas',
             recolherHud: 'Collapse ▶',
@@ -6786,11 +6910,125 @@
             btnCopyImg: '📋 Copy Image',
             btnSavePng: '💾 Save',
             btnClosePrint: '✕ (Esc)',
-            supportKofi: '☕ Support Atlas on Ko-fi'
+            supportKofi: '☕ Support the Atlas on Ko-fi',
+            abaAtividades: 'Activity',
+            ttModoArea: 'Deed Sizer: measure dimensions and area in tiles',
+            ttDesconectar: 'Sign out',
+            definirNick: 'Set Wurm Nick',
+            painelAdmin: 'Admin Panel / Queue',
+            baseIso: 'Isometric',
+            ttAtalhoY: 'Shortcut: [Y] key',
+            ttAtalhoI: 'Shortcut: [I] key',
+            faunaMontarias: '🦗 Fauna & Mounts',
+            toponimos: '🏷️ Place Names / Regions',
+            prioridades: 'Priorities',
+            criarMetaAdmin: '➕ Create Objective (Admin)',
+            ttKofi: 'Support server and development costs on Ko-fi',
+            painelAtividades: 'ACTIVITY PANEL',
+            painelAtividadesSub: 'Field Logs & Reports',
+            pontoSelecionado: '🎯 Selected Point',
+            selecionePonto: 'Select a point on the map to see its details and actions.',
+            atividadesGuilda: '📡 Guild Activity',
+            semAtividade: '📡 No recent activity logged.',
+            ttSnap: '0°/45°/90° only. Right-click or Space + drag = pan the map',
+            ttDesfazerNo: 'Undo last node',
+            btnDesfazer: '↩ Undo',
+            salvarObra: '✓ Save Build',
+            btnCancelarX: '✕ Cancel',
+            cliqueArraste: 'Click and drag on the map',
+            ttLimparRet: 'Clear rectangle',
+            btnLimpar: '🗑️ Clear',
+            btnFecharX: '✕ Close',
+            tituloAddPonto: '📍 Add Point of Interest',
+            coordWurm: '📍 Wurm Coordinates',
+            dica: 'Tip:',
+            dicaCole: 'Paste',
+            ou: 'or',
+            dicaAutoInst: 'to fill in X and Y instantly.',
+            dicaAuto: 'to fill in X and Y.',
+            tipoPontoAnot: 'Point / Note Type',
+            kindTorre: '🏰 Guard Tower',
+            kindCaverna: '🕳️ Cave',
+            chipRecurso: '⛏️ Ore / Resource',
+            chipSuprimento: '📦 Supply',
+            kindFauna: '🦗 Fauna / Mount',
+            kindToponimo: '🏷️ Place Name (Admin)',
+            faccao: 'Faction',
+            faccaoDesc: '❓ Unknown',
+            nomeDescricao: 'Name / Description',
+            phNomePonto: 'e.g. Wolf Harbor Deed, North Tower, Weta Spot...',
+            prefeito: '👑 Mayor / Owner',
+            phMayor: 'e.g. Kuropr, ShadowHunter...',
+            dificuldade: 'Estimated Difficulty (1–5)',
+            difNao: '— Not Specified —',
+            dif1: '1 — Easy (Few Mobs)',
+            dif2: '2 — Moderate',
+            dif3: '3 — Hard',
+            dif4: '4 — Very Hard',
+            dif5: '5 — Extreme / Boss',
+            cancelar: 'Cancel',
+            salvarAnotacao: '✓ Save Note',
+            notaModeracao: 'Notes from members must be confirmed by an Officer or Admin before they become visible to everyone.',
+            criarMeta: 'Create Guild Objective',
+            vinculadoA: 'Linked to',
+            tituloPT: 'Title 🇧🇷 (PT)',
+            phObjTitulo: 'e.g. Pavimentar Estrada do Vale Norte...',
+            tituloEN: 'Title 🇺🇸 (EN) — optional',
+            phObjTituloEn: 'e.g. Pave the North Valley Road...',
+            nivelPrioridade: 'Priority Level',
+            categoria: 'Category',
+            catRoad: '🛣️ Road',
+            catBridge: '🌉 Bridge',
+            catExplore: '🕳️ Explore',
+            catSupply: '📦 Supply',
+            catCustom: '🎯 Other',
+            publicarObjetivo: '✓ Publish Objective',
+            tituloNick: '⚔️ Wurm Online Nick',
+            nomePersonagem: 'Your Character Name',
+            phNick: 'e.g. ShadowHunter',
+            salvar: 'Save',
+            tituloEditarPonto: '✏️ Edit Point / Deed',
+            tipoPonto: 'Point Type',
+            kindSupplyPoint: '📦 Supply Point',
+            desconhecido: '❓ Unknown',
+            nomeTitulo: 'Name / Title',
+            phEditNome: 'Point or Deed name...',
+            btnExcluir: '🗑️ Delete',
+            btnSalvarCheck: '✓ Save',
+            extensaoTotal: 'Total Length:',
+            nomeRota: 'Road / Bridge Name',
+            phNomeRota: "e.g. East King's Road, Canyon Bridge...",
+            estadoObra: 'Build Status',
+            rotaPlanejada: '🟡 Planned (Dashed Line)',
+            rotaConcluida: '🟢 Finished / Paved (Solid Line)',
+            ttPrint: 'Tactical Capture / Screenshot (Goldfish®)',
+            ariaPrint: 'Tactical Capture',
+            ttPencil: 'Freehand Pen',
+            ttArrow: 'Tactical Arrow',
+            ttCircle: 'Target Circle / Perimeter',
+            ttText: 'Text',
+            ttRoad: 'Built Road (Solid)',
+            ttRoadPlan: 'Planned Road (Dashed)',
+            ttBridge: 'Bridge (Wood / Structure)',
+            ttTunnel: 'Underground Tunnel',
+            ttStamp: 'Clean Tactical Stamps',
+            ttCorPreto: 'Tactical Black',
+            ttCorBranco: 'Pure White',
+            ttCorAmarelo: 'Neon Yellow',
+            ttCorRosa: 'Neon Pink / Magenta',
+            ttCorVerde: 'Neon Green',
+            ttCorCiano: 'Electric Cyan',
+            ttCorVermelho: 'Jackal Red',
+            ttCorLaranja: 'Fire Orange',
+            ttDesfazer: 'Undo',
+            ttLimpar: 'Clear',
+            ttUploadLink: 'Instant upload to a direct image link',
+            ttCopyImg: 'Copy to paste into Discord with Ctrl+V',
+            ttSavePng: 'Download PNG file',
+            ttClosePrint: 'Close Print Mode (or press ESC)',
+            cliqueMarcar: 'Click to mark'
         }
     };
-
-    let idiomaAtual = localStorage.getItem('jackal_atlas_lang') || 'pt';
 
     function trocarIdioma(lang) {
         idiomaAtual = lang;
@@ -6807,6 +7045,27 @@
             if (dic[key]) el.textContent = dic[key];
         });
 
+        // Placeholders e tooltips com data-i18n-placeholder / data-i18n-title / data-i18n-aria • Placeholders, tooltips and aria labels
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (dic[key]) el.placeholder = dic[key];
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (dic[key]) el.title = dic[key];
+        });
+        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+            const key = el.getAttribute('data-i18n-aria');
+            if (dic[key]) el.setAttribute('aria-label', dic[key]);
+        });
+        document.documentElement.lang = (lang === 'en') ? 'en' : 'pt-BR';
+
+        // Nick Wurm padrão (só troca enquanto nenhum nick foi definido) • Default Wurm nick label, only while no nick is set
+        const nickEl = document.getElementById('userWurmNick');
+        if (nickEl && (nickEl.textContent === I18N.pt.definirNick || nickEl.textContent === I18N.en.definirNick)) {
+            nickEl.textContent = dic.definirNick;
+        }
+
         // Placeholder busca
         const busca = document.getElementById('inputBusca');
         if (busca) busca.placeholder = dic.searchPlaceholder;
@@ -6817,8 +7076,9 @@
         if (historicoSketchAberto()) renderizarHistoricoSketch();
     }
 
-    // Inicializar idioma
+    // Inicializar idioma (de novo após o parse completo, para elementos declarados depois do script) • Apply again once the whole document is parsed
     trocarIdioma(idiomaAtual);
+    document.addEventListener('DOMContentLoaded', () => trocarIdioma(idiomaAtual));
 
     // ==============================================================
     // SESSÃO SUPABASE & SINCRONIZAÇÃO EM TEMPO REAL
@@ -6828,7 +7088,7 @@
         document.getElementById('authLoggedOut').style.display = 'none';
         document.getElementById('authLoggedIn').style.display = 'block';
 
-        const name = currentUser.user_metadata?.custom_claims?.global_name || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Batedor';
+        const name = currentUser.user_metadata?.custom_claims?.global_name || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || txt('Batedor', 'Scout');
         document.getElementById('userNick').textContent = name;
         if (currentUser.user_metadata?.avatar_url) {
             document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url;
@@ -6943,23 +7203,23 @@
         try {
             const { error } = await supabaseClient.from('points').update({ confirmed: true }).eq('id', id);
             if (error) throw error;
-            mostrarToastCartografico('✓ Ponto aprovado e publicado com sucesso!');
+            mostrarToastCartografico(txt('✓ Ponto aprovado e publicado com sucesso!', '✓ Point approved and published!'));
             await carregarPontosDoBanco();
         } catch(e) {
-            alert('Erro ao aprovar ponto: ' + e.message);
+            alert(txt('Erro ao aprovar ponto: ', 'Error approving point: ') + e.message);
         }
     }
 
     async function rejeitarPontoRapido(id) {
         if (!supabaseClient) return;
-        if (!confirm('Deseja realmente recusar e remover esta anotação do mapa?')) return;
+        if (!confirm(txt('Deseja realmente recusar e remover esta anotação do mapa?', 'Reject this note and remove it from the map?'))) return;
         try {
             const { error } = await supabaseClient.from('points').delete().eq('id', id);
             if (error) throw error;
-            mostrarToastCartografico('🗑️ Ponto rejeitado e removido do mapa.');
+            mostrarToastCartografico(txt('🗑️ Ponto rejeitado e removido do mapa.', '🗑️ Point rejected and removed from the map.'));
             await carregarPontosDoBanco();
         } catch(e) {
-            alert('Erro ao rejeitar ponto: ' + e.message);
+            alert(txt('Erro ao rejeitar ponto: ', 'Error rejecting point: ') + e.message);
         }
     }
 
@@ -6978,35 +7238,35 @@
             if (error) throw error;
 
             if (!data || data.length === 0) {
-                feed.innerHTML = `<div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">📡 Nenhum evento registrado ainda. Relate ações ao selecionar beacons no mapa.</div>`;
+                feed.innerHTML = `<div style="padding:12px 8px; font-size:10.5px; color:var(--sw-text-muted); text-align:center;">${txt('📡 Nenhum evento registrado ainda. Relate ações ao selecionar beacons no mapa.', '📡 No events logged yet. Report actions by selecting beacons on the map.')}</div>`;
                 return;
             }
 
             feed.innerHTML = data.map(ev => {
                 const hora = new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const pontoNome = sanitize(ev.points?.name || 'Ponto');
+                const pontoNome = sanitize(ev.points?.name || txt('Ponto', 'Point'));
                 let dotClass = 'info';
                 let msg = '';
 
                 switch (ev.event_type) {
                     case 'cleared':
                         dotClass = 'note';
-                        msg = `Beacon <strong>${pontoNome}</strong> limpo (agora Neutro)`;
+                        msg = txt(`Beacon <strong>${pontoNome}</strong> limpo (agora Neutro)`, `Beacon <strong>${pontoNome}</strong> cleared (now Neutral)`);
                         break;
                     case 'converted_freedom':
                         dotClass = 'freedom';
-                        msg = `Beacon <strong>${pontoNome}</strong> convertido para Freedom!`;
+                        msg = txt(`Beacon <strong>${pontoNome}</strong> convertido para Freedom!`, `Beacon <strong>${pontoNome}</strong> converted to Freedom!`);
                         break;
                     case 'reinforced':
                         dotClass = 'info';
-                        msg = `Beacon <strong>${pontoNome}</strong> reforçado (+1)`;
+                        msg = txt(`Beacon <strong>${pontoNome}</strong> reforçado (+1)`, `Beacon <strong>${pontoNome}</strong> reinforced (+1)`);
                         break;
                     case 'attacked':
                         dotClass = 'jackal';
-                        msg = `🚨 Beacon <strong>${pontoNome}</strong> está <strong>sob ataque Jackal!</strong>`;
+                        msg = txt(`🚨 Beacon <strong>${pontoNome}</strong> está <strong>sob ataque Jackal!</strong>`, `🚨 Beacon <strong>${pontoNome}</strong> is <strong>under Jackal attack!</strong>`);
                         break;
                     default:
-                        msg = `Ação registrada em <strong>${pontoNome}</strong> (${ev.event_type})`;
+                        msg = txt(`Ação registrada em <strong>${pontoNome}</strong> (${ev.event_type})`, `Action logged at <strong>${pontoNome}</strong> (${ev.event_type})`);
                 }
 
                 return `
@@ -7028,25 +7288,25 @@
             const { error } = await supabaseClient.from('routes').update({ kind: novoKind }).eq('id', id);
             if (error) throw error;
             await carregarRotasDoBanco();
-            mostrarToastCartografico(`✓ Obra atualizada para: <strong>${novoKind.endsWith('_built') ? 'Pavimentada / Concluída' : 'Planejada'}</strong>`);
+            mostrarToastCartografico(txt(`✓ Obra atualizada para: <strong>${novoKind.endsWith('_built') ? 'Pavimentada / Concluída' : 'Planejada'}</strong>`, `✓ Build updated to: <strong>${novoKind.endsWith('_built') ? 'Paved / Finished' : 'Planned'}</strong>`));
             return;
         } catch (err) {
-            alert('Erro ao atualizar status da obra: ' + err.message);
+            alert(txt('Erro ao atualizar status da obra: ', 'Error updating build status: ') + err.message);
             return;
         }
     }
 
     async function excluirRota(id, nome) {
-        if (!confirm(`Deseja realmente excluir a obra "${nome}"?`)) return;
+        if (!confirm(txt(`Deseja realmente excluir a obra "${nome}"?`, `Delete the build "${nome}"?`))) return;
         if (!supabaseClient) return;
         try {
             const { error } = await supabaseClient.from('routes').delete().eq('id', id);
             if (error) throw error;
             await carregarRotasDoBanco();
-            mostrarToastCartografico(`✓ Obra "${sanitize(nome)}" excluída.`);
+            mostrarToastCartografico(txt(`✓ Obra "${sanitize(nome)}" excluída.`, `✓ Build "${sanitize(nome)}" deleted.`));
             return;
         } catch (err) {
-            alert('Erro ao excluir obra: ' + err.message);
+            alert(txt('Erro ao excluir obra: ', 'Error deleting build: ') + err.message);
             return;
         }
     }
@@ -7089,17 +7349,17 @@
                 const safeName = sanitize(r.name).replace(/'/g, "\\'");
 
                 const statusBadge = isBuilt
-                    ? `<span style="background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">✓ CONCLUÍDA</span>`
-                    : `<span style="background:rgba(245,166,35,0.15); color:#f5a623; border:1px solid rgba(245,166,35,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">⏳ PLANEJADA</span>`;
+                    ? `<span style="background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">${txt('✓ CONCLUÍDA', '✓ FINISHED')}</span>`
+                    : `<span style="background:rgba(245,166,35,0.15); color:#f5a623; border:1px solid rgba(245,166,35,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">${txt('⏳ PLANEJADA', '⏳ PLANNED')}</span>`;
 
                 const nextKind = isBridge
                     ? (isBuilt ? 'bridge_planned' : 'bridge_built')
                     : (isBuilt ? 'road_planned' : 'road_built');
-                const flipText = isBuilt ? '📋 Reverter para Planejada' : '🔨 Marcar como Concluída';
+                const flipText = isBuilt ? txt('📋 Reverter para Planejada', '📋 Revert to Planned') : txt('🔨 Marcar como Concluída', '🔨 Mark as Finished');
 
                 const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
                     <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('route', ${JSON.stringify({id: r.id, name: r.name, kind: r.kind, path: r.path, distance: distRound}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        🎯 Tornar Meta da Guilda
+                        ${txt('🎯 Tornar Meta da Guilda', '🎯 Make Guild Objective')}
                     </button>
                 ` : '';
 
@@ -7124,7 +7384,7 @@
                             ${statusBadge}
                         </div>
                         <div style="font-size:10px; color:#94a3b8; margin-bottom:4px;">
-                            Distância: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nós)
+                            ${txt(`Distância: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nós)`, `Distance: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nodes)`)}
                         </div>
                         ${adminMetaBtn}
                         ${actionBtns}
@@ -7198,7 +7458,7 @@
          TOOLTIP FLUTUANTE DE ADIÇÃO DE PONTO (CROSSHAIR TRACKER)
          ================================================================ -->
     <div id="crosshairTooltip" style="display:none; position:fixed; pointer-events:none; z-index:99999; background:rgba(18, 20, 28, 0.95); border:1px solid var(--jk-accent); color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 10px; border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,0.8); transform:translate(15px, 15px);">
-        📍 Clique para marcar • <span id="crosshairCoords" style="color:var(--jk-accent);">X 0 • Y 0</span>
+        📍 <span data-i18n="cliqueMarcar">Clique para marcar</span> • <span id="crosshairCoords" style="color:var(--jk-accent);">X 0 • Y 0</span>
     </div>
 </body>
 </html>

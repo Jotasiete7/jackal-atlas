@@ -1,5 +1,7 @@
 # 🌙 Jackal Atlas — Central Tática • A Guilda
 
+> 🇺🇸 English version: [README.en.md](README.en.md)
+
 Mapa tático e cartográfico colaborativo para o evento **Jackal Round 2** de Wurm Online (outubro de 2026).
 Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, arquitetura em tempo real com **Supabase** e suporte completo a infraestrutura viária, controle territorial de beacons e objetivos prioritários (P1/P2/P3).
 
