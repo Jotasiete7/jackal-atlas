@@ -457,6 +457,15 @@
         .jk-sketch-stamp.erasing { opacity: 0.2; }
         .jk-sketch-draft-chip.has-changes { color: #60a5fa; border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.12); }
         .jk-sketch-tool:disabled { opacity: 0.4; cursor: not-allowed; }
+        .jk-sketch-palette { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; max-width: 260px; }
+        .jk-sketch-cor {
+            width: 16px; height: 16px; padding: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.25);
+            cursor: pointer;
+        }
+        .jk-sketch-cor.active { border-color: #fff; box-shadow: 0 0 0 2px var(--jk-accent); }
+        .jk-sketch-cor-custom { width: 22px; height: 18px; padding: 0; border: 1px solid var(--sw-border); border-radius: 4px; background: transparent; cursor: pointer; }
         .jk-sketch-tool.jk-sketch-commit:not(:disabled) { background: var(--jk-accent); border-color: var(--jk-accent); color: #000; }
         .jk-sketch-ghost-tag {
             display: inline-block;
@@ -912,15 +921,26 @@
         <div id="hudBottomSketch" class="sw-focus-bar jk-sketch-bar" style="display:none;">
             <div class="jk-sketch-group">
                 <span style="color:#60a5fa; font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;" data-i18n="skTitulo">✏️ Esboço:</span>
-                <button class="jk-sketch-tool" data-sketch-tool="water" onclick="selecionarFerramentaSketch('water')" title="Água: lagos, rios, litoral • Water: lakes, rivers, coastline"><span class="jk-sketch-swatch" style="background:#3b82f6;"></span><span data-i18n="skAgua">Água</span></button>
-                <button class="jk-sketch-tool" data-sketch-tool="forest" onclick="selecionarFerramentaSketch('forest')" title="Floresta • Forest"><span class="jk-sketch-swatch" style="background:#16a34a;"></span><span data-i18n="skFloresta">Floresta</span></button>
-                <button class="jk-sketch-tool" data-sketch-tool="ridge" onclick="selecionarFerramentaSketch('ridge')" title="Crista de montanha • Mountain ridge line"><span class="jk-sketch-swatch" style="background:#6d4c41;"></span><span data-i18n="skCrista">Crista</span></button>
-                <button class="jk-sketch-tool" data-sketch-tool="sand" onclick="selecionarFerramentaSketch('sand')" title="Areia / praia • Sand / beach"><span class="jk-sketch-swatch" style="background:#eab308;"></span><span data-i18n="skAreia">Areia</span></button>
-                <button class="jk-sketch-tool" data-sketch-tool="rock" onclick="selecionarFerramentaSketch('rock')" title="Rocha / penhascos • Rock / cliffs"><span class="jk-sketch-swatch" style="background:#78716c;"></span><span data-i18n="skRocha">Rocha</span></button>
+                <button class="jk-sketch-tool" data-sketch-tool="pen" onclick="selecionarFerramentaSketch('pen')" title="Caneta: arraste para desenhar na cor escolhida • Pen: drag to draw in the selected colour" data-i18n="skCaneta">✏️ Caneta</button>
+                <div class="jk-sketch-palette" id="sketchPaleta" title="Cor • Colour">
+                    <button class="jk-sketch-cor" data-cor="#1f2937" style="background:#1f2937;" onclick="selecionarCorSketch('#1f2937')" title="Preto • Black"></button>
+                    <button class="jk-sketch-cor" data-cor="#ffffff" style="background:#ffffff;" onclick="selecionarCorSketch('#ffffff')" title="Branco • White"></button>
+                    <button class="jk-sketch-cor" data-cor="#78716c" style="background:#78716c;" onclick="selecionarCorSketch('#78716c')" title="Cinza • Grey"></button>
+                    <button class="jk-sketch-cor" data-cor="#6d4c41" style="background:#6d4c41;" onclick="selecionarCorSketch('#6d4c41')" title="Marrom • Brown"></button>
+                    <button class="jk-sketch-cor" data-cor="#dc2626" style="background:#dc2626;" onclick="selecionarCorSketch('#dc2626')" title="Vermelho • Red"></button>
+                    <button class="jk-sketch-cor" data-cor="#f97316" style="background:#f97316;" onclick="selecionarCorSketch('#f97316')" title="Laranja • Orange"></button>
+                    <button class="jk-sketch-cor" data-cor="#eab308" style="background:#eab308;" onclick="selecionarCorSketch('#eab308')" title="Amarelo • Yellow"></button>
+                    <button class="jk-sketch-cor" data-cor="#16a34a" style="background:#16a34a;" onclick="selecionarCorSketch('#16a34a')" title="Verde • Green"></button>
+                    <button class="jk-sketch-cor" data-cor="#14532d" style="background:#14532d;" onclick="selecionarCorSketch('#14532d')" title="Verde escuro • Dark green"></button>
+                    <button class="jk-sketch-cor" data-cor="#3b82f6" style="background:#3b82f6;" onclick="selecionarCorSketch('#3b82f6')" title="Azul • Blue"></button>
+                    <button class="jk-sketch-cor" data-cor="#1e3a8a" style="background:#1e3a8a;" onclick="selecionarCorSketch('#1e3a8a')" title="Azul escuro • Dark blue"></button>
+                    <button class="jk-sketch-cor" data-cor="#9333ea" style="background:#9333ea;" onclick="selecionarCorSketch('#9333ea')" title="Roxo • Purple"></button>
+                    <input type="color" id="inputSketchCorCustom" class="jk-sketch-cor-custom" value="#3b82f6" oninput="selecionarCorSketch(this.value)" title="Cor personalizada • Custom colour">
+                </div>
             </div>
             <div class="jk-sketch-group">
                 <button class="jk-sketch-tool" data-sketch-tool="arrow" onclick="selecionarFerramentaSketch('arrow')" title="Seta: arraste do início ao fim • Arrow: drag from start to end" data-i18n="skSeta">➡️ Seta</button>
-                <button class="jk-sketch-tool" data-sketch-tool="label" onclick="selecionarFerramentaSketch('label')" title="Rótulo: clique onde o texto vai • Text label: click where it goes" data-i18n="skRotulo">🔤 Rótulo</button>
+                <button class="jk-sketch-tool" data-sketch-tool="label" onclick="selecionarFerramentaSketch('label')" title="Texto: clique no mapa onde o texto vai, digite e aperte Enter • Text: click on the map, type, press Enter" data-i18n="skTextoTool">🔤 Texto</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="camp" onclick="selecionarFerramentaSketch('stamp', 'camp')" title="Acampamento • Camp">⛺</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="tunnel" onclick="selecionarFerramentaSketch('stamp', 'tunnel')" title="Saída de túnel • Tunnel exit">🚇</button>
                 <button class="jk-sketch-tool" data-sketch-tool="stamp" data-stamp="danger" onclick="selecionarFerramentaSketch('stamp', 'danger')" title="Perigo • Danger">⚠️</button>
@@ -928,8 +948,13 @@
             </div>
             <div class="jk-sketch-group" title="Tamanho do pincel em tiles do jogo • Brush size in game tiles">
                 <span style="font-size:10px; color:var(--sw-text-muted); font-weight:700;" data-i18n="skTamanho">Tam.</span>
-                <input type="range" id="sliderSketchTamanho" min="1" max="60" value="12" step="1" oninput="ajustarTamanhoSketch(this.value)" style="width:80px; height:4px; accent-color:#60a5fa; cursor:pointer;">
-                <span id="labelSketchTamanho" style="font-family:'JetBrains Mono'; font-size:10px; color:#fff; font-weight:800; min-width:44px;">12 tiles</span>
+                <input type="range" id="sliderSketchTamanho" min="1" max="60" value="6" step="1" oninput="ajustarTamanhoSketch(this.value)" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
+                <span id="labelSketchTamanho" style="font-family:'JetBrains Mono'; font-size:10px; color:#fff; font-weight:800; min-width:44px;">6 tiles</span>
+            </div>
+            <div class="jk-sketch-group" title="Opacidade do pincel: quão transparentes ficam os novos traços • Brush opacity: how see-through new strokes are">
+                <span style="font-size:10px; color:var(--sw-text-muted); font-weight:700;" data-i18n="skOpacidadeTraco">Opac.</span>
+                <input type="range" id="sliderSketchOpacidadeTraco" min="10" max="100" value="85" step="5" oninput="ajustarOpacidadeTracoSketch(this.value)" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
+                <span id="labelSketchOpacidadeTraco" style="font-family:'JetBrains Mono'; font-size:10px; color:#fff; font-weight:800; min-width:32px;">85%</span>
             </div>
             <div class="jk-sketch-group">
                 <span id="sketchDraftChip" class="jk-sketch-status jk-sketch-draft-chip" title="Suas alterações sem commit. Só você vê até fazer o commit. • Your uncommitted changes. Only you can see them until you commit.">✏️ Rascunho: vazio</span>
@@ -4097,7 +4122,10 @@
         return (typeof idiomaAtual !== 'undefined' && idiomaAtual === 'en') ? 'en-GB' : 'pt-BR';
     }
 
+    // 'pen' (qualquer cor) e 'arrow' são as ferramentas de desenho; os presets de terreno abaixo ficam
+    // para que traços feitos antes das cores continuem iguais • terrain presets kept for older strokes
     const SKETCH_PRESETS = {
+        pen:    { nome: 'Pen',    cor: '#3b82f6', opacidade: 0.85, largura: 6 },
         water:  { nome: 'Water',  cor: '#3b82f6', opacidade: 0.8,  largura: 12 },
         forest: { nome: 'Forest', cor: '#16a34a', opacidade: 0.75, largura: 12 },
         ridge:  { nome: 'Ridge',  cor: '#6d4c41', opacidade: 0.95, largura: 3 },
@@ -4117,7 +4145,9 @@
 
     let modoSketch = false;
     let sketchModoArmazenamento = 'local';   // 'local' | 'shared'
-    let sketchFerramenta = 'water';
+    let sketchFerramenta = 'pen';
+    let sketchCorAtual = '#3b82f6';           // cor da caneta, setas e texto • colour for pen, arrow and text
+    let sketchOpacidadeAtual = 0.85;          // opacidade dos novos traços (0.1 - 1) • opacity for new strokes
     let sketchStampAtual = 'camp';
     let sketchLarguraPorFerramenta = {};      // remembers the size chosen for each tool
     let sketchStrokes = [];                   // committed strokes (every row you can read)
@@ -4279,15 +4309,25 @@
         return lista;
     }
 
-    function estiloTraco(s, estado) {
+    function corDoTraco(s) {
         const preset = SKETCH_PRESETS[s.kind] || SKETCH_PRESETS.rock;
-        let opacidade = preset.opacidade;
+        return (typeof s.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(s.color)) ? s.color : preset.cor;
+    }
+
+    function opacidadeDoTraco(s) {
+        const preset = SKETCH_PRESETS[s.kind] || SKETCH_PRESETS.rock;
+        const o = Number(s.opacity);
+        return (s.opacity !== null && s.opacity !== undefined && isFinite(o)) ? Math.max(0.05, Math.min(1, o)) : preset.opacidade;
+    }
+
+    function estiloTraco(s, estado) {
+        let opacidade = opacidadeDoTraco(s);
         let dash = null;
         if (estado === 'pending') { opacidade *= 0.45; dash = '4 6'; }
         else if (estado === 'draft') { opacidade *= 0.6; dash = '10 8'; }
         else if (estado === 'erasing') { opacidade = 0.15; }
         return {
-            color: preset.cor,
+            color: corDoTraco(s),
             weight: Math.max(1, Number(s.width) * pxPorTile()),
             opacity: opacidade,
             dashArray: dash,
@@ -4300,10 +4340,19 @@
 
     function iconeLabelSketch(s, estado) {
         const fonte = Math.max(10, Math.min(64, Number(s.width) * pxPorTile()));
+        const temCor = typeof s.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(s.color);
+        let cor = temCor ? `color:${s.color};` : '';
+        if (temCor) {
+            // Texto claro ganha contorno escuro para continuar legível no pergaminho • light text gets a dark outline
+            const n = parseInt(s.color.slice(1), 16);
+            const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+            if (lum > 0.72) cor += 'text-shadow:0 0 3px #111,0 0 3px #111,0 0 2px #111;';
+        }
+        const opac = (estado === 'normal' && s.opacity !== null && s.opacity !== undefined) ? `opacity:${opacidadeDoTraco(s)};` : '';
         return L.divIcon({
             className: '',
             iconSize: [0, 0],
-            html: `<span class="jk-sketch-label ${estado !== 'normal' ? estado : ''}" style="font-size:${fonte.toFixed(1)}px;">${sanitize(s.label)}</span>`
+            html: `<span class="jk-sketch-label ${estado !== 'normal' ? estado : ''}" style="font-size:${fonte.toFixed(1)}px;${cor}${opac}">${sanitize(s.label)}</span>`
         });
     }
 
@@ -4589,7 +4638,8 @@
         if (btn) btn.disabled = true;
         try {
             const strokes = sketchDraft.strokes.map(s => ({
-                kind: s.kind, path: s.path, width: s.width, label: s.label || null, stamp: s.stamp || null
+                kind: s.kind, path: s.path, width: s.width, label: s.label || null, stamp: s.stamp || null,
+                color: s.color || null, opacity: (s.opacity === undefined ? null : s.opacity)
             }));
             const erase = sketchDraft.erase.filter(id => !String(id).startsWith('draft-'));
 
@@ -4844,6 +4894,8 @@
                 uid: currentUser.id,
                 name: meuNomeSketch(),
                 kind: sketchFerramenta,
+                color: sketchCorAtual,
+                opacity: sketchOpacidadeAtual,
                 width: larguraSketchAtual(),
                 start: sketchEnvioInicio,
                 replace: ehSeta,
@@ -4909,8 +4961,9 @@
             ? latlngsSeta(g.pts, g.width)
             : g.pts.map(pt => [MAP_SIZE - pt[1], pt[0]]);
         if (!g.line) {
+            const corGhost = (typeof p.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(p.color)) ? p.color : preset.cor;
             g.line = L.polyline(latlngs, {
-                color: preset.cor, weight: Math.max(1, g.width * pxPorTile()), opacity: 0.45,
+                color: corGhost, weight: Math.max(1, g.width * pxPorTile()), opacity: 0.45,
                 dashArray: '6 6', lineCap: 'round', lineJoin: 'round',
                 renderer: sketchCanvasRenderer, interactive: false
             }).addTo(map);
@@ -4997,6 +5050,30 @@
         if (lembrar && SKETCH_PRESETS[sketchFerramenta]) sketchLarguraPorFerramenta[sketchFerramenta] = v;
     }
 
+    // Cor da caneta, setas e texto. Escolher uma cor enquanto apaga ou carimba volta para a caneta.
+    // Colour for the pen, arrows and text. Picking a colour while erasing or stamping switches back to the pen.
+    function selecionarCorSketch(cor, trocarParaCaneta = true) {
+        if (typeof cor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(cor)) return;
+        sketchCorAtual = cor.toLowerCase();
+        document.querySelectorAll('#sketchPaleta .jk-sketch-cor').forEach(b => {
+            b.classList.toggle('active', (b.getAttribute('data-cor') || '').toLowerCase() === sketchCorAtual);
+        });
+        const custom = document.getElementById('inputSketchCorCustom');
+        if (custom && custom.value.toLowerCase() !== sketchCorAtual) custom.value = sketchCorAtual;
+        try { localStorage.setItem('jackal_sketch_color', sketchCorAtual); } catch (e) {}
+        if (trocarParaCaneta && (sketchFerramenta === 'eraser' || sketchFerramenta === 'stamp')) selecionarFerramentaSketch('pen');
+    }
+
+    function ajustarOpacidadeTracoSketch(valor) {
+        const v = Math.max(10, Math.min(100, Number(valor) || 85));
+        sketchOpacidadeAtual = v / 100;
+        const lbl = document.getElementById('labelSketchOpacidadeTraco');
+        if (lbl) lbl.textContent = v + '%';
+        const slider = document.getElementById('sliderSketchOpacidadeTraco');
+        if (slider && Number(slider.value) !== v) slider.value = v;
+        try { localStorage.setItem('jackal_sketch_brush_opacity', String(v)); } catch (e) {}
+    }
+
     function ativarModoSketch() {
         if (modoTracado) cancelarTracado();
         if (modoMedicaoArea) desativarModoMedicaoArea();
@@ -5018,6 +5095,10 @@
         if (chk && !chk.checked) { chk.checked = true; toggleCamada('sketch', true); }
 
         selecionarFerramentaSketch(sketchFerramenta, sketchStampAtual);
+        let corSalva = null, opacSalva = null;
+        try { corSalva = localStorage.getItem('jackal_sketch_color'); opacSalva = localStorage.getItem('jackal_sketch_brush_opacity'); } catch (e) {}
+        selecionarCorSketch(corSalva || sketchCorAtual, false);
+        ajustarOpacidadeTracoSketch(opacSalva || Math.round(sketchOpacidadeAtual * 100));
         atualizarStatusSketch();
         renderizarSketch();
         mostrarToastCartografico(txt('✏️ <strong>Esboço</strong>: arraste para desenhar no rascunho e depois faça o <strong>Commit</strong>. Segure <strong>Espaço</strong> para mover o mapa.', '✏️ <strong>Sketch</strong>: drag to draw into your draft, then <strong>Commit</strong>. Hold <strong>Space</strong> to pan.'));
@@ -5125,7 +5206,7 @@
             }
         }
         path = path.map(p => [arred1(p[0]), arred1(p[1])]);
-        adicionarAoDraftSketch({ kind: sketchFerramenta, path, width: largura });
+        adicionarAoDraftSketch({ kind: sketchFerramenta, path, width: largura, color: sketchCorAtual, opacity: sketchOpacidadeAtual });
     }
 
     map.on('mousedown', function(e) {
@@ -5146,11 +5227,10 @@
         }
         const p = tileDoEvento(e);
         sketchTracoAtual = { pts: [[p.x, p.y]], lastPx: e.containerPoint };
-        const preset = SKETCH_PRESETS[sketchFerramenta];
         sketchPreview = L.polyline([e.latlng, e.latlng], {
-            color: preset.cor,
+            color: sketchCorAtual,
             weight: Math.max(1, larguraSketchAtual() * pxPorTile()),
-            opacity: preset.opacidade * 0.6,
+            opacity: sketchOpacidadeAtual * 0.6,
             dashArray: '10 8',
             lineCap: 'round',
             lineJoin: 'round',
@@ -5225,7 +5305,7 @@
         const texto = (document.getElementById('inputSketchLabel').value || '').trim().slice(0, 80);
         if (!texto || !sketchLabelPendente) return;
         const tamanho = Number(document.getElementById('selectSketchLabelTamanho').value) || 20;
-        adicionarAoDraftSketch({ kind: 'label', label: texto, path: [[sketchLabelPendente.x, sketchLabelPendente.y]], width: tamanho });
+        adicionarAoDraftSketch({ kind: 'label', label: texto, path: [[sketchLabelPendente.x, sketchLabelPendente.y]], width: tamanho, color: sketchCorAtual, opacity: sketchOpacidadeAtual });
         sketchLabelPendente = null;
         fecharModal('modalSketchLabel');
     }
@@ -5838,6 +5918,9 @@
             skRocha: 'Rocha',
             skSeta: '➡️ Seta',
             skRotulo: '🔤 Rótulo',
+            skCaneta: '✏️ Caneta',
+            skTextoTool: '🔤 Texto',
+            skOpacidadeTraco: 'Opac.',
             skBorracha: '🧽 Apagar',
             skTamanho: 'Tam.',
             skDesfazer: '↩ Desfazer',
@@ -5960,6 +6043,9 @@
             skRocha: 'Rock',
             skSeta: '➡️ Arrow',
             skRotulo: '🔤 Label',
+            skCaneta: '✏️ Pen',
+            skTextoTool: '🔤 Text',
+            skOpacidadeTraco: 'Opacity',
             skBorracha: '🧽 Erase',
             skTamanho: 'Size',
             skDesfazer: '↩ Undo',
