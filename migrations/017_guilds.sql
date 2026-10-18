@@ -88,7 +88,8 @@ $$;
 -- 4. Live updates for the map's guild tags
 do $$
 begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'guilds') then
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'guilds') then
     alter publication supabase_realtime add table public.guilds;
   end if;
 end $$;

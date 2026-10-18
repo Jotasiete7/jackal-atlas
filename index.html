@@ -718,7 +718,7 @@
                         <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
                         <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
                     </label>
-                    <label class="sw-filter-row" title="Linhas a cada 512 → 4 tiles conforme o zoom, com números de X e Y nas bordas • Lines every 512 → 4 tiles depending on zoom, with X and Y numbers on the edges">
+                    <label class="sw-filter-row" title="Linhas a cada 512 → 16 tiles conforme o zoom, com números de X e Y nas bordas • Lines every 512 → 16 tiles depending on zoom, with X and Y numbers on the edges">
                         <input type="checkbox" id="chkGradeCoord" onchange="toggleGridCoord(this.checked)">
                         <span data-i18n="gradeCoord">🔢 Grade de Coordenadas (tiles)</span>
                     </label>
@@ -1480,7 +1480,8 @@
     CFG.tiles = Object.assign({}, defaultTiles, (window.JACKAL_CONFIG && window.JACKAL_CONFIG.tiles) || {});
 
     // Idioma atual (declarado cedo para que txt() funcione em qualquer ponto do script) • Current UI language, declared early so txt() works anywhere in the script
-    let idiomaAtual = localStorage.getItem('jackal_atlas_lang') || 'pt';
+    let idiomaAtual = 'pt';
+    try { idiomaAtual = localStorage.getItem('jackal_atlas_lang') === 'en' ? 'en' : 'pt'; } catch (e) {}
 
     // Inicialização do cliente Supabase
     const supabaseClient = (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('placeholder'))
@@ -1794,17 +1795,17 @@
 
     // ==============================================================
     // GRADE DE COORDENADAS (TILES) • TILE COORDINATE GRID
-    // Linhas em números redondos de tile que ficam mais finas com o zoom (512 → 4 tiles),
+    // Linhas em números redondos de tile que ficam mais finas com o zoom (512 → 16 tiles),
     // com rótulos de X no topo e de Y à direita. Só desenha a área visível.
-    // Lines on round tile numbers that get finer as you zoom in (512 → 4 tiles), labelled
-    // with X along the top and Y along the left. Only the visible area is drawn.
+    // Lines on round tile numbers that get finer as you zoom in (512 → 16 tiles), labelled
+    // with X along the top and Y along the right. Only the visible area is drawn.
     // ==============================================================
     const gridCoordLayer = L.layerGroup();
-    const GRID_COORD_PASSOS = [4, 8, 16, 32, 64, 128, 256, 512];
+    const GRID_COORD_PASSOS = [16, 32, 64, 128, 256, 512];
 
     function passoGridCoord() {
         const ppt = Math.pow(2, map.getZoom()) * SCALE_FACTOR; // screen pixels per tile
-        return GRID_COORD_PASSOS.find(p => p * ppt >= 70) || 512;
+        return GRID_COORD_PASSOS.find(p => p * ppt >= 40) || 512;
     }
 
     function desenharGridCoord() {
@@ -1858,7 +1859,7 @@
         if (salvar) salvarEstadoCamadas();
     }
 
-    map.on('moveend zoomend', () => { if (map.hasLayer(gridCoordLayer)) desenharGridCoord(); });
+    map.on('moveend', () => { if (map.hasLayer(gridCoordLayer)) desenharGridCoord(); }); // moveend also fires after every zoom
 
     function destacarQuadranteWurm(letra, numero, voar = true) {
         const bounds = obterBoundsQuadrante(letra, numero);
@@ -2617,7 +2618,10 @@
     // ==============================================================
     let objetivosData = [];
 
+    let filtroObjetivosAtual = 'all';   // priority filter currently shown
+    let dadosIniciaisCarregados = false; // set once the first data load finished
     async function carregarObjetivosDoBanco(filtro) {
+        filtroObjetivosAtual = filtro || 'all';
         const container = document.getElementById('listaObjetivosContainer');
         if (!container) return;
 
@@ -2830,7 +2834,7 @@
                 document.getElementById('inputObjTitulo').value = '';
                 if (document.getElementById('inputObjTituloEn')) document.getElementById('inputObjTituloEn').value = '';
                 objetivoVinculoPendente = null;
-                await carregarObjetivosDoBanco('all');
+                await carregarObjetivosDoBanco(filtroObjetivosAtual);
                 return;
             } catch (e) {
                 alert(txt(`Erro ao salvar objetivo no Supabase: ${e.message}`, `Error saving objective to Supabase: ${e.message}`));
@@ -7113,8 +7117,10 @@
     };
 
     function trocarIdioma(lang) {
+        lang = (lang === 'en') ? 'en' : 'pt';
+        const mudou = lang !== idiomaAtual;
         idiomaAtual = lang;
-        localStorage.setItem('jackal_atlas_lang', lang);
+        try { localStorage.setItem('jackal_atlas_lang', lang); } catch (e) {}
 
         document.getElementById('btnLangPT').classList.toggle('active', lang === 'pt');
         document.getElementById('btnLangEN').classList.toggle('active', lang === 'en');
@@ -7156,6 +7162,14 @@
         atualizarStatusSketch();
         atualizarBarraDraftSketch();
         if (historicoSketchAberto()) renderizarHistoricoSketch();
+
+        // Lists and popups are built in the current language, so rebuild them
+        if (mudou && dadosIniciaisCarregados) {
+            carregarPontosDoBanco();
+            carregarObjetivosDoBanco(filtroObjetivosAtual);
+            carregarEventosDoBanco();
+            carregarRotasDoBanco();
+        }
     }
 
     // Inicializar idioma (de novo após o parse completo, para elementos declarados depois do script) • Apply again once the whole document is parsed
@@ -7177,7 +7191,12 @@
         }
 
         try {
-            const { data: profile } = await supabaseClient.from('profiles').select('*, guild:guilds!profiles_guild_id_fkey(id, name, tag, color)').eq('id', currentUser.id).maybeSingle();
+            let { data: profile, error: erroPerfil } = await supabaseClient.from('profiles').select('*, guild:guilds!profiles_guild_id_fkey(id, name, tag, color)').eq('id', currentUser.id).maybeSingle();
+            if (erroPerfil) {
+                // Guilds not available (e.g. migration 017 missing): load the profile without them
+                console.warn('Profile with guild failed, retrying without it:', erroPerfil.message);
+                ({ data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle());
+            }
             if (profile) {
                 currentProfile = profile;
                 document.getElementById('userGuildTag').innerHTML = tagGuildaHtml(profile.guild);
@@ -7519,6 +7538,7 @@
         await carregarObjetivosDoBanco('all');
         await carregarEventosDoBanco();
         await carregarRotasDoBanco();
+        dadosIniciaisCarregados = true;
 
         // Camada de esboço (localStorage, ou Supabase se config.js tiver sketchShared: true) • Sketch layer
         const opacidadeSketch = localStorage.getItem('jackal_sketch_opacity');
@@ -7534,7 +7554,7 @@
             supabaseClient.channel('jackal_live_sync')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'points' }, () => carregarPontosDoBanco())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'point_events' }, () => { carregarPontosDoBanco(); carregarEventosDoBanco(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco('all'))
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco(filtroObjetivosAtual))
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => carregarRotasDoBanco())
                 .subscribe();
         }

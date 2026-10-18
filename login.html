@@ -412,7 +412,7 @@
             document.getElementById('unauthenticated-block').style.display = 'none';
 
             const avatarUrl = user.user_metadata?.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-            const name = user.user_metadata?.custom_claims?.global_name || user.user_metadata?.full_name || user.user_metadata?.name || 'Membro';
+            const name = user.user_metadata?.custom_claims?.global_name || user.user_metadata?.full_name || user.user_metadata?.name || txt('Membro', 'Member');
 
             // Buscar perfil no banco
             let profile = null;
