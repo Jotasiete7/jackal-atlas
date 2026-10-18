@@ -81,7 +81,7 @@ SQL scripts in the `migrations/` folder:
 8. `008_point_management_policies.sql` — RLS policies so creators and officers can edit and delete annotations.
 9. `009_admin_only_objectives.sql` — Only Administrators can create Guild Goals and Toponyms.
 10. `010_security_patches.sql` — Public read access for visitors (confirmed points and routes) and blocks self-approval via UPDATE.
-11. `011_sketch_strokes.sql` — `sketch_strokes` table for the Sketch layer: tile-coordinate paths, officer approval for members' strokes, authors (or officers) erase, 300 strokes/hour rate limit, and live updates. After running it, set `sketchShared: true` in `config.js`.
+11. `011_sketch_strokes.sql` — `sketch_strokes` table for the Sketch layer: tile-coordinate paths, officer approval for members' strokes, authors (or officers) erase, 300 strokes/hour rate limit, and live updates.
 12. `012_security_fixes.sql` — Profiles can only be created by the sign-up trigger, the last admin cannot be demoted or deleted, approved events are applied exactly once (no double reinforcement), and officers can approve landmarks and log events on them while only admins edit landmark content.
 13. `013_profile_discord_identity.sql` — Stores each member's Discord display name and avatar on their profile (at sign-up, refreshed on sign-in, backfilled for existing users) so the admin panel shows names instead of Discord ID numbers. Members cannot change these themselves.
 14. `014_sketch_commits.sql` — Git-style versioning for the Sketch layer: `sketch_commits` (message, author, pending/approved/rejected/reverted) and `sketch_commit_erasures`, strokes linked to their commit, atomic `sketch_commit_create` and officer-only `sketch_commit_review` (approve, reject, revert, restore) RPCs, history readable for time travel, 30 commits/hour and 500 strokes per commit for members, live updates, and only Discord sign-ups can become the first admin.
@@ -116,7 +116,7 @@ Jackal-Atlas/
 ├── tiles_terrain/              # Local terrain tiles (zoom 0 to 4)
 ├── tiles_topo/                 # Local contour-line tiles
 ├── tiles_iso/                  # Local isometric-view tiles
-├── migrations/                 # Numbered SQL migrations (001 to 010)
+├── migrations/                 # Numbered SQL migrations (001 to 017)
 └── scripts/                    # Tile extraction and slicing utilities
 ```
 

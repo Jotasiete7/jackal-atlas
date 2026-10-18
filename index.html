@@ -1491,13 +1491,11 @@
     // SEGURANÇA — Sanitização de dados do banco inseridos via innerHTML
     // Previne XSS caso um nome de ponto contenha HTML/JS malicioso
     // ==============================================================
+    // Escapa texto para HTML, inclusive dentro de atributos (title="...") • Escape text for HTML, including inside attributes
+    const ENTIDADES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
     function sanitize(str) {
         if (!str) return '';
-        const el = document.createElement('div');
-        el.textContent = String(str);
-        // Também escapa aspas: o resultado é usado dentro de atributos (title="...")
-        // Also escape quotes: the result is used inside attributes (title="...")
-        return el.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        return String(str).replace(/[&<>"']/g, c => ENTIDADES_HTML[c]);
     }
 
     // Sanitiza coordenadas numéricas para uso em onclick inline
@@ -2300,11 +2298,11 @@
             const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
                               (currentUser && p.created_by === currentUser.id);
 
-            // Escapa para string JS primeiro, depois para HTML (o atributo onclick decodifica o HTML)
-            // Escape for the JS string first, then for HTML (the onclick attribute decodes the HTML)
-            const safePointName = sanitize(String(p.name || p.kind).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+            // Literal JS (JSON.stringify) e depois HTML: o atributo onclick decodifica o HTML antes de rodar o JS
+            // JS literal (JSON.stringify) then HTML: the onclick attribute decodes the HTML before running the JS
+            const safePointName = sanitize(JSON.stringify(String(p.name || p.kind || '')));
             const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
-                <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('point', ${JSON.stringify({id: p.id, name: p.name || p.kind, kind: p.kind, x: p.x, y: p.y}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('point', ${sanitize(JSON.stringify({id: p.id, name: p.name || p.kind, kind: p.kind, x: p.x, y: p.y}))})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
                     ${txt('🎯 Tornar Meta da Guilda', '🎯 Make Guild Objective')}
                 </button>
             ` : '';
@@ -2337,7 +2335,7 @@
                     <button onclick="event.stopPropagation(); abrirModalEditarPonto('${p.id}')" style="flex:1; background:rgba(245,166,35,0.12); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
                         ${txt('✏️ Editar', '✏️ Edit')}
                     </button>
-                    <button onclick="event.stopPropagation(); excluirPonto('${p.id}', '${safePointName}')" style="flex:1; background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:var(--jk-jackal); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <button onclick="event.stopPropagation(); excluirPonto('${p.id}', ${safePointName})" style="flex:1; background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:var(--jk-jackal); padding:4px 6px; border-radius:4px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
                         ${txt('🗑️ Excluir', '🗑️ Delete')}
                     </button>
                 </div>
@@ -7372,8 +7370,8 @@
                     dist += Math.hypot(r.path[i][0] - r.path[i-1][0], r.path[i][1] - r.path[i-1][1]);
                 }
                 const distRound = Math.round(dist);
-                // JS string first, then HTML (see safePointName)
-                const safeName = sanitize(String(r.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+                // JS literal first, then HTML (see safePointName)
+                const safeName = sanitize(JSON.stringify(String(r.name || '')));
 
                 const statusBadge = isBuilt
                     ? `<span style="background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">${txt('✓ CONCLUÍDA', '✓ FINISHED')}</span>`
@@ -7385,7 +7383,7 @@
                 const flipText = isBuilt ? txt('📋 Reverter para Planejada', '📋 Revert to Planned') : txt('🔨 Marcar como Concluída', '🔨 Mark as Finished');
 
                 const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
-                    <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('route', ${JSON.stringify({id: r.id, name: r.name, kind: r.kind, path: r.path, distance: distRound}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('route', ${sanitize(JSON.stringify({id: r.id, name: r.name, kind: r.kind, path: r.path, distance: distRound}))})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
                         ${txt('🎯 Tornar Meta da Guilda', '🎯 Make Guild Objective')}
                     </button>
                 ` : '';
@@ -7400,7 +7398,7 @@
                         ${podeAlterar ? `<button onclick="alternarStatusRota('${r.id}', '${nextKind}')" style="flex:1; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:4px 6px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
                             ${flipText}
                         </button>` : ''}
-                        ${podeExcluir ? `<button onclick="excluirRota('${r.id}', '${safeName}')" style="background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:#ff4444; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
+                        ${podeExcluir ? `<button onclick="excluirRota('${r.id}', ${safeName})" style="background:rgba(255,68,68,0.12); border:1px solid rgba(255,68,68,0.4); color:#ff4444; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">
                             🗑️ ${txt('Excluir', 'Delete')}
                         </button>` : ''}
                     </div>

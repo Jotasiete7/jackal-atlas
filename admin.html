@@ -432,13 +432,11 @@
             if (meuPerfil) { await carregarGuildas(); await carregarMembros(); await carregarFilaGuerra(); await carregarObjetivosAdmin(); }
         }
 
+        // Escapa texto para HTML, inclusive dentro de atributos (title="...") • Escape text for HTML, including inside attributes
+        const ENTIDADES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
         function sanitize(str) {
             if (!str) return '';
-            const el = document.createElement('div');
-            el.textContent = String(str);
-            // Também escapa aspas: o resultado é usado dentro de atributos (title="...")
-            // Also escape quotes: the result is used inside attributes (title="...")
-            return el.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return String(str).replace(/[&<>"']/g, c => ENTIDADES_HTML[c]);
         }
 
         function trocarSecao(secao, btn) {
@@ -453,6 +451,13 @@
 
         let meuPerfil = null; // perfil do usuário logado (definido em initAdmin) • signed-in user's profile
 
+        // Atualiza guildas (contagens, filtro) e a lista de membros juntas • Refresh guilds (counts, filter) and the members list together
+        async function recarregarGuildasEMembros() {
+            await carregarGuildas();
+            await carregarMembros();
+        }
+
+        let pedidoMembros = 0; // só a resposta mais recente desenha a tabela • only the latest response renders the table
         async function carregarMembros() {
             if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-membros-corpo');
@@ -461,7 +466,9 @@
                 let q = supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
                 if (filtro === 'none') q = q.is('guild_id', null);
                 else if (filtro) q = q.eq('guild_id', filtro);
+                const meuPedido = ++pedidoMembros;
                 const { data, error } = await q;
+                if (meuPedido !== pedidoMembros) return;
                 if (error) throw error;
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">${txt('Nenhum membro cadastrado ainda.', 'No members registered yet.')}</td></tr>`;
@@ -601,8 +608,7 @@
             if (error) return alert(txt('Erro ao criar guilda: ', 'Error creating guild: ') + erroGuilda(error));
             document.getElementById('novaGuildaNome').value = '';
             document.getElementById('novaGuildaTag').value = '';
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function editarGuilda(id) {
@@ -617,15 +623,13 @@
             const { data, error } = await supabaseClient.from('guilds').update({ name: nome.trim(), tag: tag.trim().toUpperCase() }).eq('id', id).select('id');
             if (error) return alert(txt('Erro ao editar guilda: ', 'Error editing guild: ') + erroGuilda(error));
             if (!data || !data.length) return alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function alterarCorGuilda(id, cor) {
             const { error } = await supabaseClient.from('guilds').update({ color: cor }).eq('id', id);
             if (error) alert(txt('Erro ao alterar cor: ', 'Error changing colour: ') + error.message);
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function excluirGuilda(id) {
@@ -633,8 +637,7 @@
             if (!g || !confirm(txt(`Excluir a guilda "${g.name}"? Os membros dela ficam sem guilda.`, `Delete the guild "${g.name}"? Its members will have no guild.`))) return;
             const { error } = await supabaseClient.from('guilds').delete().eq('id', id);
             if (error) return alert(txt('Erro ao excluir guilda: ', 'Error deleting guild: ') + error.message);
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function alterarGuildaMembro(userId, guildId) {
@@ -642,8 +645,7 @@
                 const { data, error } = await supabaseClient.from('profiles').update({ guild_id: guildId || null }).eq('id', userId).select('id');
                 if (error) throw error;
                 if (!data || !data.length) throw new Error(txt('sem permissão (apenas administradores)', 'not allowed (admins only)'));
-                await carregarGuildas();
-                await carregarMembros();
+                await recarregarGuildasEMembros();
             } catch (err) {
                 alert(txt('Erro ao alterar guilda: ', 'Error changing guild: ') + err.message);
                 await carregarMembros();
@@ -796,8 +798,7 @@
             }
             meuPerfil = profile;
 
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
             await carregarFilaGuerra();
             await carregarObjetivosAdmin();
         }
