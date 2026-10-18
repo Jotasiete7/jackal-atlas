@@ -5474,7 +5474,11 @@
         return `<span class="jk-guild-tag" style="color:${cor};" title="${sanitize(g.name || '')}">${sanitize(g.tag)}</span>`;
     }
 
-    const sketchFantasmas = new Map();        // user id -> { pts, kind, width, name, line, tag, timer }
+    const sketchFantasmas = new Map();
+    layers.sketch.on('remove', () => {
+        sketchFantasmas.forEach(g => removerFantasmaSketch(g));
+        sketchFantasmas.clear();
+    });        // user id -> { pts, kind, width, name, line, tag, timer }
     let sketchEnvioBuffer = [];
     let sketchEnvioTimer = null;
     let sketchEnvioInicio = false;
@@ -5744,10 +5748,7 @@
     }
 
     function desativarModoSketch() {
-        document.removeEventListener('mousemove', moverEdicaoTextoSketch);
-        document.removeEventListener('mouseup', terminarEdicaoTextoSketch);
-        sketchEdicao = null;
-        deselecionarTextoSketch();
+        deselecionarTextoSketch(); // also cancels a drag in progress
         if (sketchTracoAtual) terminarFantasmaSketch();
         cancelarTracoSketch();
         modoSketch = false;
@@ -6048,7 +6049,17 @@
         desenharEditorTexto();
     }
 
+    // Cancels a move/resize/rotate drag in progress and redraws the object where it was
+    function cancelarArrasteSketch() {
+        document.removeEventListener('mousemove', moverEdicaoTextoSketch);
+        document.removeEventListener('mouseup', terminarEdicaoTextoSketch);
+        if (!sketchEdicao) return;
+        sketchEdicao = null;
+        renderizarSketch();
+    }
+
     function deselecionarTextoSketch() {
+        cancelarArrasteSketch();
         sketchSelecaoId = null;
         if (sketchEditorMarker) { map.removeLayer(sketchEditorMarker); sketchEditorMarker = null; }
     }
