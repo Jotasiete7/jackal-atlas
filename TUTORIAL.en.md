@@ -108,7 +108,7 @@ The **✏️ Sketch Layer** checkbox and opacity slider under Map Layers show, h
 
 **Where sketches are saved:** the chip in the toolbar shows it.
 - **💾 Local only**: commits are saved in this browser (the default).
-- **🌐 Shared • live**: commits are saved to Supabase and shown to everyone live. Needs migrations `001` to `019` applied in order and `sketchShared: true` in `config.js`.
+- **🌐 Shared • live**: commits are saved to Supabase and shown to everyone live. Needs migrations `001` to `020` applied in order and `sketchShared: true` in `config.js`.
 - **👁️ View only**: shared mode, but you are not signed in as an approved member.
 
 ---

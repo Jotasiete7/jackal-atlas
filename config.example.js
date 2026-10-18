@@ -12,9 +12,9 @@ window.JACKAL_CONFIG = {
     supabaseKey: 'SUA_ANON_PUBLIC_KEY_AQUI',
 
     // Armazenamento da camada de esboço. false (padrão) guarda os esboços só no navegador de cada visitante.
-    // Use true depois de rodar as migrações 001 a 019 (em ordem) neste projeto Supabase
+    // Use true depois de rodar as migrações 001 a 020 (em ordem) neste projeto Supabase
     // para compartilhar com a guilda (commits, histórico, aprovação de oficiais e traços ao vivo).
-    // Sketch layer storage: false = browser only; true = shared via Supabase (needs migrations 001 to 019).
+    // Sketch layer storage: false = browser only; true = shared via Supabase (needs migrations 001 to 020).
     sketchShared: false,
 
     // URLs dos tiles do mapa (Round 1 como base/placeholder temporário)

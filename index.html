@@ -5216,6 +5216,44 @@
         }
     }
 
+    // Discard: unmerged commits only. Authors: own pending/rejected. Officers: any pending/rejected/reverted.
+    function podeDescartarCommitSketch(c) {
+        if (!c || c.status === 'approved') return false;
+        if (sketchModoArmazenamento !== 'shared' || !supabaseClient) return true; // local: all yours
+        if (!sketchPodeDesenhar()) return false;
+        if (sketchIsStaff()) return true;
+        return c.author === sketchMeuId() && (c.status === 'pending' || c.status === 'rejected');
+    }
+
+    async function descartarCommitSketch(id) {
+        const c = sketchCommits.get(id);
+        if (!c || !podeDescartarCommitSketch(c)) return;
+        const n = Number(c.stroke_count) || 0;
+        const aviso = txt(
+            `⚠️ Descartar "${c.message}"?\n\nIsso apaga o commit e os ${n} traço(s) dele PARA SEMPRE. Não dá para desfazer nem restaurar depois.`,
+            `⚠️ Discard "${c.message}"?\n\nThis deletes the commit and its ${n} stroke(s) FOR GOOD. It cannot be undone or restored later.`
+        );
+        if (!confirm(aviso)) return;
+        try {
+            if (sketchModoArmazenamento === 'shared' && supabaseClient) {
+                const { error } = await supabaseClient.rpc('sketch_commit_discard', { p_commit: id });
+                if (error) throw error;
+                if (sketchVersaoAtual === id) voltarAoVivoSketch(false);
+                await carregarSketchDoBanco();
+            } else {
+                if (sketchVersaoAtual === id) voltarAoVivoSketch(false);
+                sketchCommits.delete(id);
+                sketchStrokes = sketchStrokes.filter(st => st.commit_id !== id);
+                sketchErasures = sketchErasures.filter(e => e.commit_id !== id);
+                gravarStoreLocalSketch();
+                renderizarSketch();
+            }
+            mostrarToastCartografico(txt('🗑 Commit descartado.', '🗑 Commit discarded.'));
+        } catch (err) {
+            alert(txt('Erro ao descartar o commit: ', 'Error discarding commit: ') + err.message);
+        }
+    }
+
     // ---------- History panel ----------
     function historicoSketchAberto() {
         const p = document.getElementById('sketchHistoryPanel');
@@ -5322,6 +5360,7 @@
             }
             if (staff && c.status === 'approved') acoes.push(`<button class="danger" onclick="revisarCommitSketch('${id}', 'revert')" title="${txt('Tirar do mapa principal (pode ser restaurado)', 'Take it off the main map (can be restored)')}">↩ ${txt('Reverter', 'Revert')}</button>`);
             if (staff && c.status === 'reverted') acoes.push(`<button class="ok" onclick="revisarCommitSketch('${id}', 'restore')" title="${txt('Colocar de volta no mapa principal', 'Put it back on the main map')}">⟲ ${txt('Restaurar no main', 'Restore to main')}</button>`);
+            if (podeDescartarCommitSketch(c)) acoes.push(`<button class="danger" onclick="descartarCommitSketch('${id}')" title="${txt('Apagar este commit e os traços dele de vez', 'Delete this commit and its strokes for good')}">🗑 ${txt('Descartar', 'Discard')}</button>`);
             const ativo = sketchVersaoAtual === c.id ? ' viewing' : '';
             const atual = c.id === atualId ? `<span class="jk-hist-badge current" title="${txt('Commit mais recente do mapa principal', 'Newest commit on the main map')}">${txt('ATUAL', 'CURRENT')}</span>` : '';
             let extra = '';
