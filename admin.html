@@ -328,7 +328,7 @@
         <div id="secao-objetivos" class="admin-card" style="display:none;">
             <div class="card-header">
                 <div class="card-title" data-i18n="adObjTitulo">🎯 Criar e Gerenciar Objetivos Prioritários</div>
-                <button class="btn-table-action approve" onclick="novoObjetivoModal()" data-i18n="adNovoObjetivo">➕ Criar Novo Objetivo</button>
+                <button id="btnNovoObjetivoAdmin" class="btn-table-action approve" style="display:none;" onclick="novoObjetivoModal()" data-i18n="adNovoObjetivo">➕ Criar Novo Objetivo</button>
             </div>
 
             <table class="admin-table">
@@ -432,11 +432,11 @@
             if (meuPerfil) { await carregarGuildas(); await carregarMembros(); await carregarFilaGuerra(); await carregarObjetivosAdmin(); }
         }
 
+        // Escapa texto para HTML, inclusive dentro de atributos (title="...") • Escape text for HTML, including inside attributes
+        const ENTIDADES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
         function sanitize(str) {
             if (!str) return '';
-            const el = document.createElement('div');
-            el.textContent = String(str);
-            return el.innerHTML;
+            return String(str).replace(/[&<>"']/g, c => ENTIDADES_HTML[c]);
         }
 
         function trocarSecao(secao, btn) {
@@ -451,6 +451,13 @@
 
         let meuPerfil = null; // perfil do usuário logado (definido em initAdmin) • signed-in user's profile
 
+        // Atualiza guildas (contagens, filtro) e a lista de membros juntas • Refresh guilds (counts, filter) and the members list together
+        async function recarregarGuildasEMembros() {
+            await carregarGuildas();
+            await carregarMembros();
+        }
+
+        let pedidoMembros = 0; // só a resposta mais recente desenha a tabela • only the latest response renders the table
         async function carregarMembros() {
             if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-membros-corpo');
@@ -459,7 +466,9 @@
                 let q = supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
                 if (filtro === 'none') q = q.is('guild_id', null);
                 else if (filtro) q = q.eq('guild_id', filtro);
+                const meuPedido = ++pedidoMembros;
                 const { data, error } = await q;
+                if (meuPedido !== pedidoMembros) return;
                 if (error) throw error;
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">${txt('Nenhum membro cadastrado ainda.', 'No members registered yet.')}</td></tr>`;
@@ -541,11 +550,12 @@
             const souAdmin = !!(meuPerfil && meuPerfil.role === 'admin');
             document.getElementById('formNovaGuilda').style.display = souAdmin ? 'flex' : 'none';
             try {
-                const [{ data, error }, { data: perfis }] = await Promise.all([
+                const [{ data, error }, { data: perfis, error: erroPerfis }] = await Promise.all([
                     supabaseClient.from('guilds').select('*').order('name'),
                     supabaseClient.from('profiles').select('guild_id')
                 ]);
                 if (error) throw error;
+                if (erroPerfis) console.warn('Guild member counts unavailable:', erroPerfis.message);
                 guildas = data || [];
                 atualizarFiltroGuildas();
                 if (guildas.length === 0) {
@@ -599,8 +609,7 @@
             if (error) return alert(txt('Erro ao criar guilda: ', 'Error creating guild: ') + erroGuilda(error));
             document.getElementById('novaGuildaNome').value = '';
             document.getElementById('novaGuildaTag').value = '';
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function editarGuilda(id) {
@@ -615,24 +624,23 @@
             const { data, error } = await supabaseClient.from('guilds').update({ name: nome.trim(), tag: tag.trim().toUpperCase() }).eq('id', id).select('id');
             if (error) return alert(txt('Erro ao editar guilda: ', 'Error editing guild: ') + erroGuilda(error));
             if (!data || !data.length) return alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
         }
 
         async function alterarCorGuilda(id, cor) {
-            const { error } = await supabaseClient.from('guilds').update({ color: cor }).eq('id', id);
+            const { data, error } = await supabaseClient.from('guilds').update({ color: cor }).eq('id', id).select('id');
             if (error) alert(txt('Erro ao alterar cor: ', 'Error changing colour: ') + error.message);
-            await carregarGuildas();
-            await carregarMembros();
+            else if (!data || !data.length) alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
+            await recarregarGuildasEMembros();
         }
 
         async function excluirGuilda(id) {
             const g = guildas.find(x => x.id === id);
             if (!g || !confirm(txt(`Excluir a guilda "${g.name}"? Os membros dela ficam sem guilda.`, `Delete the guild "${g.name}"? Its members will have no guild.`))) return;
-            const { error } = await supabaseClient.from('guilds').delete().eq('id', id);
+            const { data, error } = await supabaseClient.from('guilds').delete().eq('id', id).select('id');
             if (error) return alert(txt('Erro ao excluir guilda: ', 'Error deleting guild: ') + error.message);
-            await carregarGuildas();
-            await carregarMembros();
+            if (!data || !data.length) return alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
+            await recarregarGuildasEMembros();
         }
 
         async function alterarGuildaMembro(userId, guildId) {
@@ -640,7 +648,7 @@
                 const { data, error } = await supabaseClient.from('profiles').update({ guild_id: guildId || null }).eq('id', userId).select('id');
                 if (error) throw error;
                 if (!data || !data.length) throw new Error(txt('sem permissão (apenas administradores)', 'not allowed (admins only)'));
-                await carregarGuildas();
+                await recarregarGuildasEMembros();
             } catch (err) {
                 alert(txt('Erro ao alterar guilda: ', 'Error changing guild: ') + err.message);
                 await carregarMembros();
@@ -661,13 +669,13 @@
                 tbody.innerHTML = data.map(p => `
                     <tr>
                         <td>${sanitize(p.kind.toUpperCase())}</td>
-                        <td><strong>${sanitize(p.name || 'Sem nome')}</strong></td>
+                        <td><strong>${sanitize(p.name || txt('Sem nome', 'Unnamed'))}</strong></td>
                         <td>X: ${p.x} &bull; Y: ${p.y}</td>
-                        <td>${sanitize(p.faction || 'desconhecido')}</td>
-                        <td>${p.created_by ? p.created_by.slice(0,8) : 'Anônimo'}</td>
+                        <td>${sanitize(p.faction || txt('desconhecido', 'unknown'))}</td>
+                        <td>${p.created_by ? sanitize(p.created_by.slice(0,8)) : txt('Anônimo', 'Anonymous')}</td>
                         <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                            <button class="btn-table-action approve" onclick="aprovarPonto('${p.id}')">✓ Aprovar</button>
-                            <button class="btn-table-action danger" onclick="rejeitarPonto('${p.id}')">✕ Rejeitar</button>
+                            <button class="btn-table-action approve" onclick="aprovarPonto('${p.id}')">✓ ${txt('Aprovar', 'Approve')}</button>
+                            <button class="btn-table-action danger" onclick="rejeitarPonto('${p.id}')">✕ ${txt('Rejeitar', 'Reject')}</button>
                         </td>
                     </tr>
                 `).join('');
@@ -680,8 +688,9 @@
         async function aprovarPonto(id) {
             if (!supabaseClient) return;
             try {
-                const { error } = await supabaseClient.from('points').update({ confirmed: true }).eq('id', id);
+                const { data, error } = await supabaseClient.from('points').update({ confirmed: true }).eq('id', id).select('id');
                 if (error) throw error;
+                if (!data || !data.length) throw new Error(txt('sem permissão', 'not allowed'));
                 alert(txt('✓ Ponto aprovado e visível publicamente!', '✓ Point approved and now publicly visible!'));
                 await carregarFilaGuerra();
             } catch (err) {
@@ -692,8 +701,9 @@
         async function rejeitarPonto(id) {
             if (!supabaseClient || !confirm(txt('Deseja realmente rejeitar e excluir este ponto?', 'Really reject and delete this point?'))) return;
             try {
-                const { error } = await supabaseClient.from('points').delete().eq('id', id);
+                const { data, error } = await supabaseClient.from('points').delete().eq('id', id).select('id');
                 if (error) throw error;
+                if (!data || !data.length) throw new Error(txt('sem permissão', 'not allowed'));
                 alert(txt('Ponto removido com sucesso.', 'Point removed.'));
                 await carregarFilaGuerra();
             } catch (err) {
@@ -711,6 +721,7 @@
                 await carregarMembros();
             } catch (err) {
                 alert(txt('Erro ao alterar cargo: ', 'Error changing role: ') + err.message);
+                await carregarMembros();
             }
         }
 
@@ -732,7 +743,7 @@
                         <td>${sanitize(o.kind)}</td>
                         <td>${sanitize(o.status)}</td>
                         <td style="text-align:right;">
-                            <button class="btn-table-action danger" onclick="excluirObjetivo('${o.id}')">Excluir</button>
+                            ${meuPerfil && meuPerfil.role === 'admin' ? `<button class="btn-table-action danger" onclick="excluirObjetivo('${o.id}')">${txt('Excluir', 'Delete')}</button>` : ''}
                         </td>
                     </tr>
                 `).join('');
@@ -744,8 +755,9 @@
         async function excluirObjetivo(id) {
             if (!supabaseClient || !confirm(txt('Excluir este objetivo?', 'Delete this objective?'))) return;
             try {
-                const { error } = await supabaseClient.from('objectives').delete().eq('id', id);
+                const { data, error } = await supabaseClient.from('objectives').delete().eq('id', id).select('id');
                 if (error) throw error;
+                if (!data || !data.length) throw new Error(txt('sem permissão (apenas administradores)', 'not allowed (admins only)'));
                 await carregarObjetivosAdmin();
             } catch (err) {
                 alert(txt('Erro ao excluir objetivo: ', 'Error deleting objective: ') + err.message);
@@ -792,9 +804,9 @@
                 return;
             }
             meuPerfil = profile;
+            document.getElementById('btnNovoObjetivoAdmin').style.display = profile.role === 'admin' ? '' : 'none';
 
-            await carregarGuildas();
-            await carregarMembros();
+            await recarregarGuildasEMembros();
             await carregarFilaGuerra();
             await carregarObjetivosAdmin();
         }
