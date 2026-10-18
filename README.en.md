@@ -13,7 +13,7 @@ Built on the guild's official **Swisstopo Design System (Dark Swiss)**, with a r
 - **Pulsing Tactical Crosshair & Dynamic URL**: Left-click anywhere to drop a pulsing red crosshair (`@keyframes sw-ping`) and instantly update the browser link (`#X,Y`) for quick sharing on Discord or in Wurm chat.
 - **Instant Open by Link (`#X,Y` or `#X,Y,Z`)**: Links with coordinates open the camera directly on the tactical coordinates at 5.0x zoom, saving dozens of tile downloads around the centre.
 - **Smart Coordinate Paste**: Automatically recognises pasted coordinates (`2897,2845`, `2897 2845`, `X: 2897 Y: 2845`, etc.) and fills them into the Deed and annotation dialogs. Marker popups have a **📋 X,Y** button that copies a point's coordinates for Discord.
-- **Sketch Layer (hand-drawn map)**: Whiteboard-style drawing for when there is no map dump: brushes for water, forest, mountain ridges, sand and rock, plus arrows, text labels and camp / tunnel exit / danger stamps, an adjustable brush size and an eraser. Strokes are stored in game tile coordinates, so they line up with the grid and markers at every zoom. Sketches stay in the browser by default; with `sketchShared: true` in `config.js` and migrations 001 to 017 applied they are shared live.
+- **Sketch Layer (hand-drawn map)**: Whiteboard-style drawing for when there is no map dump: brushes for water, forest, mountain ridges, sand and rock, plus arrows, text labels and camp / tunnel exit / danger stamps, an adjustable brush size and an eraser. Strokes are stored in game tile coordinates, so they line up with the grid and markers at every zoom. Sketches stay in the browser by default; with `sketchShared: true` in `config.js` and migrations 001 to 018 applied they are shared live.
 - **Sketch Commits (git-style versioning)**: You sketch into a private draft, then **commit** it with a message. Officers' commits go live at once; members' commits wait for an officer to approve the whole commit. The **history panel** lists every commit (who, when, message, strokes added/erased), outlines a commit on the map when you hover it, can show the map **as it was at any commit**, and lets officers **revert** a commit (hidden, never deleted) or restore it. While someone is drawing, others see their in-progress stroke live with a name tag.
 - **Blank Parchment Base (Round 2)**: A plain map sheet to sketch on as scouts explore. The old Jackal map (Round 1) stays available as Goldfish®, Terrain, Isometric and Topo.
 - **Collaborative Moderation Pipeline (Zero Vandalism)**:
@@ -88,8 +88,9 @@ SQL scripts in the `migrations/` folder:
 15. `015_sketch_colors.sql` — `pen` stroke kind with a free hex colour and per-stroke opacity, fixed once committed and written by the commit RPC.
 16. `016_sketch_text_rotation.sql` — Text rotation (degrees), fixed once committed and written by the commit RPC; move/resize use the existing path and width.
 17. `017_guilds.sql` — `guilds` table (name, tag, colour) and `profiles.guild_id`; only admins create guilds and assign members, and members cannot change their own guild.
+18. `018_review_hardening.sql` — Discord name, avatar and ID come from the Discord identity (not user-editable metadata), only real Discord sign-ups can become the first admin, deleting a user keeps their map work, race-free commit limits (2000 strokes/hour, 2 MB) and extra sketch guards.
 
-> Run migrations 001 to 017 in order, then set `sketchShared: true` in `config.js`.
+> Run migrations 001 to 018 in order, then set `sketchShared: true` in `config.js`.
 
 ---
 
@@ -116,7 +117,7 @@ Jackal-Atlas/
 ├── tiles_terrain/              # Local terrain tiles (zoom 0 to 4)
 ├── tiles_topo/                 # Local contour-line tiles
 ├── tiles_iso/                  # Local isometric-view tiles
-├── migrations/                 # Numbered SQL migrations (001 to 017)
+├── migrations/                 # Numbered SQL migrations (001 to 018)
 └── scripts/                    # Tile extraction and slicing utilities
 ```
 
