@@ -1495,7 +1495,9 @@
         if (!str) return '';
         const el = document.createElement('div');
         el.textContent = String(str);
-        return el.innerHTML;
+        // Também escapa aspas: o resultado é usado dentro de atributos (title="...")
+        // Also escape quotes: the result is used inside attributes (title="...")
+        return el.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     // Sanitiza coordenadas numéricas para uso em onclick inline
@@ -2298,7 +2300,9 @@
             const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
                               (currentUser && p.created_by === currentUser.id);
 
-            const safePointName = sanitize(p.name || p.kind).replace(/'/g, "\\'");
+            // Escapa para string JS primeiro, depois para HTML (o atributo onclick decodifica o HTML)
+            // Escape for the JS string first, then for HTML (the onclick attribute decodes the HTML)
+            const safePointName = sanitize(String(p.name || p.kind).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
             const adminMetaBtn = (currentProfile && currentProfile.role === 'admin') ? `
                 <button onclick="event.stopPropagation(); abrirModalObjetivoVinculado('point', ${JSON.stringify({id: p.id, name: p.name || p.kind, kind: p.kind, x: p.x, y: p.y}).replace(/"/g, '&quot;')})" style="width:100%; background:rgba(245,166,35,0.15); border:1px solid var(--jk-accent-border); color:var(--jk-accent); padding:4px 6px; border-radius:4px; font-size:10px; font-weight:800; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px;">
                     ${txt('🎯 Tornar Meta da Guilda', '🎯 Make Guild Objective')}
@@ -7368,7 +7372,8 @@
                     dist += Math.hypot(r.path[i][0] - r.path[i-1][0], r.path[i][1] - r.path[i-1][1]);
                 }
                 const distRound = Math.round(dist);
-                const safeName = sanitize(r.name).replace(/'/g, "\\'");
+                // JS string first, then HTML (see safePointName)
+                const safeName = sanitize(String(r.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
 
                 const statusBadge = isBuilt
                     ? `<span style="background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.4); font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px;">${txt('✓ CONCLUÍDA', '✓ FINISHED')}</span>`

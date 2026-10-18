@@ -436,7 +436,9 @@
             if (!str) return '';
             const el = document.createElement('div');
             el.textContent = String(str);
-            return el.innerHTML;
+            // Também escapa aspas: o resultado é usado dentro de atributos (title="...")
+            // Also escape quotes: the result is used inside attributes (title="...")
+            return el.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function trocarSecao(secao, btn) {
@@ -641,6 +643,7 @@
                 if (error) throw error;
                 if (!data || !data.length) throw new Error(txt('sem permissão (apenas administradores)', 'not allowed (admins only)'));
                 await carregarGuildas();
+                await carregarMembros();
             } catch (err) {
                 alert(txt('Erro ao alterar guilda: ', 'Error changing guild: ') + err.message);
                 await carregarMembros();

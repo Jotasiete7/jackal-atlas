@@ -88,8 +88,9 @@ Scripts SQL na pasta `migrations/`:
 14. `014_sketch_commits.sql` — Versionamento estilo git: `sketch_commits` e `sketch_commit_erasures`, RPCs `sketch_commit_create` (atômica) e `sketch_commit_review` (aprovar, rejeitar, reverter, restaurar; só oficiais), histórico legível para "ver neste ponto", limites por commit para membros e tempo real. Só cadastros via Discord podem virar o primeiro admin. Depende de 011 e 013. • Git-style commits for sketches; depends on 011 and 013.
 15. `015_sketch_colors.sql` — Tipo de traço `pen` com cor livre (hex) e opacidade por traço, imutáveis após o commit e gravados pela RPC de commit. • Free colours and per-stroke opacity for sketches.
 16. `016_sketch_text_rotation.sql` — Rotação de textos (graus), imutável após o commit e gravada pela RPC; mover/redimensionar usam o caminho e a largura existentes. • Rotated text for sketches.
+17. `017_guilds.sql` — Tabela `guilds` (nome, tag, cor) e `profiles.guild_id`; só administradores criam guildas e atribuem membros, e membros não podem trocar a própria guilda. • Guilds (name, tag, colour) and one guild per member; admins only.
 
-> Depois de rodar 011, 014 e 015, defina `sketchShared: true` no `config.js`. • After running 011, 014 and 015, set `sketchShared: true` in `config.js`.
+> Rode as migrações de 001 a 017, em ordem. Depois, defina `sketchShared: true` no `config.js`. • Run migrations 001 to 017 in order, then set `sketchShared: true` in `config.js`.
 
 ---
 
@@ -116,7 +117,7 @@ Jackal-Atlas/
 ├── tiles_terrain/              # Tiles locais de terreno (Zoom 0 ao 4)
 ├── tiles_topo/                 # Tiles locais de curvas de nível
 ├── tiles_iso/                  # Tiles locais em visão isométrica
-├── migrations/                 # Migrações SQL numeradas (001 a 010)
+├── migrations/                 # Migrações SQL numeradas (001 a 017)
 └── scripts/                    # Utilitários de extração e fatiamento de tiles
 ```
 
