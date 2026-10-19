@@ -58,8 +58,16 @@ export class BrushEngine {
     if (distTiles >= maxRange) {
       return 0.0;
     }
-    const factor = distTiles / maxRange;
-    return 0.5 * (1.0 + Math.cos(Math.PI * factor));
+
+    // Força consistente e uniforme em todo o campo de visão da estação.
+    // Transição suave apenas nos 10% finais do raio para evitar borda abrupta no perímetro.
+    const edgeMargin = Math.max(4.0, maxRange * 0.10);
+    const innerRadius = maxRange - edgeMargin;
+    if (distTiles <= innerRadius) {
+      return 1.0;
+    }
+    const t = (distTiles - innerRadius) / edgeMargin;
+    return 0.5 * (1.0 + Math.cos(Math.PI * t));
   }
 
   /**
