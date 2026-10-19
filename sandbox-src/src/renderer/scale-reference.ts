@@ -7,17 +7,19 @@ import * as THREE from 'three';
 import { CONFIG } from '../config';
 import { i18n, t } from '../i18n';
 
-export type ScaleReferenceMode = 'human' | 'tower' | 'none';
+export type ScaleReferenceMode = 'tower' | 'human' | 'pillar' | 'none';
 
 export class ScaleReferenceManager {
   private parentGroup: THREE.Group;
   private container: THREE.Group;
-  private humanGroup: THREE.Group;
   private towerGroup: THREE.Group;
-  private humanLabel?: THREE.Sprite;
+  private humanGroup: THREE.Group;
+  private pillarGroup: THREE.Group;
   private towerLabel?: THREE.Sprite;
+  private humanLabel?: THREE.Sprite;
+  private pillarLabel?: THREE.Sprite;
 
-  public currentMode: ScaleReferenceMode = 'human';
+  public currentMode: ScaleReferenceMode = 'tower';
   private currentElevation = 0;
   private currentTileX = 0;
   private currentTileY = 0;
@@ -31,13 +33,15 @@ export class ScaleReferenceManager {
     this.container.name = 'ScaleReferenceContainer';
     this.parentGroup.add(this.container);
 
-    this.humanGroup = this.createHumanFigure();
     this.towerGroup = this.createGuardTower();
+    this.humanGroup = this.createHumanFigure();
+    this.pillarGroup = this.createSurveyPillar();
 
-    this.container.add(this.humanGroup);
     this.container.add(this.towerGroup);
+    this.container.add(this.humanGroup);
+    this.container.add(this.pillarGroup);
 
-    this.setMode('human');
+    this.setMode('tower');
     this.setPosition(2, 0, 0);
 
     i18n.subscribe(() => {
@@ -47,15 +51,17 @@ export class ScaleReferenceManager {
 
   public setMode(mode: ScaleReferenceMode): void {
     this.currentMode = mode;
-    this.humanGroup.visible = mode === 'human';
     this.towerGroup.visible = mode === 'tower';
+    this.humanGroup.visible = mode === 'human';
+    this.pillarGroup.visible = mode === 'pillar';
     this.container.visible = mode !== 'none';
   }
 
   public cycleMode(): ScaleReferenceMode {
-    if (this.currentMode === 'human') this.setMode('tower');
-    else if (this.currentMode === 'tower') this.setMode('none');
-    else this.setMode('human');
+    if (this.currentMode === 'tower') this.setMode('human');
+    else if (this.currentMode === 'human') this.setMode('pillar');
+    else if (this.currentMode === 'pillar') this.setMode('none');
+    else this.setMode('tower');
     return this.currentMode;
   }
 
@@ -235,12 +241,65 @@ export class ScaleReferenceManager {
     return group;
   }
 
+  /**
+   * Constrói Pilar Geodésico / Marco de Agrimensura do Wurm:
+   * Base quadrada 1.6m × 1.6m, fuste de cantaria e capitel piramidal (altura total 4.2m).
+   */
+  private createSurveyPillar(): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'WurmSurveyPillar';
+
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.6 });
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.3 }); // Ouro/Bronze topográfico
+
+    // 1. Plinto / Base (1.6m × 1.6m, altura 0.6m)
+    const plinthGeom = new THREE.BoxGeometry(1.6, 0.6, 1.6);
+    const plinth = new THREE.Mesh(plinthGeom, stoneMat);
+    plinth.position.set(0, 0.3, 0);
+    group.add(plinth);
+
+    // 2. Fuste quadrado de cantaria (1.2m × 1.2m, altura 2.8m)
+    const shaftGeom = new THREE.BoxGeometry(1.2, 2.8, 1.2);
+    const shaft = new THREE.Mesh(shaftGeom, stoneMat);
+    shaft.position.set(0, 2.0, 0);
+    group.add(shaft);
+
+    // Faixa / anel de amarração geodésica em relevo
+    const bandGeom = new THREE.BoxGeometry(1.26, 0.16, 1.26);
+    const band = new THREE.Mesh(bandGeom, capMat);
+    band.position.set(0, 3.3, 0);
+    group.add(band);
+
+    // 3. Capitel piramidal (1.3m na base, altura 0.8m -> topo em 4.2m)
+    const capGeom = new THREE.ConeGeometry(0.92, 0.8, 4);
+    capGeom.rotateY(Math.PI / 4);
+    const cap = new THREE.Mesh(capGeom, stoneMat);
+    cap.position.set(0, 3.8, 0);
+    group.add(cap);
+
+    // Esfera de bronze / marco geodésico no ápice
+    const sphereGeom = new THREE.SphereGeometry(0.12, 12, 12);
+    const sphere = new THREE.Mesh(sphereGeom, capMat);
+    sphere.position.set(0, 4.25, 0);
+    group.add(sphere);
+
+    // 4. Rótulo flutuante
+    this.pillarLabel = this.createLabelSprite(t('label_pillar'), '#eab308');
+    this.pillarLabel.position.set(0, 5.2, 0);
+    group.add(this.pillarLabel);
+
+    return group;
+  }
+
   public updateLabels(): void {
+    if (this.towerLabel) {
+      this.updateSpriteTexture(this.towerLabel, t('label_tower'), '#f59e0b');
+    }
     if (this.humanLabel) {
       this.updateSpriteTexture(this.humanLabel, t('label_human'), '#38bdf8');
     }
-    if (this.towerLabel) {
-      this.updateSpriteTexture(this.towerLabel, t('label_tower'), '#f59e0b');
+    if (this.pillarLabel) {
+      this.updateSpriteTexture(this.pillarLabel, t('label_pillar'), '#eab308');
     }
   }
 

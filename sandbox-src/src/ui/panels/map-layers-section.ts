@@ -100,11 +100,14 @@ export class MapLayersSectionUI {
             <span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">${t('scale_tile_badge')}</span>
           </div>
           <div class="btn-group" style="width: 100%;">
+            <button class="btn" id="btn-scale-tower" style="flex: 1; justify-content: center; font-size: 10px; padding: 4px 2px;" title="${t('scale_tower')}">
+              ${t('scale_tower')}
+            </button>
             <button class="btn" id="btn-scale-human" style="flex: 1; justify-content: center; font-size: 10px; padding: 4px 2px;" title="${t('scale_human')}">
               ${t('scale_human')}
             </button>
-            <button class="btn" id="btn-scale-tower" style="flex: 1; justify-content: center; font-size: 10px; padding: 4px 2px;" title="${t('scale_tower')}">
-              ${t('scale_tower')}
+            <button class="btn" id="btn-scale-pillar" style="flex: 1; justify-content: center; font-size: 10px; padding: 4px 2px;" title="${t('scale_pillar')}">
+              ${t('scale_pillar')}
             </button>
             <button class="btn" id="btn-scale-none" style="flex: 0.8; justify-content: center; font-size: 10px; padding: 4px 2px;" title="${t('scale_hide')}">
               ${t('scale_hide')}
@@ -136,12 +139,14 @@ export class MapLayersSectionUI {
   }
 
   public updateScaleButtons(mode: ScaleReferenceMode): void {
-    const btnHuman = this.container.querySelector('#btn-scale-human');
     const btnTower = this.container.querySelector('#btn-scale-tower');
+    const btnHuman = this.container.querySelector('#btn-scale-human');
+    const btnPillar = this.container.querySelector('#btn-scale-pillar');
     const btnNone = this.container.querySelector('#btn-scale-none');
 
-    btnHuman?.classList.toggle('active', mode === 'human');
     btnTower?.classList.toggle('active', mode === 'tower');
+    btnHuman?.classList.toggle('active', mode === 'human');
+    btnPillar?.classList.toggle('active', mode === 'pillar');
     btnNone?.classList.toggle('active', mode === 'none');
   }
 
@@ -197,17 +202,22 @@ export class MapLayersSectionUI {
       this.terrainMesh.setWireframe(chkWire.checked);
     });
 
-    const btnScaleHuman = this.container.querySelector('#btn-scale-human');
     const btnScaleTower = this.container.querySelector('#btn-scale-tower');
+    const btnScaleHuman = this.container.querySelector('#btn-scale-human');
+    const btnScalePillar = this.container.querySelector('#btn-scale-pillar');
     const btnScaleNone = this.container.querySelector('#btn-scale-none');
 
+    btnScaleTower?.addEventListener('click', () => {
+      this.scaleReference.setMode('tower');
+      this.updateScaleButtons('tower');
+    });
     btnScaleHuman?.addEventListener('click', () => {
       this.scaleReference.setMode('human');
       this.updateScaleButtons('human');
     });
-    btnScaleTower?.addEventListener('click', () => {
-      this.scaleReference.setMode('tower');
-      this.updateScaleButtons('tower');
+    btnScalePillar?.addEventListener('click', () => {
+      this.scaleReference.setMode('pillar');
+      this.updateScaleButtons('pillar');
     });
     btnScaleNone?.addEventListener('click', () => {
       this.scaleReference.setMode('none');

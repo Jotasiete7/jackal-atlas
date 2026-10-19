@@ -60,11 +60,13 @@ export const pt = {
   // Referência de Escala Wurm
   scale_title: 'Escala Real de Wurm [H]:',
   scale_tile_badge: '1 TILE = 4m',
-  scale_human: 'Boneco (1.8m)',
   scale_tower: 'Torre (24m)',
+  scale_human: 'Boneco (1.8m)',
+  scale_pillar: 'Pilar (4m)',
   scale_hide: 'Ocultar',
   label_human: 'BONECO (1.8m)',
   label_tower: 'TORRE (Alt: 24m, altura real do Wurm)',
+  label_pillar: 'PILAR (Alt: 4m | 1.4×1.4m)',
 
   // Exportações
   panel_export: 'EXPORTAÇÃO',
@@ -152,8 +154,8 @@ export const pt = {
   help_nav_pan: 'Botão do Meio (ou Ctrl+Clique): Arrastar mapa (Pan)',
   help_nav_focus: 'Duplo Clique no Terreno: Centralizar foco da câmera',
   help_sec_scale: 'Escala Wurm e Ferramentas',
-  help_scale_move: 'Shift + Clique Esquerdo: Mover Boneco/Torre para o cursor',
-  help_scale_toggle: 'Tecla [H]: Alternar Boneco (1.8m) / Torre (24m) / Ocultar',
+  help_scale_move: 'Shift + Clique Esquerdo: Mover Objeto de Escala para o cursor',
+  help_scale_toggle: 'Tecla [H]: Alternar Torre (24m) / Boneco (1.8m) / Pilar (4m) / Ocultar',
   help_contours_toggle: 'Tecla [C]: Ligar / Desligar Curvas de Nível',
   help_tools_keys: 'Teclas [R, L, M, F, U/Alt+W, E, K, P, T]: Selecionar ferramentas',
   help_presets_keys: 'Teclas [1 a 5]: Diâmetro do pincel (5 a 100 tiles)',

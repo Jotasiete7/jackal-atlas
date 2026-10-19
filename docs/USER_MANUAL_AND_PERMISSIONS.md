@@ -142,6 +142,11 @@ The 3D Sandbox is the collaborative environment for modeling real server topogra
   - Pillars built every 50 or 100 tiles act as geometric anchors.
   - Saving a survey pin in the 3D Sandbox automatically writes to `public.points` with `kind: 'pillar'`.
 
+- **Real Wurm Scale Objects (Key [H])**:
+  - **Guard Tower (24m)**: Displayed by **default** upon loading the Sandbox to offer instant visual height proportion against real structure sizes.
+  - **Human Figure (1.8m)** & **Survey Pillar (4m)**: Selectable options for fine inspection of choke points, pathways, and slope inclinations.
+  - `Shift + Left Click`: Instantly repositions the selected scale object to the cursor coordinate on the terrain.
+
 ---
 
 ## 5. Recommended Field Protocol for Scouts
@@ -168,5 +173,6 @@ The 3D Sandbox is the collaborative environment for modeling real server topogra
 | **`Esc`** | Cancel active mode / close modals | Cancel active tool |
 | **`Y`** | Toggle 100×100t sector grid overlay | Toggle wireframe view |
 | **`I`** | Toggle light / dark map styling | Toggle ambient scene lighting |
+| **`H`** | - | Cycle Scale (Tower 24m [Default] / Human 1.8m / Pillar 4m / Hide) |
 | **`Space`** | Center viewport on Spawn (0, 0) | Toggle perspective / orthographic top-down |
 | **`Tab`** | Collapse / expand left sidebar | Hide / show tool overlay |

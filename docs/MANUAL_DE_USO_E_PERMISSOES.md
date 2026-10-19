@@ -142,6 +142,11 @@ O Sandbox 3D é o ambiente de modelagem da topografia física do servidor.
   - Pilares construídos no mundo real a cada 50 ou 100 tiles servem como âncoras geométricas para amarração altimétrica.
   - Ao salvar um pino no Sandbox 3D, ele é sincronizado instantaneamente com o banco `points` com o tipo `pillar`.
 
+- **Objetos de Escala Real Wurm (Tecla [H])**:
+  - **Torre de Guarda (24m)**: Ativa por **padrão** ao carregar o Sandbox para proporção visual imediata do relevo.
+  - **Boneco Humano (1.8m)** e **Pilar Geodésico (4m)**: Disponíveis como opções selecionáveis para conferência fina de passagens e declividades.
+  - `Shift + Clique Esquerdo`: Transporta o objeto de escala selecionado para a coordenada sob o cursor.
+
 ---
 
 ## 5. Fluxo de Trabalho Recomendado para Batedores (Scouts)
@@ -168,5 +173,6 @@ O Sandbox 3D é o ambiente de modelagem da topografia física do servidor.
 | **`Esc`** | Cancela modo atual / Fecha modais abertos | Cancela ferramenta ativa |
 | **`Y`** | Liga / Desliga grade visual | Alterna malha de arame (*wireframe*) |
 | **`I`** | Alterna entre tema claro e tema escuro | Alterna iluminação ambiente |
+| **`H`** | - | Alterna Escala (Torre 24m [Padrão] / Boneco 1.8m / Pilar 4m / Ocultar) |
 | **`Space`** | Centraliza a visão no Spawn (0,0) | Alterna visão perspectiva / topo |
 | **`Tab`** | Recolhe / Expande barra lateral esquerda | Oculta painel flutuante de ferramentas |
