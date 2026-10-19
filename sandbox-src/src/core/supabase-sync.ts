@@ -522,19 +522,29 @@ export class SupabaseSyncManager {
         });
 
         const kind = String(r.kind || '');
+        const color = String(r.color || '').toLowerCase();
         const isBuilt = kind.endsWith('_built');
         let rType: 'road' | 'bridge' | 'tunnel' = 'road';
         if (kind.startsWith('bridge')) rType = 'bridge';
-        else if (kind.startsWith('tunnel')) rType = 'tunnel';
+        else if (kind.startsWith('tunnel') || color === '#a855f7' || color === '#c084fc') rType = 'tunnel';
+
+        // Recupera medida aferida se presente na coluna distance ou no sufixo [NNt] do nome
+        let rawName = String(r.name || 'Rota');
+        let realLen: number | null = r.distance ? Math.round(Number(r.distance)) : null;
+        const matchCalib = rawName.match(/\s*\[(\d+)t\]$/i);
+        if (matchCalib) {
+          realLen = parseInt(matchCalib[1], 10);
+          rawName = rawName.replace(/\s*\[(\d+)t\]$/i, '').trim();
+        }
 
         routeManager.saveRoute({
           id: r.id,
-          name: r.name || 'Rota',
+          name: rawName || 'Rota',
           type: rType,
           status: isBuilt ? 'built' : 'planned',
           path: convertedPath,
           widthTiles: Number(r.width) || 2,
-          realLengthTiles: r.distance ? Math.round(Number(r.distance)) : null,
+          realLengthTiles: realLen,
           author: r.created_by,
           created_at: r.created_at,
         });
@@ -560,32 +570,85 @@ export class SupabaseSyncManager {
     }
 
     try {
-      const user = (await this.client.auth.getUser()).data.user;
       const isBuilt = route.status === 'built';
-      const kind = `${route.type}_${isBuilt ? 'built' : 'planned'}`;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(route.id || ''));
 
       // Converte coordenadas centradas em (0,0) para o padrão 0..4096 do Atlas 2D
       const path2D = route.path.map((pt: [number, number]) => [pt[0] + 2048, pt[1] + 2048]);
 
-      let dist = 0;
-      for (let i = 1; i < route.path.length; i++) {
-        dist += Math.hypot(route.path[i][0] - route.path[i - 1][0], route.path[i][1] - route.path[i - 1][1]);
-      }
+      const color =
+        route.type === 'tunnel'
+          ? '#a855f7'
+          : route.type === 'bridge'
+          ? isBuilt
+            ? '#00e676'
+            : '#38bdf8'
+          : isBuilt
+          ? '#00e676'
+          : '#f5a623';
 
-      const { error } = await this.client.from('routes').upsert({
-        id: route.id,
-        name: route.name,
-        kind,
+      const cleanName = String(route.name || 'Rota').replace(/\s*\[(\d+)t\]$/i, '').trim();
+      const dbName = route.realLengthTiles ? `${cleanName} [${route.realLengthTiles}t]` : cleanName;
+
+      // Usa kind compatível com o enum route_kind do banco (tunnel usa road_* + color '#a855f7' caso o enum ainda não tenha tunnel_*)
+      const preferredKind =
+        route.type === 'bridge'
+          ? isBuilt
+            ? 'bridge_built'
+            : 'bridge_planned'
+          : isBuilt
+          ? 'road_built'
+          : 'road_planned';
+
+      const basePayload = {
+        name: dbName,
+        kind: preferredKind,
+        color,
         width: route.widthTiles || 2,
         path: path2D,
-        distance: route.realLengthTiles || Math.round(dist),
-        created_by: user?.id,
-      });
+      };
 
-      if (error) throw error;
+      if (!isUuid) {
+        const { data, error } = await this.client
+          .from('routes')
+          .insert(basePayload)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data && data.id) {
+          route.id = data.id;
+        }
+      } else {
+        const { error } = await this.client
+          .from('routes')
+          .update(basePayload)
+          .eq('id', route.id);
+
+        if (error) throw error;
+      }
+
       return { success: true };
     } catch (err: any) {
       console.warn('Erro ao salvar rota na nuvem:', err);
+      return { success: false, message: err.message };
+    }
+  }
+
+  /**
+   * Remove uma rota da tabela public.routes do Supabase
+   */
+  public async deleteRouteFromCloud(id: string): Promise<{ success: boolean; message?: string }> {
+    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''));
+    if (!isUuid) return { success: true }; // Rota apenas local
+
+    try {
+      const { error } = await this.client.from('routes').delete().eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch (err: any) {
+      console.warn('Erro ao deletar rota na nuvem:', err);
       return { success: false, message: err.message };
     }
   }

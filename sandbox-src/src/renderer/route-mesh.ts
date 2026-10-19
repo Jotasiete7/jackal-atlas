@@ -51,19 +51,46 @@ export class RouteMeshManager {
   }
 
   /**
-   * Atualização instantânea dos vértices quando o usuário esculpe com pincel
+   * Atualização inteligente dos vértices quando o usuário esculpe com pincel.
+   * Quando coordenadas do pincel são informadas, só reconstrói rotas cuja caixa delimitadora
+   * (bounding box) intercepta a área esculpida, poupando CPU e GPU.
    */
-  public refreshHeights(): void {
+  public refreshHeights(centerTileX?: number, centerTileY?: number, radiusTiles?: number): void {
+    const hasBoundsFilter =
+      centerTileX !== undefined && centerTileY !== undefined && radiusTiles !== undefined;
+    const pad = (radiusTiles || 0) + 6;
+
     for (const [routeId, group] of this.routeObjects.entries()) {
       const route = this.routeManager.getById(routeId);
-      if (route && route.type === 'road') {
-        // Recria a tira da estrada sobre o relevo atualizado
-        this.parentGroup.remove(group);
-        this.disposeGroup(group);
-        const newGroup = this.createRoute3DObject(route);
-        this.parentGroup.add(newGroup);
-        this.routeObjects.set(route.id, newGroup);
+      if (!route || route.path.length < 2) continue;
+
+      if (hasBoundsFilter) {
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const [px, py] of route.path) {
+          if (px < minX) minX = px;
+          if (px > maxX) maxX = px;
+          if (py < minY) minY = py;
+          if (py > maxY) maxY = py;
+        }
+        if (
+          centerTileX! < minX - pad ||
+          centerTileX! > maxX + pad ||
+          centerTileY! < minY - pad ||
+          centerTileY! > maxY + pad
+        ) {
+          continue; // Pincel passou longe desta rota; zero custo!
+        }
       }
+
+      // Recria a rota/ponte/túnel sobre o relevo atualizado
+      this.parentGroup.remove(group);
+      this.disposeGroup(group);
+      const newGroup = this.createRoute3DObject(route);
+      this.parentGroup.add(newGroup);
+      this.routeObjects.set(route.id, newGroup);
     }
   }
 
@@ -445,11 +472,14 @@ export class RouteMeshManager {
     group.add(sprite);
   }
 
-  public getRaycastTargets(): THREE.Object3D[] {
+  public getRaycastTargets(onlyBadges = false): THREE.Object3D[] {
+    if (!this.isVisible) return [];
     const targets: THREE.Object3D[] = [];
     for (const group of this.routeObjects.values()) {
       group.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh || (child as THREE.Line).isLine || (child as THREE.Sprite).isSprite) {
+        if (onlyBadges) {
+          if ((child as THREE.Sprite).isSprite) targets.push(child);
+        } else if ((child as THREE.Mesh).isMesh || (child as THREE.Line).isLine || (child as THREE.Sprite).isSprite) {
           targets.push(child);
         }
       });
@@ -460,12 +490,13 @@ export class RouteMeshManager {
   private disposeGroup(group: THREE.Group): void {
     group.traverse((child) => {
       if ((child as THREE.Mesh).geometry) (child as THREE.Mesh).geometry.dispose();
-      if ((child as any).material) {
-        if (Array.isArray((child as any).material)) {
-          (child as any).material.forEach((m: any) => m.dispose());
-        } else {
-          (child as any).material.dispose();
-        }
+      const mat = (child as any).material;
+      if (mat) {
+        const mats = Array.isArray(mat) ? mat : [mat];
+        mats.forEach((m: any) => {
+          if (m.map) m.map.dispose();
+          m.dispose();
+        });
       }
     });
   }

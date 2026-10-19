@@ -76,6 +76,8 @@ export class InteractionController {
   private autosaveTimeout: number | null = null;
   private rightClickDownPos: { x: number; y: number } | null = null;
   private lastRightClickReleaseTime = 0;
+  private lastPreviewSnap: { x: number; y: number; type: string; count: number } | null = null;
+  private onPinSavedCallback?: (pin: any) => void;
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -105,6 +107,7 @@ export class InteractionController {
     routeModalUI: RouteModalUI;
     routeHUDUI: RouteHUDUI;
     placeables: PlaceablesManager;
+    onPinSaved?: (pin: any) => void;
   }) {
     this.canvas = deps.canvas;
     this.heightfield = deps.heightfield;
@@ -129,10 +132,12 @@ export class InteractionController {
     this.routeModalUI = deps.routeModalUI;
     this.routeHUDUI = deps.routeHUDUI;
     this.placeables = deps.placeables;
+    this.onPinSavedCallback = deps.onPinSaved;
 
     this.routeHUDUI.setCallbacks({
       onTypeChange: (type) => {
         this.selectedRouteType = type;
+        this.lastPreviewSnap = null;
         if (this.routeDrawingNodes.length > 0) {
           this.routeMesh.updatePreview(this.routeDrawingNodes, this.selectedRouteType, 'planned');
         }
@@ -159,6 +164,7 @@ export class InteractionController {
 
   public cancelRouteDrawing(): void {
     this.routeDrawingNodes = [];
+    this.lastPreviewSnap = null;
     this.routeMesh.clearPreview();
     if (this.routeHUDUI) {
       this.routeHUDUI.updateState(0, 0);
@@ -297,7 +303,7 @@ export class InteractionController {
     return null;
   }
 
-  public getRouteUnderMouse(e: MouseEvent): string | null {
+  public getRouteUnderMouse(e: MouseEvent, onlyBadges = false): string | null {
     const rect = this.canvas.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -305,7 +311,7 @@ export class InteractionController {
     const activeCamera = this.cameraController.getActiveCamera();
     this.raycaster.setFromCamera(this.mouse, activeCamera);
 
-    const routeTargets = this.routeMesh.getRaycastTargets();
+    const routeTargets = this.routeMesh.getRaycastTargets(onlyBadges);
     if (routeTargets.length === 0) return null;
 
     const hits = this.raycaster.intersectObjects(routeTargets, false);
@@ -355,10 +361,25 @@ export class InteractionController {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
           const stepAngle = this.selectedRouteType === 'bridge' ? 90 : 45;
           const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey, stepAngle);
-          const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
-          this.routeMesh.updatePreview(previewPath, this.selectedRouteType, 'planned');
-          const dist = computeRouteDistance(previewPath);
-          this.routeHUDUI.updateState(previewPath.length, dist);
+          // Só reconstrói geometria 3D e DOM do HUD quando o tile de snap mudar de verdade!
+          if (
+            !this.lastPreviewSnap ||
+            this.lastPreviewSnap.x !== snap.x2 ||
+            this.lastPreviewSnap.y !== snap.y2 ||
+            this.lastPreviewSnap.type !== this.selectedRouteType ||
+            this.lastPreviewSnap.count !== this.routeDrawingNodes.length
+          ) {
+            this.lastPreviewSnap = {
+              x: snap.x2,
+              y: snap.y2,
+              type: this.selectedRouteType,
+              count: this.routeDrawingNodes.length,
+            };
+            const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
+            this.routeMesh.updatePreview(previewPath, this.selectedRouteType, 'planned');
+            const dist = computeRouteDistance(previewPath);
+            this.routeHUDUI.updateState(previewPath.length, dist);
+          }
         }
         return;
       }
@@ -419,9 +440,12 @@ export class InteractionController {
         return;
       }
 
-      // Prioridade: Clicar em uma Rota 3D existente para abrir modal de inspeção/edição
+      // Prioridade: Clicar em uma Rota 3D existente para abrir modal de inspeção/edição.
+      // Durante ferramentas de pincel (esculpir relevo), apenas o selo flutuante (Sprite) abre o modal,
+      // permitindo esculpir livremente o terreno embaixo de estradas e pontes!
       if (this.routeDrawingNodes.length === 0) {
-        const clickedRouteId = this.getRouteUnderMouse(e);
+        const onlyBadges = this.isModelingTool(this.activeTool);
+        const clickedRouteId = this.getRouteUnderMouse(e, onlyBadges);
         if (clickedRouteId) {
           const route = this.routeManager.getById(clickedRouteId);
           if (route) {
@@ -447,10 +471,11 @@ export class InteractionController {
 
           this.pinModalUI.open(
             pin,
-            () => {
+            (savedPin) => {
               this.heightfield.updatePinAnchors(this.pinManager.getAll());
               this.terrainMesh.updateDirtyChunks();
               this.pinMesh.updatePinsElevation();
+              this.onPinSavedCallback?.(savedPin);
               this.triggerAutosave();
             },
             this.infoBarUI.getRole() === 'cartographer'
@@ -498,6 +523,7 @@ export class InteractionController {
             this.heightfield.updatePinAnchors(this.pinManager.getAll());
             this.terrainMesh.updateDirtyChunks();
             this.pinMesh.updatePinsElevation();
+            this.onPinSavedCallback?.(savedPin);
             this.triggerAutosave();
             this.cameraController.setReferencePoint(
               savedPin.x * CONFIG.TILE_METERS,
@@ -598,6 +624,7 @@ export class InteractionController {
         e.preventDefault();
         if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
           this.routeDrawingNodes.pop();
+          this.lastPreviewSnap = null;
           const dist = computeRouteDistance(this.routeDrawingNodes);
           this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
           if (this.routeDrawingNodes.length === 0) {
@@ -656,6 +683,7 @@ export class InteractionController {
           if (this.routeDrawingNodes.length > 0) {
             e.preventDefault();
             this.routeDrawingNodes.pop();
+            this.lastPreviewSnap = null;
             const dist = computeRouteDistance(this.routeDrawingNodes);
             this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
             if (this.routeDrawingNodes.length === 0) {
@@ -727,7 +755,7 @@ export class InteractionController {
       this.terrainMesh.updateDirtyChunks();
       this.updateScalePosition();
       this.pinMesh.updatePinsElevation();
-      this.routeMesh.refreshHeights();
+      this.routeMesh.refreshHeights(tileX, tileY, radiusTiles);
     }
   }
 

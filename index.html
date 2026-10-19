@@ -8032,8 +8032,9 @@
                 const latlngs = r.path.map(pt => [mapSize - pt[1], pt[0]]);
                 const isBuilt = r.kind.endsWith('_built');
                 const isBridge = r.kind.startsWith('bridge');
-                const isTunnel = r.kind.startsWith('tunnel');
-                const cor = isBuilt ? '#00e676' : (isBridge ? '#38bdf8' : (isTunnel ? '#c084fc' : '#f5a623'));
+                const rColor = String(r.color || '').toLowerCase();
+                const isTunnel = r.kind.startsWith('tunnel') || rColor === '#a855f7' || rColor === '#c084fc';
+                const cor = isBuilt ? (isTunnel ? '#a855f7' : '#00e676') : (isBridge ? '#38bdf8' : (isTunnel ? '#c084fc' : '#f5a623'));
                 const targetLayer = isBridge
                     ? (isBuilt ? layers.bridges_built : layers.bridges_planned)
                     : isTunnel
@@ -8062,8 +8063,6 @@
 
                 const nextKind = isBridge
                     ? (isBuilt ? 'bridge_planned' : 'bridge_built')
-                    : isTunnel
-                    ? (isBuilt ? 'tunnel_planned' : 'tunnel_built')
                     : (isBuilt ? 'road_planned' : 'road_built');
                 const flipText = isBuilt ? txt('📋 Reverter para Planejada', '📋 Revert to Planned') : txt('🔨 Marcar como Concluída', '🔨 Mark as Finished');
 

@@ -141,6 +141,9 @@ class JackalSandboxApp {
       routeModalUI: this.routeModalUI,
       routeHUDUI: this.routeHUDUI,
       placeables: this.placeables,
+      onPinSaved: (savedPin) => {
+        this.supabaseSync.savePinToCloud(savedPin);
+      },
     });
 
     // Restaura Autosave se existir e mescla com o relevo oficial da nuvem
@@ -365,14 +368,20 @@ class JackalSandboxApp {
     this.routeModalUI = new RouteModalUI(this.appContainer);
     this.routeHUDUI = new RouteHUDUI(this.appContainer);
     this.routeModalUI.setOnSave(async (route) => {
+      const oldId = route.id;
       this.routeManager.saveRoute(route);
-      await this.supabaseSync.saveRouteToCloud(route);
+      const res = await this.supabaseSync.saveRouteToCloud(route);
+      if (res.success && route.id !== oldId) {
+        this.routeManager.deleteRoute(oldId);
+        this.routeManager.saveRoute(route);
+      }
       if (this.interactionController) {
         this.interactionController.triggerAutosave();
       }
     });
-    this.routeModalUI.setOnDelete((id) => {
+    this.routeModalUI.setOnDelete(async (id) => {
       this.routeManager.deleteRoute(id);
+      await this.supabaseSync.deleteRouteFromCloud(id);
       if (this.interactionController) {
         this.interactionController.triggerAutosave();
       }

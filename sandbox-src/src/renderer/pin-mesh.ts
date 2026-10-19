@@ -65,6 +65,14 @@ export class PinMeshManager {
       this.parentGroup.remove(group);
       group.traverse((child) => {
         if ((child as THREE.Mesh).geometry) (child as THREE.Mesh).geometry.dispose();
+        const mat = (child as any).material;
+        if (mat) {
+          const mats = Array.isArray(mat) ? mat : [mat];
+          mats.forEach((m: any) => {
+            if (m.map) m.map.dispose();
+            m.dispose();
+          });
+        }
       });
     }
     this.pinObjects.clear();
@@ -293,6 +301,7 @@ export class PinMeshManager {
   }
 
   public getRaycastTargets(): THREE.Object3D[] {
+    if (!this.isVisible) return [];
     const targets: THREE.Object3D[] = [];
     for (const group of this.pinObjects.values()) {
       group.traverse((child) => {
