@@ -15,13 +15,15 @@ export interface SnapWurmResult {
 /**
  * Trava angular do Wurm: alinha as coordenadas para múltiplos de 45°
  * (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°) ou modo livre com Shift.
+ * Para Pontes (stepDegrees = 90), trava estritamente em eixos cardeais (0°, 90°, 180°, 270° - Leste, Norte, Oeste, Sul).
  */
 export function calcularSnapWurm(
   x1: number,
   y1: number,
   x2: number,
   y2: number,
-  freeMode = false
+  freeMode = false,
+  stepDegrees: 45 | 90 = 45
 ): SnapWurmResult {
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -29,6 +31,36 @@ export function calcularSnapWurm(
   if (dist < 0.001) return { angle: 0, x2, y2, dist: 0 };
 
   const theta = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+  // Pontes no Wurm não possuem 45° nem ângulo livre: são estritamente retas Norte/Sul ou Leste/Oeste
+  if (stepDegrees === 90) {
+    const snapped = Math.round(theta / 90) * 90;
+    const normAngle = ((snapped % 360) + 360) % 360;
+    const roundedDist = Math.round(dist);
+    let finalX = x1;
+    let finalY = y1;
+
+    if (normAngle === 0) {
+      finalX = x1 + roundedDist;
+      finalY = y1;
+    } else if (normAngle === 90) {
+      finalX = x1;
+      finalY = y1 + roundedDist;
+    } else if (normAngle === 180) {
+      finalX = x1 - roundedDist;
+      finalY = y1;
+    } else if (normAngle === 270) {
+      finalX = x1;
+      finalY = y1 - roundedDist;
+    }
+
+    return {
+      angle: normAngle,
+      x2: finalX,
+      y2: finalY,
+      dist: roundedDist,
+    };
+  }
 
   if (!freeMode) {
     const snapped = Math.round(theta / 45) * 45;

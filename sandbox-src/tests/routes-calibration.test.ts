@@ -26,6 +26,24 @@ describe('Rotas e Calibração Angular (Snap Wurm)', () => {
     expect(norte.y2).toBe(40);
   });
 
+  it('deve travar estritamente em 90 graus (N/S/L/O) para pontes sem permitir 45 graus', () => {
+    // Vetor diagonal Nordeste (dx = 30, dy = 28): para pontes (stepDegrees = 90), deve travar em Leste (0°) ou Norte (90°)
+    const ponteDiag = calcularSnapWurm(0, 0, 30, 20, false, 90);
+    expect([0, 90]).toContain(ponteDiag.angle);
+    // Deve ser estritamente colinear ao eixo (ou x2 == 0 ou y2 == 0)
+    expect(ponteDiag.x2 === 0 || ponteDiag.y2 === 0).toBe(true);
+
+    // Vetor apontando para Leste com pequena inclinação (dx = 50, dy = 15)
+    const ponteLeste = calcularSnapWurm(10, 20, 60, 35, false, 90);
+    expect(ponteLeste.angle).toBe(0);
+    expect(ponteLeste.y2).toBe(20); // y2 idêntico a y1
+
+    // Vetor apontando para Sul (dx = 2, dy = -40)
+    const ponteSul = calcularSnapWurm(10, 20, 12, -20, false, 90);
+    expect(ponteSul.angle).toBe(270);
+    expect(ponteSul.x2).toBe(10); // x2 idêntico a x1
+  });
+
   it('deve permitir ângulo livre quando freeMode for true (Shift pressionado)', () => {
     const livre = calcularSnapWurm(0, 0, 33, 17, true);
     expect(livre.x2).toBe(33);

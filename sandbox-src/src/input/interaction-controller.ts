@@ -353,7 +353,8 @@ export class InteractionController {
       if (this.activeTool === 'route') {
         if (this.routeDrawingNodes.length > 0) {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
-          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
+          const stepAngle = this.selectedRouteType === 'bridge' ? 90 : 45;
+          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey, stepAngle);
           const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
           this.routeMesh.updatePreview(previewPath, this.selectedRouteType, 'planned');
           const dist = computeRouteDistance(previewPath);
@@ -467,7 +468,8 @@ export class InteractionController {
           this.routeHUDUI.updateState(1, 0);
         } else {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
-          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
+          const stepAngle = this.selectedRouteType === 'bridge' ? 90 : 45;
+          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey, stepAngle);
           if (snap.x2 !== last[0] || snap.y2 !== last[1]) {
             this.routeDrawingNodes.push([snap.x2, snap.y2]);
             const dist = computeRouteDistance(this.routeDrawingNodes);

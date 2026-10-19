@@ -81,11 +81,14 @@ export class RouteHUDUI {
         </div>
       `;
     } else if (this.nodesCount === 1) {
+      const snapHint = this.currentType === 'bridge'
+        ? (isPt ? 'Trava 90° N/S/L/O (Pontes no Wurm são sempre retas)' : '90° N/S/E/W snap (Wurm bridges are always straight)')
+        : (isPt ? 'Trava 0°/45°/90° ativa (Shift = livre)' : '0°/45°/90° snap active (Shift = free)');
       statusHtml = `
         <div style="font-size:11px; color:#f5a623; line-height:1.4;">
           📐 ${isPt ? 'Mova o mouse e dê o 2º clique.' : 'Move mouse and click next point.'}
           <span style="display:block; font-size:10px; color:#94a3b8;">
-            ${isPt ? 'Trava 0°/45°/90° ativa (Shift = livre)' : '0°/45°/90° snap active (Shift = free)'}
+            ${snapHint}
           </span>
         </div>
       `;
@@ -112,7 +115,7 @@ export class RouteHUDUI {
           <span>🛣️</span>
           <span>${isPt ? 'Estrada' : 'Road'}</span>
         </button>
-        <button id="hud-type-bridge" class="hud-pill-btn ${bridgeActive}" title="${isPt ? 'Ponte: régua suspensa com pilares' : 'Bridge: elevated span with pillars'}">
+        <button id="hud-type-bridge" class="hud-pill-btn ${bridgeActive}" title="${isPt ? 'Ponte: régua suspensa reta 90° (Norte/Sul ou Leste/Oeste)' : 'Bridge: straight 90° span (North/South or East/West)'}">
           <span>🌉</span>
           <span>${isPt ? 'Ponte' : 'Bridge'}</span>
         </button>

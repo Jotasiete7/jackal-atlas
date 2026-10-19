@@ -45,6 +45,8 @@ export class BrushPanelUI {
 
   public setToolMode(tool: ModelingTool): void {
     this.currentTool = tool;
+    const isSculptTool = ['raise', 'lower', 'smooth', 'flatten', 'water', 'eraser', 'lock'].includes(tool);
+    this.container.style.display = isSculptTool ? 'flex' : 'none';
     const flattenRow = this.container.querySelector('#row-flatten') as HTMLElement;
     if (flattenRow) {
       flattenRow.style.display = tool === 'flatten' ? 'flex' : 'none';
