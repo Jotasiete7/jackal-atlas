@@ -361,21 +361,30 @@ export class InteractionController {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
           const stepAngle = this.selectedRouteType === 'bridge' ? 90 : 45;
           const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey, stepAngle);
+          let targetX = snap.x2;
+          let targetY = snap.y2;
+          if (this.selectedRouteType !== 'bridge' && !e.shiftKey) {
+            const snapNode = this.routeManager.findNearbyNode(targetX, targetY, 2.5);
+            if (snapNode) {
+              targetX = snapNode[0];
+              targetY = snapNode[1];
+            }
+          }
           // Só reconstrói geometria 3D e DOM do HUD quando o tile de snap mudar de verdade!
           if (
             !this.lastPreviewSnap ||
-            this.lastPreviewSnap.x !== snap.x2 ||
-            this.lastPreviewSnap.y !== snap.y2 ||
+            this.lastPreviewSnap.x !== targetX ||
+            this.lastPreviewSnap.y !== targetY ||
             this.lastPreviewSnap.type !== this.selectedRouteType ||
             this.lastPreviewSnap.count !== this.routeDrawingNodes.length
           ) {
             this.lastPreviewSnap = {
-              x: snap.x2,
-              y: snap.y2,
+              x: targetX,
+              y: targetY,
               type: this.selectedRouteType,
               count: this.routeDrawingNodes.length,
             };
-            const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
+            const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [targetX, targetY]];
             this.routeMesh.updatePreview(previewPath, this.selectedRouteType, 'planned');
             const dist = computeRouteDistance(previewPath);
             this.routeHUDUI.updateState(previewPath.length, dist);
@@ -489,14 +498,32 @@ export class InteractionController {
 
       if (this.activeTool === 'route') {
         if (this.routeDrawingNodes.length === 0) {
-          this.routeDrawingNodes.push([hit.tileX, hit.tileY]);
+          let startX = hit.tileX;
+          let startY = hit.tileY;
+          if (this.selectedRouteType !== 'bridge') {
+            const snapNode = this.routeManager.findNearbyNode(startX, startY, 2.5);
+            if (snapNode) {
+              startX = snapNode[0];
+              startY = snapNode[1];
+            }
+          }
+          this.routeDrawingNodes.push([startX, startY]);
           this.routeHUDUI.updateState(1, 0);
         } else {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
           const stepAngle = this.selectedRouteType === 'bridge' ? 90 : 45;
           const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey, stepAngle);
-          if (snap.x2 !== last[0] || snap.y2 !== last[1]) {
-            this.routeDrawingNodes.push([snap.x2, snap.y2]);
+          let targetX = snap.x2;
+          let targetY = snap.y2;
+          if (this.selectedRouteType !== 'bridge' && !e.shiftKey) {
+            const snapNode = this.routeManager.findNearbyNode(targetX, targetY, 2.5);
+            if (snapNode) {
+              targetX = snapNode[0];
+              targetY = snapNode[1];
+            }
+          }
+          if (targetX !== last[0] || targetY !== last[1]) {
+            this.routeDrawingNodes.push([targetX, targetY]);
             const dist = computeRouteDistance(this.routeDrawingNodes);
             this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
           }

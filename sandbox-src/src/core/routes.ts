@@ -135,6 +135,30 @@ export class RouteManager {
     return this.routes.get(id);
   }
 
+  /**
+   * Encontra um nó de rota existente dentro de um raio de atração magnética (em tiles)
+   */
+  public findNearbyNode(
+    tileX: number,
+    tileY: number,
+    thresholdTiles = 2.0
+  ): [number, number] | null {
+    let closestDist = thresholdTiles;
+    let closestNode: [number, number] | null = null;
+
+    for (const r of this.routes.values()) {
+      for (const pt of r.path) {
+        const d = Math.hypot(pt[0] - tileX, pt[1] - tileY);
+        if (d < closestDist) {
+          closestDist = d;
+          closestNode = [pt[0], pt[1]];
+        }
+      }
+    }
+
+    return closestNode;
+  }
+
   public saveRoute(route: MapRoute): void {
     this.routes.set(route.id, { ...route });
     this.notify();
