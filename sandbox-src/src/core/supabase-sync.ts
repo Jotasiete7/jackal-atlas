@@ -316,7 +316,7 @@ export class SupabaseSyncManager {
 
     try {
       const isOfficer = this.isOfficerOrAdmin();
-      const kind = pin.type === 'tower' ? 'tower' : (pin.type === 'pillar' ? 'landmark' : 'landmark');
+      const kind = pin.type === 'tower' ? 'tower' : 'pillar';
 
       const payload = {
         id: pin.id.startsWith('pin-') ? undefined : pin.id,

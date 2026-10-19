@@ -821,6 +821,10 @@
                         <input type="checkbox" data-layer="fauna_spots" checked onchange="toggleCamada('fauna_spots', this.checked)">
                         <span data-i18n="faunaMontarias">🦗 Fauna & Montarias</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntFauna">(0)</span>
                     </label>
+                    <label class="sw-filter-row" style="color:#f59e0b;">
+                        <input type="checkbox" data-layer="pillars" checked onchange="toggleCamada('pillars', this.checked)">
+                        <span data-i18n="pilares">📐 Marcos / Pilares 3D</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntPillars">(0)</span>
+                    </label>
                     <label class="sw-filter-row" style="color:#cbd5e1;">
                         <input type="checkbox" data-layer="landmarks" checked onchange="toggleCamada('landmarks', this.checked)">
                         <span data-i18n="toponimos">🏷️ Topônimos / Regiões</span> <span style="font-size:9.5px; opacity:0.7; font-family:'JetBrains Mono'; margin-left:auto;" id="cntLandmarks">(0)</span>
@@ -1146,7 +1150,7 @@
                 <label class="sw-form-label" data-i18n="tipoPontoAnot">Tipo de Ponto / Anotação</label>
                 <div class="jk-kind-chips" id="kindChipsContainer">
                     <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed</span>
-                    <span class="jk-kind-chip" data-kind="landmark" data-i18n="kindMarco">📐 Marco / Pilar 3D</span>
+                    <span class="jk-kind-chip" data-kind="pillar" data-i18n="kindMarco">📐 Marco / Pilar 3D</span>
                     <span class="jk-kind-chip" data-kind="tower" data-i18n="kindTorre">🏰 Torre de Guarda</span>
                     <span class="jk-kind-chip" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
@@ -1155,6 +1159,7 @@
                     <span class="jk-kind-chip" data-kind="idol">✨ Idol / Plinth</span>
                     <span class="jk-kind-chip" data-kind="supply_point" data-i18n="chipSuprimento">📦 Suprimento</span>
                     <span class="jk-kind-chip" data-kind="fauna" data-i18n="kindFauna">🦗 Fauna / Montaria</span>
+                    <span class="jk-kind-chip" id="chipToponimo" data-kind="landmark" style="display:none;" data-i18n="kindToponimo">🏷️ Topônimo (Admin)</span>
                 </div>
             </div>
 
@@ -1316,6 +1321,7 @@
                 <label class="sw-form-label" data-i18n="tipoPonto">Tipo de Ponto</label>
                 <select class="sw-form-select" id="selectEditKind" onchange="alternarCamposEdicao(this.value)">
                     <option value="village">🏘️ Deed</option>
+                    <option value="pillar" data-i18n="kindMarco">📐 Marco / Pilar 3D</option>
                     <option value="tower" data-i18n="kindTorre">🏰 Torre de Guarda</option>
                     <option value="beacon">🔴 Beacon</option>
                     <option value="lodestone">🪨 Lodestone</option>
@@ -2083,6 +2089,7 @@
         idols:            L.layerGroup().addTo(map),
         supply_points:    L.layerGroup().addTo(map),
         fauna_spots:      L.layerGroup().addTo(map),
+        pillars:          L.layerGroup().addTo(map),
         landmarks:        L.layerGroup().addTo(map),
         influencia:       L.layerGroup().addTo(map),
         area_measurement: L.layerGroup().addTo(map),
@@ -2355,9 +2362,10 @@
         layers.idols.clearLayers();
         layers.supply_points.clearLayers();
         layers.fauna_spots.clearLayers();
+        layers.pillars.clearLayers();
         layers.landmarks.clearLayers();
 
-        let counts = { lodestone:0, village:0, tower:0, cave:0, resource_node:0, idol:0, supply_point:0, fauna:0, landmark:0 };
+        let counts = { lodestone:0, village:0, tower:0, cave:0, resource_node:0, idol:0, supply_point:0, fauna:0, landmark:0, pillar:0 };
 
         const iconConfig = {
             village: { icon:'🏘️', layer: layers.villages },
@@ -2369,6 +2377,7 @@
             idol_plinth: { icon:'✨', layer: layers.idols },
             supply_point: { icon:'📦', layer: layers.supply_points },
             fauna: { icon:'🦗', layer: layers.fauna_spots },
+            pillar: { icon:'📐', layer: layers.pillars },
             landmark: { icon:'🏷️', layer: layers.landmarks }
         };
 
@@ -2529,6 +2538,7 @@
         if (document.getElementById('cntIdols')) document.getElementById('cntIdols').textContent = `(${counts.idol})`;
         if (document.getElementById('cntSupply')) document.getElementById('cntSupply').textContent = `(${counts.supply_point})`;
         if (document.getElementById('cntFauna')) document.getElementById('cntFauna').textContent = `(${counts.fauna})`;
+        if (document.getElementById('cntPillars')) document.getElementById('cntPillars').textContent = `(${counts.pillar})`;
         if (document.getElementById('cntLandmarks')) document.getElementById('cntLandmarks').textContent = `(${counts.landmark})`;
 
         renderizarCoberturaTorres();
@@ -2685,7 +2695,8 @@
             resource_node: '⛏️',
             idol: '✨',
             supply_point: '📦',
-            landmark: '📌'
+            pillar: '📐',
+            landmark: '🏷️'
         };
 
         const itensPontos = resultados.map(p => {
@@ -6873,6 +6884,11 @@
     }
 
     async function salvarPontoSubmissao() {
+        if (kindSelecionado === 'landmark' && (!currentProfile || currentProfile.role !== 'admin')) {
+            alert(txt('Apenas Administradores têm permissão para registrar topônimos no mapa.', 'Only Admins can add place names to the map.'));
+            return;
+        }
+
         const inCoordX = parseInt(document.getElementById('inputModalCoordX')?.value, 10);
         const inCoordY = parseInt(document.getElementById('inputModalCoordY')?.value, 10);
         const r2 = isModoRound2();
@@ -6981,6 +6997,11 @@
             document.getElementById('inputEditMayor').value = ponto.attrs?.mayor || '';
         }
 
+        const optLandmark = document.querySelector('#selectEditKind option[value="landmark"]');
+        if (optLandmark) {
+            optLandmark.disabled = (!currentProfile || currentProfile.role !== 'admin');
+        }
+
         document.getElementById('modalEditarPonto').classList.add('open');
     }
 
@@ -7003,6 +7024,11 @@
         const faccao = document.getElementById('selectEditFaccao').value;
         const kind = document.getElementById('selectEditKind').value;
         const mayor = document.getElementById('inputEditMayor')?.value.trim();
+
+        if (kind === 'landmark' && (!currentProfile || currentProfile.role !== 'admin')) {
+            alert(txt('Apenas Administradores têm permissão para definir topônimos no mapa.', 'Only Admins can set place names on the map.'));
+            return;
+        }
 
         if (!nome) {
             alert(txt('Por favor informe um nome ou título.', 'Please enter a name or title.'));
@@ -7230,6 +7256,7 @@
             ttAtalhoY: 'Atalho: tecla [Y]',
             ttAtalhoI: 'Atalho: tecla [I]',
             faunaMontarias: '🦗 Fauna & Montarias',
+            pilares: '📐 Marcos / Pilares 3D',
             toponimos: '🏷️ Topônimos / Regiões',
             prioridades: 'Prioridades',
             criarMetaAdmin: '➕ Criar Meta (Admin)',
@@ -7489,6 +7516,7 @@
             ttAtalhoY: 'Shortcut: [Y] key',
             ttAtalhoI: 'Shortcut: [I] key',
             faunaMontarias: '🦗 Fauna & Mounts',
+            pilares: '📐 3D Pillars / Markers',
             toponimos: '🏷️ Place Names / Regions',
             prioridades: 'Priorities',
             criarMetaAdmin: '➕ Create Objective (Admin)',
@@ -7696,6 +7724,9 @@
 
                 const btnObj = document.getElementById('btnAdminNovoObjetivo');
                 if (btnObj) btnObj.style.display = (profile.role === 'admin') ? 'block' : 'none';
+
+                const chipTopo = document.getElementById('chipToponimo');
+                if (chipTopo) chipTopo.style.display = (profile.role === 'admin') ? 'inline-flex' : 'none';
             }
         } catch (err) {
             console.warn('Erro ao carregar perfil do usuário:', err);
