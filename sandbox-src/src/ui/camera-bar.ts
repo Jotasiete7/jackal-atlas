@@ -1,9 +1,10 @@
 // ==============================================================================
-// JACKAL SANDBOX — BARRA SUPERIOR DE CÂMERAS E EXAGERO VERTICAL
+// JACKAL SANDBOX — BARRA SUPERIOR DE CÂMERAS, NUVEM E EXAGERO VERTICAL
 // ==============================================================================
 
 import { CameraController } from '../renderer/camera';
 import { CameraMode, CardinalDirection } from '../core/types';
+import { SupabaseSyncManager } from '../core/supabase-sync';
 import { ICONS } from './icons';
 import { i18n, t } from '../i18n';
 import { HelpModalUI } from './help-modal';
@@ -13,6 +14,10 @@ export class CameraBarUI {
   private cameraController: CameraController;
   private onVerticalExaggerationCallback: (factor: number) => void;
   private onFocusStationCallback?: () => void;
+  private supabaseSync?: SupabaseSyncManager;
+  private onCloudPullCallback?: () => void;
+  private onCloudPublishCallback?: () => void;
+  private onSyncPinsCallback?: () => void;
   private helpModal: HelpModalUI;
   private currentExaggeration = 1.0;
   private currentCameraMode: CameraMode = 'top';
@@ -21,11 +26,21 @@ export class CameraBarUI {
     parent: HTMLElement,
     cameraController: CameraController,
     onVerticalExaggeration: (factor: number) => void,
-    onFocusStation?: () => void
+    onFocusStation?: () => void,
+    cloudDeps?: {
+      supabaseSync?: SupabaseSyncManager;
+      onCloudPull?: () => void;
+      onCloudPublish?: () => void;
+      onSyncPins?: () => void;
+    }
   ) {
     this.cameraController = cameraController;
     this.onVerticalExaggerationCallback = onVerticalExaggeration;
     this.onFocusStationCallback = onFocusStation;
+    this.supabaseSync = cloudDeps?.supabaseSync;
+    this.onCloudPullCallback = cloudDeps?.onCloudPull;
+    this.onCloudPublishCallback = cloudDeps?.onCloudPublish;
+    this.onSyncPinsCallback = cloudDeps?.onSyncPins;
     this.helpModal = new HelpModalUI(parent);
 
     this.container = document.createElement('div');
@@ -37,10 +52,21 @@ export class CameraBarUI {
     i18n.subscribe(() => {
       this.render();
     });
+
+    if (this.supabaseSync) {
+      this.supabaseSync.subscribe(() => {
+        this.render();
+      });
+    }
   }
 
   public render(): void {
     const isPt = i18n.getLang() === 'pt';
+    const profile = this.supabaseSync?.getProfile();
+    const isOfficer = this.supabaseSync?.isOfficerOrAdmin();
+    const userName = profile?.nick || profile?.discord_name || 'Scout';
+    const userRole = profile?.role || 'pending';
+    const avatarUrl = profile?.discord_avatar || '';
 
     this.container.innerHTML = `
       <div class="brand-section">
@@ -87,10 +113,40 @@ export class CameraBarUI {
         </button>
 
         <!-- Exagero Vertical (1x a 5x) -->
-        <div style="display: flex; align-items: center; gap: 8px; margin-left: 6px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: 4px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
           <span style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">${t('cam_exaggeration')}</span>
           <span id="exag-display" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold); font-weight: 700; min-width: 24px;">${this.currentExaggeration.toFixed(1)}×</span>
-          <input type="range" id="input-exaggeration" min="1.0" max="5.0" step="0.2" value="${this.currentExaggeration}" style="width: 75px;" />
+          <input type="range" id="input-exaggeration" min="1.0" max="5.0" step="0.2" value="${this.currentExaggeration}" style="width: 70px;" />
+        </div>
+
+        <!-- Ações de Nuvem & Sincronização -->
+        <div class="cloud-actions" style="display: flex; align-items: center; gap: 4px; margin-left: 6px; border-left: 1px solid var(--border-color); padding-left: 6px;">
+          <button class="btn" id="btn-cloud-pull" style="font-size: 11px; padding: 4px 8px; color: #38bdf8; border-color: rgba(56,189,248,0.4);" title="${t('cloud_pull_title')}">
+            ☁️ ${t('cloud_pull')}
+          </button>
+          ${isOfficer ? `
+            <button class="btn btn-gold" id="btn-cloud-publish" style="font-size: 11px; padding: 4px 8px; font-weight: 800;" title="${t('cloud_publish_title')}">
+              🚀 ${t('cloud_publish')}
+            </button>
+          ` : ''}
+          <button class="btn" id="btn-sync-pins" style="font-size: 11px; padding: 4px 8px; color: #fbbf24; border-color: rgba(251,191,36,0.35);" title="${t('cloud_sync_pins_title')}">
+            📍 ${t('cloud_sync_pins')}
+          </button>
+        </div>
+
+        <!-- Perfil do Usuário Discord -->
+        <div class="user-auth-badge" style="display: flex; align-items: center; margin-left: 4px;">
+          ${profile ? `
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(16,18,26,0.85); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 11px;">
+              ${avatarUrl ? `<img src="${avatarUrl}" alt="Avatar" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" />` : '👤'}
+              <span style="font-weight: 700; color: #fff; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${userName}</span>
+              <span class="role-badge ${userRole}">${userRole.toUpperCase()}</span>
+            </div>
+          ` : `
+            <a href="../login.html" class="btn" style="text-decoration: none; font-size: 11px; padding: 4px 8px; color: #818cf8; border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.1);" title="${t('login_discord_title')}">
+              🔑 ${t('login_discord')}
+            </a>
+          `}
         </div>
 
         <!-- Seletor de Idioma PT / EN -->
@@ -151,6 +207,18 @@ export class CameraBarUI {
       this.currentExaggeration = parseFloat(inputExag.value);
       if (exagDisplay) exagDisplay.innerText = `${this.currentExaggeration.toFixed(1)}×`;
       this.onVerticalExaggerationCallback(this.currentExaggeration);
+    });
+
+    this.container.querySelector('#btn-cloud-pull')?.addEventListener('click', () => {
+      if (this.onCloudPullCallback) this.onCloudPullCallback();
+    });
+
+    this.container.querySelector('#btn-cloud-publish')?.addEventListener('click', () => {
+      if (this.onCloudPublishCallback) this.onCloudPublishCallback();
+    });
+
+    this.container.querySelector('#btn-sync-pins')?.addEventListener('click', () => {
+      if (this.onSyncPinsCallback) this.onSyncPinsCallback();
     });
 
     this.container.querySelector('#btn-lang-toggle')?.addEventListener('click', () => {

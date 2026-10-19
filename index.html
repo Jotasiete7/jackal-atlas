@@ -713,15 +713,16 @@
                     <span style="font-size:9.5px; opacity:0.8;" data-i18n="camadas">Camadas</span>
                 </div>
                 <div class="sw-acc-content open">
-                    <div class="sw-base-switcher" style="grid-template-columns: 1fr; margin-bottom:6px;">
-                        <button id="btnParchment" class="sw-base-btn active" onclick="trocarBase('parchment', this)" title="Mapa em branco para o Round 2: esboce o terreno conforme os batedores exploram • Blank map for Round 2: sketch the land as scouts explore it" data-i18n="baseParchment">📜 Pergaminho em Branco (Round 2)</button>
+                    <div class="sw-base-switcher" style="grid-template-columns: 1fr 1fr; margin-bottom:6px; gap:6px;">
+                        <button id="btnParchment" class="sw-base-btn active" onclick="trocarBase('parchment', this)" title="Mapa em branco para o Round 2: esboce o terreno conforme os batedores exploram • Blank map for Round 2" data-i18n="baseParchment">📜 Pergaminho (Round 2)</button>
+                        <button id="btnTopo3D" class="sw-base-btn" onclick="trocarBase('topo_3d', this)" title="Relevo Topográfico 3D ao vivo da Caixa de Areia • 3D Topographic Relief" data-i18n="baseTopo3D">⛰️ Topo 3D (Round 2)</button>
                     </div>
                     <div style="font-size:9.5px; font-weight:700; color:var(--sw-text-muted); margin:0 0 4px 2px;" data-i18n="baseOldMap">Mapa antigo do Jackal (Round 1):</div>
                     <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
                         <button id="btnCustom" class="sw-base-btn" onclick="trocarBase('custom', this)">Goldfish®</button>
                         <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
                         <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)" data-i18n="baseIso">Isométrico</button>
-                        <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo', this)">Topo</button>
+                        <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo_3d', this)">Topo</button>
                     </div>
                     <label class="sw-filter-row">
                         <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
@@ -1606,20 +1607,11 @@
             const x = parseInt(partes[0].trim(), 10);
             const y = parseInt(partes[1].trim(), 10);
             const z = partes[2] ? parseFloat(partes[2].trim()) : null;
-            if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+            if (!isNaN(x) && !isNaN(y)) {
                 return { x, y, z: (!isNaN(z) && z >= 0 && z <= 6) ? z : 5.0 };
             }
         }
         return null;
-    }
-
-    // Inicialização Instantânea da Câmera (URL #X,Y ou Centro do Mapa)
-    const hashInicial = obterCoordsHashUrl();
-    if (hashInicial) {
-        // Inicializa a câmera direto nas coordenadas desejadas, economizando tiles do centro
-        map.setView([MAP_SIZE - hashInicial.y, hashInicial.x], hashInicial.z || 5.0);
-    } else {
-        map.setView([2048, 2048], 2);
     }
 
     // ==============================================================
@@ -1627,11 +1619,29 @@
     // ==============================================================
     let targetMiraMarker = null;
 
-    function posicionarMiraTarget(x, y, voarAte = false, zoomAlvo = 5.0) {
-        x = Math.max(0, Math.min(Math.round(x), MAP_SIZE));
-        y = Math.max(0, Math.min(Math.round(y), MAP_SIZE));
-        const lat = MAP_SIZE - y;
-        const lng = x;
+    function posicionarMiraTarget(inX, inY, voarAte = false, zoomAlvo = 5.0) {
+        let rawX, rawY, dispX, dispY;
+        if (isModoRound2()) {
+            if (inX >= -2048 && inX <= 2048 && inY >= -2048 && inY <= 2048 && (inX < 0 || inY < 0 || (inX <= 1000 && inY <= 1000))) {
+                dispX = Math.round(inX);
+                dispY = Math.round(inY);
+                rawX = Math.max(0, Math.min(MAP_SIZE, dispX + 2048));
+                rawY = Math.max(0, Math.min(MAP_SIZE, 2048 - dispY));
+            } else {
+                rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(inX)));
+                rawY = Math.max(0, Math.min(MAP_SIZE, Math.round(inY)));
+                dispX = rawX - 2048;
+                dispY = 2048 - rawY;
+            }
+        } else {
+            rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(inX)));
+            rawY = Math.max(0, Math.min(MAP_SIZE, Math.round(inY)));
+            dispX = rawX;
+            dispY = rawY;
+        }
+
+        const lat = MAP_SIZE - rawY;
+        const lng = rawX;
 
         if (targetMiraMarker) {
             map.removeLayer(targetMiraMarker);
@@ -1641,7 +1651,7 @@
         const iconMira = L.divIcon({
             className: 'target-mira-icon-container',
             html: `
-                <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${txt(`Alvo Marcado (${x}, ${y}) - Clique para remover`, `Marked Target (${x}, ${y}) - Click to remove`)}">
+                <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${txt(`Alvo Marcado (${dispX}, ${dispY}) - Clique para remover`, `Marked Target (${dispX}, ${dispY}) - Click to remove`)}">
                     <div style="position:absolute; width:28px; height:28px; border-radius:50%; border:2px solid #ef4444; animation:sw-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity:0.85;"></div>
                     <div style="position:absolute; width:18px; height:18px; border-radius:50%; background:rgba(239, 68, 68, 0.25); border:1.5px solid #ef4444;"></div>
                     <div style="width:4px; height:4px; border-radius:50%; background:#ef4444;"></div>
@@ -1657,7 +1667,9 @@
             zIndexOffset: 3000
         }).addTo(map);
 
-        const quad = obterQuadranteWurm(y, x);
+        const quad = isModoRound2()
+            ? `${dispY >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(dispY)/100)}-${dispX >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(dispX)/100)}`
+            : obterQuadranteWurm(rawY, rawX);
 
         // Clique na própria mira remove ela
         targetMiraMarker.on('click', function(ev) {
@@ -1668,11 +1680,17 @@
         // Atualiza coordenadas no rodapé
         const coordBox = document.getElementById('coordBox');
         const quadBox = document.getElementById('quadBox');
-        if (coordBox) coordBox.textContent = `X: ${x} • Y: ${y}`;
+        if (coordBox) coordBox.textContent = `X: ${dispX} • Y: ${dispY}`;
         if (quadBox) quadBox.textContent = quad;
 
         // Atualiza hash na URL dinamicamente sem recarregar
-        window.history.replaceState(null, '', '#' + x + ',' + y);
+        window.history.replaceState(null, '', '#' + dispX + ',' + dispY);
+
+        // Atualiza atalho para o Sandbox 3D
+        const linkSand = document.querySelector('a[href*="sandbox"]');
+        if (linkSand) {
+            linkSand.href = `sandbox/#${dispX},${dispY}`;
+        }
 
         if (voarAte) {
             map.flyTo([lat, lng], Math.max(map.getZoom(), zoomAlvo || 5.0), { duration: 1.0 });
@@ -1693,10 +1711,49 @@
         if (!hashCoords) return;
 
         const center = map.getCenter();
-        const latAlvo = MAP_SIZE - hashCoords.y;
-        const jaNoPonto = (Math.abs(center.lat - latAlvo) < 10 && Math.abs(center.lng - hashCoords.x) < 10);
+        let targetLat, targetLng;
+        if (isModoRound2()) {
+            targetLat = 2048 + hashCoords.y;
+            targetLng = 2048 + hashCoords.x;
+        } else {
+            targetLat = MAP_SIZE - hashCoords.y;
+            targetLng = hashCoords.x;
+        }
+        const jaNoPonto = (Math.abs(center.lat - targetLat) < 10 && Math.abs(center.lng - targetLng) < 10);
         posicionarMiraTarget(hashCoords.x, hashCoords.y, !jaNoPonto, hashCoords.z || 5.0);
     }
+
+    // Inicialização Instantânea da Câmera (URL #X,Y ou Centro do Mapa)
+    const hashInicial = obterCoordsHashUrl();
+    if (hashInicial) {
+        let initLat = isModoRound2() ? (2048 + hashInicial.y) : (MAP_SIZE - hashInicial.y);
+        let initLng = isModoRound2() ? (2048 + hashInicial.x) : hashInicial.x;
+        map.setView([initLat, initLng], hashInicial.z || 5.0);
+    } else {
+        map.setView([2048, 2048], 2);
+    }
+
+    // Marcador Central Fixo do Spawn (0, 0)
+    const spawnMarker = L.marker([2048, 2048], {
+        icon: L.divIcon({
+            className: 'spawn-marker-pin',
+            html: `
+                <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="Spawn Inicial do Jackal Round 2 (0, 0) • Origem da Rede">
+                    <div style="width:28px; height:28px; border-radius:50%; background:rgba(245,166,35,0.25); border:2px solid #f5a623; display:flex; align-items:center; justify-content:center; box-shadow:0 0 14px rgba(245,166,35,0.8);">
+                        <span style="font-size:15px;">⭐</span>
+                    </div>
+                    <span style="background:rgba(12,15,22,0.92); color:#f5a623; border:1px solid rgba(245,166,35,0.5); font-size:9.5px; font-weight:800; font-family:'JetBrains Mono'; padding:1px 6px; border-radius:3px; margin-top:2px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.6);">SPAWN (0, 0)</span>
+                </div>
+            `,
+            iconSize: [80, 42],
+            iconAnchor: [40, 14]
+        }),
+        zIndexOffset: 2500
+    }).addTo(map);
+
+    spawnMarker.on('click', () => {
+        posicionarMiraTarget(0, 0, true, 5.0);
+    });
 
     window.addEventListener('hashchange', verificarHashUrl);
 
@@ -1849,12 +1906,14 @@
         for (let x = xMin; x <= xMax; x += passo) {
             const ehForte = x % forte === 0;
             L.polyline([[MAP_SIZE - yMin, x], [MAP_SIZE - yMax, x]], opts(ehForte)).addTo(gridCoordLayer);
-            if (ehForte || passo >= 256) rotulo(x, [latTopo, x], 'top:62px; transform:translateX(-50%);'); // below the top mode bar
+            const rotuloTexto = isModoRound2() ? (x - 2048) : x;
+            if (ehForte || passo >= 256) rotulo(rotuloTexto, [latTopo, x], 'top:62px; transform:translateX(-50%);'); // below the top mode bar
         }
         for (let y = yMin; y <= yMax; y += passo) {
             const ehForte = y % forte === 0;
             L.polyline([[MAP_SIZE - y, xMin], [MAP_SIZE - y, xMax]], opts(ehForte)).addTo(gridCoordLayer);
-            if (ehForte || passo >= 256) rotulo(y, [MAP_SIZE - y, lngDir], 'right:6px; transform:translateY(-50%);'); // right edge, clear of the sidebar
+            const rotuloTexto = isModoRound2() ? (2048 - y) : y;
+            if (ehForte || passo >= 256) rotulo(rotuloTexto, [MAP_SIZE - y, lngDir], 'right:6px; transform:translateY(-50%);'); // right edge, clear of the sidebar
         }
     }
 
@@ -1964,10 +2023,14 @@
 
     // Conversão e exibição contínua de coordenadas Wurm com Quadrante & Tracker
     map.on('mousemove', function(e) {
-        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
-        document.getElementById('coordBox').textContent = `X: ${x} • Y: ${y}`;
-        const quad = obterQuadranteWurm(y, x);
+        const rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+        const rawY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+        const dispX = isModoRound2() ? (rawX - 2048) : rawX;
+        const dispY = isModoRound2() ? (2048 - rawY) : rawY;
+        document.getElementById('coordBox').textContent = `X: ${dispX} • Y: ${dispY}`;
+        const quad = isModoRound2()
+            ? `${dispY >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(dispY)/100)}-${dispX >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(dispX)/100)}`
+            : obterQuadranteWurm(rawY, rawX);
         const qBox = document.getElementById('quadBox');
         if (qBox) qBox.textContent = quad;
 
@@ -1976,7 +2039,7 @@
             const tt = document.getElementById('crosshairTooltip');
             const cc = document.getElementById('crosshairCoords');
             if (tt && cc) {
-                cc.textContent = `X: ${x} • Y: ${y} [${quad}]`;
+                cc.textContent = `X: ${dispX} • Y: ${dispY} [${quad}]`;
                 tt.style.left = `${e.originalEvent.clientX}px`;
                 tt.style.top = `${e.originalEvent.clientY}px`;
             }
@@ -2072,8 +2135,14 @@
     let todosPontosCache = [];
 
     function criarPinBeacon(beacon) {
-        const lat = mapSize - beacon.y;
-        const lng = beacon.x;
+        let rawBx = Number(beacon.x);
+        let rawBy = Number(beacon.y);
+        if (isModoRound2() || (Math.abs(rawBx) <= 2048 && Math.abs(rawBy) <= 2048 && (rawBx < 0 || rawBy < 0 || (rawBx <= 1000 && rawBy <= 1000)))) {
+            rawBx = rawBx + 2048;
+            rawBy = 2048 - rawBy;
+        }
+        const lat = mapSize - rawBy;
+        const lng = rawBx;
         const cores = { jackal:'#ff4444', freedom:'#00e676', neutral:'#607d8b', unknown:'#3a4455' };
 
         const icon = L.divIcon({
@@ -2156,7 +2225,7 @@
                     ? TACTICAL_CONFIG.BEACON_RADIUS_BOOST_2 
                     : (b.reforco === 1 ? TACTICAL_CONFIG.BEACON_RADIUS_BOOST_1 : TACTICAL_CONFIG.BEACON_RADIUS_BASE);
                 const cor = b.faccao === 'freedom' ? '#00e676' : '#ff4444';
-                const circle = L.circle([mapSize - b.y, b.x], {
+                const circle = L.circle(m.getLatLng(), {
                     radius: radius,
                     color: cor,
                     fillColor: cor,
@@ -2238,10 +2307,18 @@
         torres.forEach(t => {
             const x = Number(t.x);
             const y = Number(t.y);
-            const yMin = mapSize - (y + half);
-            const yMax = mapSize - (y - half);
-            const xMin = x - half;
-            const xMax = x + half;
+            let cx, cy;
+            if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
+                cx = 2048 + x;
+                cy = 2048 + y;
+            } else {
+                cx = x;
+                cy = mapSize - y;
+            }
+            const yMin = cy - half;
+            const yMax = cy + half;
+            const xMin = cx - half;
+            const xMax = cx + half;
             const rect = L.rectangle([[yMin, xMin], [yMax, xMax]], estilo);
             rect.addTo(layers.towers_coverage);
         });
@@ -2280,7 +2357,15 @@
             if (!conf) return;
             const x = Number(p.x);
             const y = Number(p.y);
-            const quad = obterQuadranteWurm(y, x);
+            let latlng;
+            if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
+                latlng = [2048 + y, 2048 + x];
+            } else {
+                latlng = [mapSize - y, x];
+            }
+            const quad = isModoRound2()
+                ? `${y >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(y)/100)}-${x >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(x)/100)}`
+                : obterQuadranteWurm(y, x);
             const isVillage = (p.kind === 'village');
             const isTower = (p.kind === 'tower');
             const mayor = p.attrs?.mayor;
@@ -2291,7 +2376,7 @@
             const isStaff = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
             const pendingBadge = isPendente ? `<span style="position:absolute; top:-6px; right:-6px; font-size:9px; background:#f5a623; color:#000; border-radius:50%; width:15px; height:15px; display:flex; align-items:center; justify-content:center; font-weight:900; box-shadow:0 1px 3px rgba(0,0,0,0.8);" title="${txt('Pendente de Moderação', 'Pending Moderation')}">⏳</span>` : '';
 
-            const m = L.marker([mapSize - y, x], {
+            const m = L.marker(latlng, {
                 icon: L.divIcon({
                     className: '',
                     iconAnchor: [12, 12],
@@ -2564,7 +2649,9 @@
         const itensPontos = resultados.map(p => {
             const x = Number(p.x);
             const y = Number(p.y);
-            const quad = obterQuadranteWurm(y, x);
+            const quad = isModoRound2()
+                ? `${y >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(y)/100)}-${x >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(x)/100)}`
+                : obterQuadranteWurm(y, x);
             const icone = iconMap[p.kind] || '📍';
             const nome = p.name || p.nome || p.kind;
             const faccao = p.faction || p.faccao || 'neutral';
@@ -2605,7 +2692,13 @@
             map.eachLayer(layer => {
                 if (layer.getLatLng && layer !== targetMiraMarker) {
                     const ll = layer.getLatLng();
-                    if (Math.round(ll.lng) === Math.round(x) && Math.round(mapSize - ll.lat) === Math.round(y)) {
+                    let match = false;
+                    if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
+                        match = (Math.round(ll.lng - 2048) === Math.round(x) && Math.round(ll.lat - 2048) === Math.round(y));
+                    } else {
+                        match = (Math.round(ll.lng) === Math.round(x) && Math.round(mapSize - ll.lat) === Math.round(y));
+                    }
+                    if (match) {
                         if (layer.openPopup) layer.openPopup();
                     }
                 }
@@ -2666,7 +2759,10 @@
 
                 item.onclick = () => {
                     if (pathPoint) {
-                        map.flyTo([mapSize - pathPoint[1], pathPoint[0]], 4, { duration: 1 });
+                        const r2 = isModoRound2() || (Math.abs(pathPoint[0]) <= 2048 && Math.abs(pathPoint[1]) <= 2048 && (pathPoint[0] < 0 || pathPoint[1] < 0 || (pathPoint[0] <= 1000 && pathPoint[1] <= 1000)));
+                        const targetLat = r2 ? (2048 + pathPoint[1]) : (mapSize - pathPoint[1]);
+                        const targetLng = r2 ? (2048 + pathPoint[0]) : pathPoint[0];
+                        map.flyTo([targetLat, targetLng], 4, { duration: 1 });
                     }
                 };
 
@@ -3178,7 +3274,7 @@
 
     // Pergaminho em branco (Round 2): folha lisa cobrindo o mapa 4096x4096, com moldura para ver as bordas
     // Blank parchment base (Round 2): a plain sheet covering the 4096x4096 map, framed so the edges are visible
-    let baseAtual = 'custom';
+    let baseAtual = 'parchment';
     const parchmentLayer = L.rectangle([[0, 0], [MAP_SIZE, MAP_SIZE]], {
         pane: 'parchmentPane',
         color: '#5b4a32',
@@ -3187,6 +3283,116 @@
         fillOpacity: 1,
         interactive: false
     });
+
+    let reliefCanvasLayer = null;
+    let cacheReliefData = null;
+
+    function isModoRound2() {
+        return (baseAtual === 'parchment' || baseAtual === 'topo_3d');
+    }
+
+    function renderizarCanvasRelevo3D(reliefData) {
+        const offCanvas = document.createElement('canvas');
+        const size = 1024;
+        offCanvas.width = size;
+        offCanvas.height = size;
+        const ctx = offCanvas.getContext('2d');
+
+        // Fundo padrão
+        ctx.fillStyle = '#efe6cf';
+        ctx.fillRect(0, 0, size, size);
+
+        // Moldura
+        ctx.strokeStyle = '#5b4a32';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(0, 0, size, size);
+
+        if (reliefData && reliefData.chunks && Array.isArray(reliefData.chunks)) {
+            const chunkCells = 64;
+            const totalCells = 1024;
+            const halfCells = totalCells / 2;
+            const scale = size / totalCells;
+
+            reliefData.chunks.forEach(chunk => {
+                const startCellX = chunk.chunkX * chunkCells + halfCells;
+                const startCellY = chunk.chunkY * chunkCells + halfCells;
+                const heights = chunk.heights || [];
+                const states = chunk.states || [];
+
+                for (let ly = 0; ly < chunkCells; ly++) {
+                    const cy = startCellY + ly;
+                    if (cy < 0 || cy >= totalCells) continue;
+                    const canvasY = Math.round((totalCells - 1 - cy) * scale);
+
+                    for (let lx = 0; lx < chunkCells; lx++) {
+                        const cx = startCellX + lx;
+                        if (cx < 0 || cx >= totalCells) continue;
+                        const canvasX = Math.round(cx * scale);
+
+                        const idx = ly * chunkCells + lx;
+                        const state = states[idx];
+                        const h = heights[idx] || 0;
+
+                        if (state === 1) {
+                            ctx.fillStyle = '#1e3a5f';
+                            ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+                        } else if (state === 2) {
+                            let color = '#efe6cf';
+                            if (h >= 1.5 && h < 10) color = '#3d7a46';
+                            else if (h >= 10 && h < 25) color = '#8da242';
+                            else if (h >= 25 && h < 50) color = '#b38f4a';
+                            else if (h >= 50) color = '#8c6b4b';
+
+                            ctx.fillStyle = color;
+                            ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+
+                            if (Math.round(h) % 5 === 0 && h > 0) {
+                                ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.25)';
+                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), 1);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const dataUrl = offCanvas.toDataURL();
+        if (!reliefCanvasLayer) {
+            reliefCanvasLayer = L.imageOverlay(dataUrl, [[0, 0], [MAP_SIZE, MAP_SIZE]], {
+                pane: 'parchmentPane',
+                opacity: 1.0,
+                interactive: false
+            });
+        } else {
+            reliefCanvasLayer.setUrl(dataUrl);
+        }
+        if (!map.hasLayer(reliefCanvasLayer)) {
+            reliefCanvasLayer.addTo(map);
+        }
+    }
+
+    async function carregarERenderizarRelevo3DNoAtlas() {
+        if (cacheReliefData) {
+            renderizarCanvasRelevo3D(cacheReliefData);
+        }
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('relief_state')
+                    .select('*')
+                    .eq('id', 'jackal_r2_main')
+                    .single();
+
+                if (!error && data && data.heightmap) {
+                    cacheReliefData = JSON.parse(data.heightmap);
+                    renderizarCanvasRelevo3D(cacheReliefData);
+                    mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado do Sandbox!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded from Sandbox!`));
+                }
+            } catch (err) {
+                console.warn('Aviso ao carregar relevo 3D no Atlas:', err);
+            }
+        }
+    }
 
     function trocarBase(tipo, btn = null) {
         const urls = {
@@ -3197,19 +3403,25 @@
         };
         if (tipo === 'parchment') {
             if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
+            if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
             if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
+        } else if (tipo === 'topo_3d') {
+            if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
+            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            carregarERenderizarRelevo3DNoAtlas();
         } else {
             if (!urls[tipo]) tipo = 'custom';
             if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
             tileLayer.setUrl(urls[tipo]);
             if (!map.hasLayer(tileLayer)) tileLayer.addTo(map);
         }
-        const mudouParchment = (baseAtual === 'parchment') !== (tipo === 'parchment');
+        const mudouRound2 = (baseAtual === 'parchment' || baseAtual === 'topo_3d') !== (tipo === 'parchment' || tipo === 'topo_3d');
         baseAtual = tipo;
 
         // A grade usa linhas mais escuras no pergaminho • The grid uses darker lines on parchment
-        if (mudouParchment && map.hasLayer(gridLayer)) desenharGridYaga();
-        if (mudouParchment && map.hasLayer(gridCoordLayer)) desenharGridCoord();
+        if (mudouRound2 && map.hasLayer(gridLayer)) desenharGridYaga();
+        if (mudouRound2 && map.hasLayer(gridCoordLayer)) desenharGridCoord();
 
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         if (btn) {
@@ -3217,6 +3429,7 @@
         } else {
             const bMap = {
                 parchment: document.getElementById('btnParchment'),
+                topo_3d: document.getElementById('btnTopo3D'),
                 custom: document.getElementById('btnCustom'),
                 terrain: document.getElementById('btnTerrain'),
                 iso: document.getElementById('btnIso'),
@@ -6237,17 +6450,23 @@
             return;
         }
 
-        const x = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
-        const y = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+        let clickX, clickY;
+        if (isModoRound2()) {
+            clickX = Math.round(e.latlng.lng - 2048);
+            clickY = Math.round(e.latlng.lat - 2048);
+        } else {
+            clickX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
+            clickY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
+        }
 
         // 2. Se estiver no modo de adicionar ponto
         if (modoAdicionar) {
-            clickCoords = { x, y };
+            clickCoords = { x: clickX, y: clickY };
 
             if (tempClickMarker) {
                 map.removeLayer(tempClickMarker);
             }
-            tempClickMarker = L.circleMarker([MAP_SIZE - y, x], {
+            tempClickMarker = L.circleMarker(e.latlng, {
                 radius: 8,
                 color: '#f5a623',
                 fillColor: '#f5a623',
@@ -6257,16 +6476,20 @@
 
             const inputX = document.getElementById('inputModalCoordX');
             const inputY = document.getElementById('inputModalCoordY');
-            if (inputX) inputX.value = x;
-            if (inputY) inputY.value = y;
+            if (inputX) inputX.value = clickX;
+            if (inputY) inputY.value = clickY;
             const badgeQuad = document.getElementById('modalAddQuadBadge');
-            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+            if (badgeQuad) {
+                badgeQuad.textContent = isModoRound2()
+                    ? `${clickY >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(clickY)/100)}-${clickX >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(clickX)/100)}`
+                    : obterQuadranteWurm(clickY, clickX);
+            }
 
             document.getElementById('modalAddPonto').classList.add('open');
             desativarModoAdicionarPonto();
         } else {
             // 3. Modo Navegação Normal: Crava a mira alvo pulsante e atualiza a URL (#X,Y) imediatamente
-            posicionarMiraTarget(x, y, false);
+            posicionarMiraTarget(clickX, clickY, false);
         }
     });
 
@@ -6277,12 +6500,17 @@
         const pasteData = (e.clipboardData || window.clipboardData)?.getData('text') || '';
         if (!pasteData) return;
 
-        // Extrai números de formatos como: "2897,2845", "2897 2845", "X: 2897 Y: 2845", "/vamp 2897 2845"
-        const nums = pasteData.match(/\d+/g);
+        // Extrai números de formatos como: "2897,2845", "-50, 120", "X: 2897 Y: 2845"
+        const nums = pasteData.match(/-?\d+/g);
         if (nums && nums.length >= 2) {
             const xVal = parseInt(nums[0], 10);
             const yVal = parseInt(nums[1], 10);
-            if (!isNaN(xVal) && !isNaN(yVal) && xVal >= 0 && xVal <= MAP_SIZE && yVal >= 0 && yVal <= MAP_SIZE) {
+            const r2 = isModoRound2();
+            const valid = r2
+                ? (xVal >= -2048 && xVal <= 2048 && yVal >= -2048 && yVal <= 2048)
+                : (xVal >= 0 && xVal <= MAP_SIZE && yVal >= 0 && yVal <= MAP_SIZE);
+
+            if (!isNaN(xVal) && !isNaN(yVal) && valid) {
                 e.preventDefault();
                 if (modo === 'add') {
                     const inX = document.getElementById('inputModalCoordX');
@@ -6308,7 +6536,7 @@
 
         let rawX = inX.value;
         if (/[,\s;|\/]/.test(rawX)) {
-            const nums = rawX.match(/\d+/g);
+            const nums = rawX.match(/-?\d+/g);
             if (nums && nums.length >= 2) {
                 inX.value = nums[0];
                 inY.value = nums[1];
@@ -6317,13 +6545,23 @@
 
         const x = parseInt(inX.value, 10);
         const y = parseInt(inY.value, 10);
-        if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+        const r2 = isModoRound2();
+        const valid = r2
+            ? (x >= -2048 && x <= 2048 && y >= -2048 && y <= 2048)
+            : (x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE);
+
+        if (!isNaN(x) && !isNaN(y) && valid) {
             clickCoords = { x, y };
             const badgeQuad = document.getElementById('modalAddQuadBadge');
-            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+            if (badgeQuad) {
+                badgeQuad.textContent = r2
+                    ? `${y >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(y)/100)}-${x >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(x)/100)}`
+                    : obterQuadranteWurm(y, x);
+            }
 
             if (tempClickMarker) {
-                tempClickMarker.setLatLng([MAP_SIZE - y, x]);
+                const latlng = r2 ? [2048 + y, 2048 + x] : [MAP_SIZE - y, x];
+                tempClickMarker.setLatLng(latlng);
             }
         }
     }
@@ -6335,7 +6573,7 @@
 
         let rawX = inX.value;
         if (/[,\s;|\/]/.test(rawX)) {
-            const nums = rawX.match(/\d+/g);
+            const nums = rawX.match(/-?\d+/g);
             if (nums && nums.length >= 2) {
                 inX.value = nums[0];
                 inY.value = nums[1];
@@ -6344,9 +6582,18 @@
 
         const x = parseInt(inX.value, 10);
         const y = parseInt(inY.value, 10);
-        if (!isNaN(x) && !isNaN(y) && x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE) {
+        const r2 = isModoRound2();
+        const valid = r2
+            ? (x >= -2048 && x <= 2048 && y >= -2048 && y <= 2048)
+            : (x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE);
+
+        if (!isNaN(x) && !isNaN(y) && valid) {
             const badgeQuad = document.getElementById('modalEditQuadBadge');
-            if (badgeQuad) badgeQuad.textContent = obterQuadranteWurm(y, x);
+            if (badgeQuad) {
+                badgeQuad.textContent = r2
+                    ? `${y >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(y)/100)}-${x >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(x)/100)}`
+                    : obterQuadranteWurm(y, x);
+            }
         }
     }
 
@@ -6435,7 +6682,11 @@
 
         const inCoordX = parseInt(document.getElementById('inputModalCoordX')?.value, 10);
         const inCoordY = parseInt(document.getElementById('inputModalCoordY')?.value, 10);
-        if (!isNaN(inCoordX) && !isNaN(inCoordY) && inCoordX >= 0 && inCoordX <= MAP_SIZE && inCoordY >= 0 && inCoordY <= MAP_SIZE) {
+        const r2 = isModoRound2();
+        const validCoords = r2
+            ? (inCoordX >= -2048 && inCoordX <= 2048 && inCoordY >= -2048 && inCoordY <= 2048)
+            : (inCoordX >= 0 && inCoordX <= MAP_SIZE && inCoordY >= 0 && inCoordY <= MAP_SIZE);
+        if (!isNaN(inCoordX) && !isNaN(inCoordY) && validCoords) {
             clickCoords.x = inCoordX;
             clickCoords.y = inCoordY;
         }
@@ -6579,7 +6830,12 @@
             updated_at: new Date().toISOString()
         };
 
-        if (!isNaN(inEditX) && !isNaN(inEditY) && inEditX >= 0 && inEditX <= MAP_SIZE && inEditY >= 0 && inEditY <= MAP_SIZE) {
+        const r2 = isModoRound2();
+        const validCoords = r2
+            ? (inEditX >= -2048 && inEditX <= 2048 && inEditY >= -2048 && inEditY <= 2048)
+            : (inEditX >= 0 && inEditX <= MAP_SIZE && inEditY >= 0 && inEditY <= MAP_SIZE);
+
+        if (!isNaN(inEditX) && !isNaN(inEditY) && validCoords) {
             updatePayload.x = inEditX;
             updatePayload.y = inEditY;
         }

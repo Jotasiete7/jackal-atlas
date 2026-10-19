@@ -169,4 +169,18 @@ export const en: Record<TranslationKey, string> = {
   alert_clear_map_confirm: 'Are you sure you want to clear the entire current terrain and reset to unknown? (A safety auto-backup will be saved).',
   alert_import_error: 'Error loading snapshot file: ',
   alert_no_contours: 'No contours generated to export yet. Sculpt some terrain first!',
+
+  // Nuvem e Sincronização
+  cloud_pull: 'Cloud',
+  cloud_pull_title: 'Load official relief from cloud (Supabase)',
+  cloud_publish: 'Publish',
+  cloud_publish_title: 'Publish relief as official shared version (Officers)',
+  cloud_sync_pins: '2D Pins',
+  cloud_sync_pins_title: 'Sync pins and markers from 2D Atlas',
+  login_discord: 'Discord',
+  login_discord_title: 'Sign in with Discord on Jackal Atlas',
+  prompt_commit_msg: 'Describe changes in this official relief:',
+  alert_cloud_published: 'Official relief published successfully to the cloud!',
+  alert_cloud_loaded: 'Official relief loaded successfully from the cloud!',
 };
+

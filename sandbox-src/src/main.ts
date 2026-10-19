@@ -8,6 +8,8 @@ import { HeightfieldManager } from './core/heightfield';
 import { PinManager } from './core/pins';
 import { VisitManager } from './core/visits';
 import { StorageManager } from './core/storage';
+import { SupabaseSyncManager } from './core/supabase-sync';
+import { t } from './i18n';
 
 import { SceneManager } from './renderer/scene';
 import { CameraController } from './renderer/camera';
@@ -37,6 +39,7 @@ class JackalSandboxApp {
   private pinManager: PinManager;
   private visitManager: VisitManager;
   private storageManager: StorageManager;
+  private supabaseSync: SupabaseSyncManager;
 
   // 2. Renderizadores Three.js
   private sceneManager: SceneManager;
@@ -69,6 +72,7 @@ class JackalSandboxApp {
     this.pinManager = new PinManager();
     this.visitManager = new VisitManager();
     this.storageManager = new StorageManager();
+    this.supabaseSync = new SupabaseSyncManager(this.storageManager);
 
     // Sincroniza pinos iniciais (marco de spawn)
     this.heightfield.updatePinAnchors(this.pinManager.getAll());
@@ -134,9 +138,34 @@ class JackalSandboxApp {
         const pos = this.scaleReference.getPosition();
         const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
         this.scaleReference.setExactY(groundY);
+      } else {
+        const cloudRes = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
+        if (cloudRes.success) {
+          this.terrainMesh.updateDirtyChunks();
+          this.contourRenderer.requestUpdate();
+          this.pinMesh.rebuildPins();
+        }
       }
+
+      // Sincroniza pontos do Atlas 2D (public.points)
+      await this.supabaseSync.syncPointsFromCloud(this.pinManager);
+      this.heightfield.updatePinAnchors(this.pinManager.getAll());
+      this.pinMesh.rebuildPins();
+
+      // Assina publicações de relevo em tempo real
+      this.supabaseSync.listenToCloudRelief(async (version) => {
+        const confirmUpdate = confirm(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja atualizar agora?`);
+        if (confirmUpdate) {
+          const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
+          if (res.success) {
+            this.terrainMesh.updateDirtyChunks();
+            this.contourRenderer.requestUpdate();
+            this.pinMesh.rebuildPins();
+          }
+        }
+      });
     } catch (e) {
-      console.warn('Falha ao restaurar autosave:', e);
+      console.warn('Falha na persistência/sincronização inicial:', e);
     }
   }
 
@@ -159,6 +188,41 @@ class JackalSandboxApp {
           0,
           -visit.station_y * CONFIG.TILE_METERS
         );
+      },
+      {
+        supabaseSync: this.supabaseSync,
+        onCloudPull: async () => {
+          const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
+          if (res.success) {
+            this.terrainMesh.updateDirtyChunks();
+            this.contourRenderer.requestUpdate();
+            this.pinMesh.rebuildPins();
+            alert(t('alert_cloud_loaded'));
+          } else {
+            alert(res.message || 'Falha ao carregar relevo da nuvem.');
+          }
+        },
+        onCloudPublish: async () => {
+          const msg = prompt(t('prompt_commit_msg'), 'Relevo oficial de campo Jackal Round 2');
+          if (msg === null) return;
+          const res = await this.supabaseSync.publishCloudRelief(
+            this.heightfield,
+            this.pinManager,
+            this.visitManager,
+            msg || undefined
+          );
+          if (res.success) {
+            alert(t('alert_cloud_published'));
+          } else {
+            alert(res.message || 'Falha ao publicar na nuvem.');
+          }
+        },
+        onSyncPins: async () => {
+          const count = await this.supabaseSync.syncPointsFromCloud(this.pinManager);
+          this.heightfield.updatePinAnchors(this.pinManager.getAll());
+          this.pinMesh.rebuildPins();
+          alert(`Sincronizados ${count} pinos com sucesso!`);
+        },
       }
     );
 
@@ -227,6 +291,7 @@ class JackalSandboxApp {
           this.heightfield.updatePinAnchors(this.pinManager.getAll());
           this.terrainMesh.updateDirtyChunks();
           this.pinMesh.updatePinsElevation();
+          this.supabaseSync.savePinToCloud(pin);
           if (this.interactionController) {
             this.interactionController.triggerAutosave();
           }

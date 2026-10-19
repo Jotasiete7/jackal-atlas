@@ -449,3 +449,35 @@ input[type="range"] {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* Crachás de Roles Discord */
+.role-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.role-badge.admin {
+  background: rgba(245, 166, 35, 0.25);
+  color: var(--accent-gold);
+  border: 1px solid rgba(245, 166, 35, 0.5);
+}
+.role-badge.officer {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+}
+.role-badge.member {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.35);
+}
+.role-badge.pending {
+  background: rgba(100, 100, 100, 0.25);
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+

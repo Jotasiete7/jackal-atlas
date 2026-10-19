@@ -167,6 +167,20 @@ export const pt = {
   alert_clear_map_confirm: 'Tem certeza que deseja limpar todo o relevo atual e voltar para terreno desconhecido? (Um backup de segurança será criado automaticamente).',
   alert_import_error: 'Erro ao carregar arquivo de relevo: ',
   alert_no_contours: 'Nenhuma curva de nível gerada para exportar ainda. Modele alguma elevação primeiro!',
+
+  // Nuvem e Sincronização
+  cloud_pull: 'Nuvem',
+  cloud_pull_title: 'Carregar relevo oficial da nuvem (Supabase)',
+  cloud_publish: 'Publicar',
+  cloud_publish_title: 'Publicar relevo como versão oficial compartilhada (Oficiais)',
+  cloud_sync_pins: 'Pinos 2D',
+  cloud_sync_pins_title: 'Sincronizar pinos e marcos do Atlas 2D',
+  login_discord: 'Discord',
+  login_discord_title: 'Entrar com Discord no Atlas Jackal',
+  prompt_commit_msg: 'Descreva as alterações deste relevo oficial:',
+  alert_cloud_published: 'Relevo oficial publicado com sucesso na nuvem!',
+  alert_cloud_loaded: 'Relevo oficial carregado com sucesso da nuvem!',
 };
 
 export type TranslationKey = keyof typeof pt;
+
