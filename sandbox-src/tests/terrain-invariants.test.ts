@@ -300,4 +300,52 @@ describe('Critérios de Aceite e Invariantes do Jackal Sandbox', () => {
     expect(tile.tileX).toBe(100);
     expect(tile.tileY).toBe(50);
   });
+
+  it('Critério 10: O pincel não vaza células para fora do raio da estação e a Borracha sempre limpa', () => {
+    const visit: any = {
+      id: 'visit-test',
+      author: 'Testador',
+      station_x: 0,
+      station_y: 0,
+      range_tiles: 50,
+      notes: '',
+      created_at: new Date().toISOString(),
+    };
+
+    // 1. Aplica pincel de subir com centro dentro da estação (em 40,0) mas com raio que vai até 70 tiles (fora do raio de 50)
+    heightfield.applyStroke({
+      tool: 'raise',
+      centerTileX: 40,
+      centerTileY: 0,
+      radiusTiles: 30,
+      intensity: 5,
+      falloff: 'smooth',
+      currentVisit: visit,
+      enforceVisitRange: true,
+    });
+
+    // Ponto a 65 tiles da estação (fora do raio de 50) NUNCA pode ter virado LAND
+    const { cellX: outX, cellY: outY } = tileToCell(65, 0);
+    const outCell = heightfield.getCell(outX, outY);
+    expect(outCell.state).toBe(CellState.UNKNOWN);
+    expect(outCell.height).toBe(0.0);
+
+    // 2. Cria intencionalmente uma célula de terra e verifica se a Borracha consegue apagar mesmo fora do raio da estação
+    heightfield.setCellDirect(outX, outY, 10, CellState.LAND, ConfidenceLevel.SPECULATIVE);
+    expect(heightfield.getCell(outX, outY).state).toBe(CellState.LAND);
+
+    heightfield.applyStroke({
+      tool: 'eraser',
+      centerTileX: 65,
+      centerTileY: 0,
+      radiusTiles: 10,
+      intensity: 1,
+      falloff: 'hard',
+      currentVisit: visit,
+      enforceVisitRange: true,
+    });
+
+    expect(heightfield.getCell(outX, outY).state).toBe(CellState.UNKNOWN);
+    expect(heightfield.getCell(outX, outY).height).toBe(0.0);
+  });
 });

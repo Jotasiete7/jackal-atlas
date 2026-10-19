@@ -120,12 +120,15 @@ export class BrushEngine {
           brushWeight = 0.0;
         }
 
-        const stationWeight = this.calculateStationWeight(
-          cellTileX,
-          cellTileY,
-          currentVisit,
-          enforceVisitRange
-        );
+        // A ferramenta Borracha ('eraser') ignora restrição de raio da estação para permitir limpar erros em qualquer lugar
+        const stationWeight = tool === 'eraser'
+          ? 1.0
+          : this.calculateStationWeight(cellTileX, cellTileY, currentVisit, enforceVisitRange);
+
+        // Se estiver fora do raio de alcance da estação ativa, não modifica nem vaza células fora do anel
+        if (stationWeight <= 0.0001) {
+          continue;
+        }
 
         const totalWeight = brushWeight * stationWeight;
 
@@ -160,7 +163,7 @@ export class BrushEngine {
         let newLocked = oldLocked;
 
         // Se está na saia de transição e a célula é UNKNOWN, ancora ela suavemente em LAND no nível 0m
-        // Isso elimina pontas triangulares recortadas e artefatos na base da colina
+        // Isso elimina pontas triangulares recortadas e artefatos na base da colina (somente DENTRO da estação)
         if (totalWeight <= 0.001) {
           if (
             distTiles <= searchRadiusTiles &&

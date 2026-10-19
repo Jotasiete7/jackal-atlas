@@ -19,7 +19,8 @@ export const TERRAIN_VERTEX_SHADER = /* glsl */ `
     vIsWater = aStateConf.y;
     vConfidence = aStateConf.z;
 
-    vNormal = normalize(normalMatrix * normal);
+    // Normal em Espaço de Mundo (independente da rotação da câmera / vista isométrica)
+    vNormal = normalize(mat3(modelMatrix) * normal);
 
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPosition = worldPos.xyz;
@@ -62,14 +63,16 @@ export const TERRAIN_FRAGMENT_SHADER = /* glsl */ `
       // Água em tom azul marinho cartográfico
       baseColor = vec3(0.12, 0.38, 0.72);
     } else {
-      // Terra em gradiente hipsométrico verde/ocre
-      float normAlt = clamp(vAltitude / 120.0, 0.0, 1.0);
-      vec3 lowColor = vec3(0.24, 0.56, 0.28);  // Vales verdes
-      vec3 midColor = vec3(0.68, 0.58, 0.32);  // Encostas ocres
+      // Terra em gradiente hipsométrico: Vales e planícies verdes (0 a 35m), colinas ocres (35m a 80m), picos rochosos (80m+)
+      float normAlt = clamp(vAltitude / 130.0, 0.0, 1.0);
+      vec3 lowColor = vec3(0.18, 0.58, 0.24);  // Vales e planícies verdes vivos (Cartographic Green)
+      vec3 midColor = vec3(0.68, 0.58, 0.30);  // Encostas e colinas ocres
       vec3 highColor = vec3(0.85, 0.82, 0.78); // Picos rochosos
-      baseColor = normAlt < 0.45 
-        ? mix(lowColor, midColor, normAlt / 0.45) 
-        : mix(midColor, highColor, (normAlt - 0.45) / 0.55);
+      baseColor = normAlt < 0.35 
+        ? mix(lowColor, vec3(0.26, 0.62, 0.28), normAlt / 0.35) 
+        : (normAlt < 0.70 
+          ? mix(vec3(0.26, 0.62, 0.28), midColor, (normAlt - 0.35) / 0.35)
+          : mix(midColor, highColor, (normAlt - 0.70) / 0.30));
 
       // Mapa de Confiança (se ativo)
       if (uShowConfidence > 0.5) {
@@ -91,7 +94,7 @@ export const TERRAIN_FRAGMENT_SHADER = /* glsl */ `
         baseColor = mix(baseColor, confColor, 0.55);
       }
 
-      // Iluminação Hillshade Direcional suave
+      // Iluminação Hillshade Direcional suave (Normal em World Space vs Sol)
       if (uShowHillshade > 0.5) {
         float NdotL = max(dot(vNormal, uSunDirection), 0.0);
         float lighting = 0.45 + 0.55 * NdotL;
@@ -99,30 +102,39 @@ export const TERRAIN_FRAGMENT_SHADER = /* glsl */ `
       }
 
       // 3. CURVAS DE NÍVEL CONTÍNUAS (Otimizadas para Vista de Topo e 3D)
+      // Só desenha curva se a superfície for inclinada (slopeFilter) e tiver variação de altitude em tela (dAltFilter)
       if (uShowContours > 0.5 && vIsKnown > 0.02) {
         float knownFade = smoothstep(0.02, 0.25, vIsKnown);
         
-        // Inclinação da encosta a partir da normal suavizada de Phong
-        float slope = length(vNormal.xz) / max(abs(vNormal.y), 0.001);
-        float slopeFilter = smoothstep(0.012, 0.035, slope);
+        // Inclinação da encosta a partir da normal em World Space:
+        // Se a superfície for plana (normal = 0, 1, 0), length(vNormal.xz) == 0.0
+        float slope = length(vNormal.xz);
+        float slopeFilter = smoothstep(0.02, 0.08, slope);
 
-        // Derivada suave de espaço de tela
-        float dAlt = max(fwidth(vAltitude), 0.06);
+        // Derivada suave de espaço de tela (se dAlt for zero, é um platô plano nivelado)
+        float dAltScreen = fwidth(vAltitude);
+        float dAltFilter = smoothstep(0.005, 0.04, dAltScreen);
+        float activeFilter = slopeFilter * dAltFilter * knownFade;
 
-        // Curva Normal (a cada uContourInterval metros)
-        float cDist = abs(fract(vAltitude / uContourInterval - 0.5) - 0.5);
-        float cLine = (1.0 - smoothstep(0.0, dAlt * 0.75, cDist * uContourInterval)) * slopeFilter * knownFade;
+        // Só calcula e desenha se não for um platô plano
+        if (activeFilter > 0.01) {
+          float dAlt = max(dAltScreen, 0.06);
 
-        // Curva Mestra (a cada uContourInterval * uMasterEvery metros)
-        float masterInterval = uContourInterval * uMasterEvery;
-        float mDist = abs(fract(vAltitude / masterInterval - 0.5) - 0.5);
-        float mLine = (1.0 - smoothstep(0.0, dAlt * 1.1, mDist * masterInterval)) * slopeFilter * knownFade;
+          // Curva Normal (a cada uContourInterval metros)
+          float cDist = abs(fract(vAltitude / uContourInterval - 0.5) - 0.5);
+          float cLine = (1.0 - smoothstep(0.0, dAlt * 0.75, cDist * uContourInterval)) * activeFilter;
 
-        vec3 normalContourColor = vec3(0.85, 0.65, 0.28);
-        vec3 masterContourColor = vec3(1.0, 0.98, 0.92);
+          // Curva Mestra (a cada uContourInterval * uMasterEvery metros)
+          float masterInterval = uContourInterval * uMasterEvery;
+          float mDist = abs(fract(vAltitude / masterInterval - 0.5) - 0.5);
+          float mLine = (1.0 - smoothstep(0.0, dAlt * 1.1, mDist * masterInterval)) * activeFilter;
 
-        baseColor = mix(baseColor, normalContourColor, cLine * 0.75);
-        baseColor = mix(baseColor, masterContourColor, mLine * 0.95);
+          vec3 normalContourColor = vec3(0.85, 0.65, 0.28);
+          vec3 masterContourColor = vec3(1.0, 0.98, 0.92);
+
+          baseColor = mix(baseColor, normalContourColor, cLine * 0.75);
+          baseColor = mix(baseColor, masterContourColor, mLine * 0.95);
+        }
       }
     }
 

@@ -19,7 +19,7 @@ export class BrushPanelUI {
     sizeTiles: 20,
     intensity: 1.2,
     falloff: 'smooth',
-    flattenTargetZ: 15.0,
+    flattenTargetZ: 2.0,
   };
   private protectWater = true;
 
@@ -114,6 +114,12 @@ export class BrushPanelUI {
           <span>${t('target_elevation')}</span>
           <span id="flatten-display">${this.settings.flattenTargetZ}m</span>
         </div>
+        <div class="preset-pills" style="margin-bottom: 4px;">
+          <button class="pill-btn ${this.settings.flattenTargetZ === 0 ? 'active' : ''}" data-flatten-preset="0">0m (Praia)</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 2 ? 'active' : ''}" data-flatten-preset="2">2m (Planície 🌿)</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 15 ? 'active' : ''}" data-flatten-preset="15">15m (Colina)</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 30 ? 'active' : ''}" data-flatten-preset="30">30m (Platô)</button>
+        </div>
         <input type="range" id="input-flatten-target" min="0" max="150" step="1" value="${this.settings.flattenTargetZ}" />
       </div>
 
@@ -176,10 +182,26 @@ export class BrushPanelUI {
 
     const inputFlatten = this.container.querySelector('#input-flatten-target') as HTMLInputElement;
     const elFlattenDisplay = this.container.querySelector('#flatten-display');
-    inputFlatten?.addEventListener('input', () => {
-      this.settings.flattenTargetZ = parseFloat(inputFlatten.value);
+    const updateFlattenZ = (val: number) => {
+      this.settings.flattenTargetZ = val;
       if (elFlattenDisplay) elFlattenDisplay.textContent = `${this.settings.flattenTargetZ}m`;
+      if (inputFlatten) inputFlatten.value = val.toString();
+      this.container.querySelectorAll('button[data-flatten-preset]').forEach((b) => {
+        const pz = parseFloat(b.getAttribute('data-flatten-preset') || '-1');
+        b.classList.toggle('active', pz === val);
+      });
       this.onChangeCallback(this.settings);
+    };
+
+    inputFlatten?.addEventListener('input', () => {
+      updateFlattenZ(parseFloat(inputFlatten.value));
+    });
+
+    this.container.querySelectorAll('button[data-flatten-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const pz = parseFloat(btn.getAttribute('data-flatten-preset') || '2');
+        updateFlattenZ(pz);
+      });
     });
 
     const checkProtectWater = this.container.querySelector('#check-protect-water') as HTMLInputElement;
