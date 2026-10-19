@@ -4,26 +4,26 @@
    ============================================================================== */
 
 :root {
-  --bg-primary: #121417;
-  --bg-secondary: #1a1e24;
-  --bg-panel: rgba(26, 30, 36, 0.92);
-  --bg-panel-hover: #222831;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-focus: #3b82f6;
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-panel: rgba(22, 27, 34, 0.95);
+  --bg-panel-hover: #21262d;
+  --border-color: #30363d;
+  --border-focus: #f5a623;
 
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
   --text-dim: #64748b;
 
-  --accent-gold: #f59e0b;
+  --accent-gold: #f5a623;
   --accent-gold-hover: #d97706;
-  --accent-blue: #3b82f6;
-  --accent-green: #10b981;
-  --accent-red: #ef4444;
+  --accent-blue: #38bdf8;
+  --accent-green: #00e676;
+  --accent-red: #ff4444;
   --accent-cyan: #06b6d4;
 
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -57,14 +57,15 @@ body, html {
   display: block;
 }
 
-/* Painéis de Vidro Cartográfico */
+/* Painéis de Vidro Cartográfico (Estilo Swisstopo Jackal) */
 .glass-panel {
   background: var(--bg-panel);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border-top: 3px solid var(--accent-gold);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
 }
 
@@ -89,8 +90,8 @@ body, html {
 }
 
 .brand-title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
   letter-spacing: 0.5px;
   color: #fff;
   display: flex;
@@ -100,11 +101,12 @@ body, html {
 
 .badge-tag {
   font-size: 10px;
-  padding: 2px 6px;
+  font-weight: 700;
+  padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 166, 35, 0.18);
   color: var(--accent-gold);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  border: 1px solid rgba(245, 166, 35, 0.45);
   font-family: var(--font-mono);
 }
 
@@ -116,7 +118,7 @@ body, html {
 
 .btn-group {
   display: flex;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(13, 17, 23, 0.85);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 2px;
@@ -144,8 +146,9 @@ body, html {
 }
 
 .btn.active {
-  background: var(--accent-blue);
-  color: #fff;
+  background: rgba(245, 166, 35, 0.22);
+  color: var(--accent-gold);
+  border: 1px solid rgba(245, 166, 35, 0.45);
 }
 
 .btn-gold {
@@ -192,9 +195,9 @@ body, html {
 }
 
 .tool-btn.active {
-  background: rgba(59, 130, 246, 0.25);
-  border-color: var(--accent-blue);
-  color: #60a5fa;
+  background: rgba(245, 166, 35, 0.2);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
 }
 
 .tool-divider {

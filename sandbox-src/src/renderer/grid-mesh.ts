@@ -56,40 +56,42 @@ export class GridMeshManager {
     const extentTiles = 1400;
     const tileMeters = CONFIG.TILE_METERS;
 
-    // Adiciona rótulos de folha discretos a cada 200 tiles
-    for (let tX = -extentTiles; tX <= extentTiles; tX += 200) {
-      for (let tY = -extentTiles; tY <= extentTiles; tY += 200) {
-        if (tX === 0 && tY === 0) continue; // Ponto central tem a cruz de spawn
-        const sheetName = getTileSheetName(tX, tY);
+    // Adiciona rótulos de folha discretos a cada 100 tiles no centro do setor (ex: N0-L0, N1-O2)
+    for (let tX = -extentTiles; tX <= extentTiles; tX += 100) {
+      for (let tY = -extentTiles; tY <= extentTiles; tY += 100) {
+        if (tX === 0 && tY === 0) continue; // Ponto central tem a cruz de spawn e torre
+        const sheetName = getTileSheetName(tX + 50, tY + 50);
         const sprite = this.createSheetLabelSprite(sheetName);
-        sprite.position.set(tX * tileMeters + 20, 1.0, -tY * tileMeters + 20); // Norte é -Z
+        sprite.position.set((tX + 50) * tileMeters, 0.8, -(tY + 50) * tileMeters); // Centro do setor 100x100
         this.gridGroup.add(sprite);
         this.labelSprites.push(sprite);
       }
     }
-
   }
 
-  /** Cria sprite de texto bitmap para o nome da folha (ex: N3-L5) */
+  /** Cria sprite de texto bitmap para o nome da folha (ex: N3-L5) no estilo da página principal */
   private createSheetLabelSprite(text: string): THREE.Sprite {
     const canvas = document.createElement('canvas');
     canvas.width = 128;
-    canvas.height = 48;
+    canvas.height = 40;
     const ctx = canvas.getContext('2d')!;
 
-    ctx.fillStyle = 'rgba(18, 20, 24, 0.75)';
-    ctx.roundRect(0, 0, 128, 48, 6);
+    // Fundo escuro sutil idêntico à página principal
+    ctx.fillStyle = 'rgba(13, 17, 23, 0.82)';
+    ctx.roundRect(0, 0, 128, 40, 4);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(96, 165, 250, 0.6)';
+    // Borda fina em Âmbar Jackal
+    ctx.strokeStyle = 'rgba(245, 166, 35, 0.65)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.font = 'bold 20px monospace';
-    ctx.fillStyle = '#93c5fd';
+    // Tipografia JetBrains Mono em Âmbar
+    ctx.font = 'bold 18px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#f5a623';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, 64, 24);
+    ctx.fillText(text, 64, 20);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
@@ -99,7 +101,7 @@ export class GridMeshManager {
       depthWrite: false,
     });
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(40, 15, 1);
+    sprite.scale.set(32, 10, 1);
     return sprite;
   }
 

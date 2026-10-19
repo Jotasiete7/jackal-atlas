@@ -47,13 +47,27 @@ export const TERRAIN_FRAGMENT_SHADER = /* glsl */ `
   varying float vConfidence;
 
   void main() {
-    // 1. ÁREA DESCONHECIDA (Hachura diagonal tática sutil)
+    // 1. ÁREA DESCONHECIDA / NÃO ESCULPIDA: Pergaminho Cartográfico Contínuo (#efe6cf)
+    // Permite que todo o mapa pareça uma folha oficial sobre a mesa tática
+    vec3 parchmentBase = vec3(0.937, 0.902, 0.812); // #efe6cf
     if (vIsKnown < 0.05) {
-      vec2 screenP = gl_FragCoord.xy;
-      float diag = mod(screenP.x + screenP.y, 16.0);
-      float stripe = step(8.0, diag);
-      vec3 stripeColor = mix(vec3(0.08, 0.09, 0.11), vec3(0.12, 0.13, 0.16), stripe);
-      gl_FragColor = vec4(stripeColor, 1.0);
+      vec3 finalUnknown = parchmentBase;
+      if (uShowGrid > 0.5) {
+        vec2 worldTile = vec2(vWorldPosition.x, -vWorldPosition.z) / uTileMeters;
+        vec2 g10 = abs(fract(worldTile / 10.0 - 0.5) - 0.5) / fwidth(worldTile / 10.0);
+        float line10 = 1.0 - min(min(g10.x, g10.y), 1.0);
+
+        vec2 g100 = abs(fract(worldTile / 100.0 - 0.5) - 0.5) / fwidth(worldTile / 100.0);
+        float line100 = 1.0 - min(min(g100.x, g100.y), 1.0);
+
+        vec2 axisDist = abs(worldTile) / fwidth(worldTile);
+        float axisZero = 1.0 - min(min(axisDist.x, axisDist.y), 1.0);
+
+        finalUnknown = mix(finalUnknown, vec3(0.357, 0.290, 0.196), line10 * 0.25); // Sepia suave #5b4a32
+        finalUnknown = mix(finalUnknown, vec3(0.961, 0.651, 0.137), line100 * 0.70); // Ambar Jackal #f5a623
+        finalUnknown = mix(finalUnknown, vec3(0.961, 0.651, 0.137), axisZero * 0.95);
+      }
+      gl_FragColor = vec4(finalUnknown, 1.0);
       return;
     }
 
@@ -146,25 +160,25 @@ export const TERRAIN_FRAGMENT_SHADER = /* glsl */ `
       }
     }
 
-    // 4. GRADE CARTOGRÁFICA 10/100 TILES & EIXOS CENTRAIS (0,0)
+    // 4. GRADE CARTOGRÁFICA 10/100 TILES & EIXOS CENTRAIS (0,0) EM ÁREAS ESCULPIDAS
     if (uShowGrid > 0.5) {
       vec2 worldTile = vec2(vWorldPosition.x, -vWorldPosition.z) / uTileMeters;
 
-      // Linha fraca a cada 10 tiles
+      // Linha fraca a cada 10 tiles (Sépia)
       vec2 g10 = abs(fract(worldTile / 10.0 - 0.5) - 0.5) / fwidth(worldTile / 10.0);
       float line10 = 1.0 - min(min(g10.x, g10.y), 1.0);
 
-      // Linha forte a cada 100 tiles
+      // Linha forte a cada 100 tiles (Âmbar Jackal)
       vec2 g100 = abs(fract(worldTile / 100.0 - 0.5) - 0.5) / fwidth(worldTile / 100.0);
       float line100 = 1.0 - min(min(g100.x, g100.y), 1.0);
 
-      // Eixos Centrais de Origem (Spawn 0, 0) acompanham o relevo sem atravessá-lo
+      // Eixos Centrais de Origem (Spawn 0, 0)
       vec2 axisDist = abs(worldTile) / fwidth(worldTile);
       float axisZero = 1.0 - min(min(axisDist.x, axisDist.y), 1.0);
 
-      baseColor = mix(baseColor, vec3(0.24, 0.27, 0.32), line10 * 0.40);
-      baseColor = mix(baseColor, vec3(0.38, 0.65, 0.98), line100 * 0.85);
-      baseColor = mix(baseColor, vec3(0.96, 0.62, 0.04), axisZero * 0.95); // Eixo de Spawn Dourado
+      baseColor = mix(baseColor, vec3(0.357, 0.290, 0.196), line10 * 0.30); // #5b4a32
+      baseColor = mix(baseColor, vec3(0.961, 0.651, 0.137), line100 * 0.75); // #f5a623
+      baseColor = mix(baseColor, vec3(0.961, 0.651, 0.137), axisZero * 0.95);
     }
 
     gl_FragColor = vec4(baseColor, 1.0);

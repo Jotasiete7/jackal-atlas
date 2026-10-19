@@ -24,7 +24,7 @@ export class SceneManager {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x121417); // Fundo escuro cartográfico suave
+    this.scene.background = new THREE.Color(0x0d1117); // Fundo escuro oficial da página principal (#0d1117)
 
     // Grupos organizados na cena
     this.terrainGroup = new THREE.Group();
