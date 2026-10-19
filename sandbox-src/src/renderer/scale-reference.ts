@@ -167,13 +167,18 @@ export class ScaleReferenceManager {
   }
 
   /**
-   * Constrói Torre de Guarda em dimensões oficiais do Wurm Online:
-   * Base: exatamente 1 tile (4.0m × 4.0m)
-   * Altura: 12.0 metros (3 andares de pedra/madeira com parapeito e telhado cônico)
+   * Constrói Torre de Guarda na altura do modelo real do Wurm (structures/Towers/freedomTower.wom):
+   * cerca de 24 m acima do solo. A forma simples (base de pedra, andar de madeira, parapeito,
+   * telhado e estandarte) é desenhada com topo em 15.6 m e escalada uniformemente para 24 m.
    */
   private createGuardTower(): THREE.Group {
     const group = new THREE.Group();
     group.name = 'WurmGuardTower';
+    const ALTURA_REAL = 24.0;   // altura do modelo real do Wurm acima do solo
+    const TOPO_FORMA = 15.6;    // topo do estandarte na forma abaixo
+    const corpo = new THREE.Group();
+    corpo.scale.setScalar(ALTURA_REAL / TOPO_FORMA);
+    group.add(corpo);
 
     const stoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.6 }); // Cantaria de pedra clara
     const woodMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.65 });  // Madeira rica
@@ -183,48 +188,48 @@ export class ScaleReferenceManager {
     const baseGeom = new THREE.BoxGeometry(CONFIG.TILE_METERS, 5.0, CONFIG.TILE_METERS);
     const base = new THREE.Mesh(baseGeom, stoneMat);
     base.position.set(0, 2.5, 0);
-    group.add(base);
+    corpo.add(base);
 
     // Porta da torre
     const doorGeom = new THREE.BoxGeometry(1.2, 2.2, 0.2);
     const door = new THREE.Mesh(doorGeom, woodMat);
     door.position.set(0, 1.1, -2.05); // Face Norte
-    group.add(door);
+    corpo.add(door);
 
     // 2. Segundo andar de madeira com balcão (3.6m × 3.6m, altura 4.0m)
     const midGeom = new THREE.BoxGeometry(3.6, 4.0, 3.6);
     const mid = new THREE.Mesh(midGeom, woodMat);
     mid.position.set(0, 7.0, 0);
-    group.add(mid);
+    corpo.add(mid);
 
     // Parapeito com ameias (4.2m × 4.2m)
     const parapetGeom = new THREE.BoxGeometry(4.2, 0.8, 4.2);
     const parapet = new THREE.Mesh(parapetGeom, stoneMat);
     parapet.position.set(0, 9.4, 0);
-    group.add(parapet);
+    corpo.add(parapet);
 
     // 3. Telhado cônico / piramidal com pináculo (altura 4.0m -> topo em 13.5m)
     const roofGeom = new THREE.ConeGeometry(3.0, 4.0, 4);
     roofGeom.rotateY(Math.PI / 4); // Alinha faces com a base quadrada
     const roof = new THREE.Mesh(roofGeom, roofMat);
     roof.position.set(0, 11.8, 0);
-    group.add(roof);
+    corpo.add(roof);
 
     // Estandarte / Galhardete da Guilda no topo
     const poleGeom = new THREE.CylinderGeometry(0.06, 0.06, 2.5, 6);
     const pole = new THREE.Mesh(poleGeom, woodMat);
     pole.position.set(0, 14.5, 0);
-    group.add(pole);
+    corpo.add(pole);
 
     const bannerGeom = new THREE.PlaneGeometry(1.4, 0.8);
     const bannerMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide });
     const banner = new THREE.Mesh(bannerGeom, bannerMat);
     banner.position.set(0.7, 15.2, 0);
-    group.add(banner);
+    corpo.add(banner);
 
     // 4. Rótulo com dimensões
     this.towerLabel = this.createLabelSprite(t('label_tower'), '#f59e0b');
-    this.towerLabel.position.set(0, 17.0, 0);
+    this.towerLabel.position.set(0, ALTURA_REAL + 2.0, 0);
     group.add(this.towerLabel);
 
     return group;

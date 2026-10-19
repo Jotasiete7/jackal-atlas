@@ -63,10 +63,10 @@ export const en: Record<TranslationKey, string> = {
   scale_title: 'Real Wurm Scale [H]:',
   scale_tile_badge: '1 TILE = 4m',
   scale_human: 'Human (1.8m)',
-  scale_tower: 'Tower (12m)',
+  scale_tower: 'Tower (24m)',
   scale_hide: 'Hide',
   label_human: 'HUMAN (1.8m)',
-  label_tower: 'GUARD TOWER (1 tile = 4×4m | Alt: 12m)',
+  label_tower: 'GUARD TOWER (Alt: 24m, real Wurm height)',
 
   // Exports
   panel_export: 'EXPORT',
@@ -155,7 +155,7 @@ export const en: Record<TranslationKey, string> = {
   help_nav_focus: 'Double Click on Terrain: Center camera focus',
   help_sec_scale: 'Wurm Scale & Tools',
   help_scale_move: 'Shift + Left Click: Move Human/Tower to cursor',
-  help_scale_toggle: 'Key [H]: Cycle Human (1.8m) / Tower (12m) / Hide',
+  help_scale_toggle: 'Key [H]: Cycle Human (1.8m) / Tower (24m) / Hide',
   help_contours_toggle: 'Key [C]: Toggle Contour Lines',
   help_tools_keys: 'Keys [R, L, M, F, U/Alt+W, E, K, P, T]: Select tools',
   help_presets_keys: 'Keys [1 to 5]: Brush diameter (5 to 100 tiles)',
