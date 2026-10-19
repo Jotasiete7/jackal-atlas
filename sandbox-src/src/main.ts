@@ -29,6 +29,8 @@ import { InfoBarUI } from './ui/info-bar';
 import { PinModalUI } from './ui/pin-modal';
 
 import { InteractionController } from './input/interaction-controller';
+import { PlaceablesManager } from './placeables/placeables';
+import { carregarPilar, wurmDisponivel } from './wurm/models';
 
 class JackalSandboxApp {
   private canvas: HTMLCanvasElement;
@@ -62,6 +64,7 @@ class JackalSandboxApp {
 
   // 4. Controlador de Interação
   private interactionController!: InteractionController;
+  private placeables!: PlaceablesManager;
 
   constructor() {
     this.canvas = document.getElementById('viewport-canvas') as HTMLCanvasElement;
@@ -97,6 +100,11 @@ class JackalSandboxApp {
     // Interface
     this.initUI();
 
+    // Objetos do Wurm (placeables): só aparecem se os modelos foram extraídos localmente (npm run extract-wurm)
+    this.placeables = new PlaceablesManager(this.sceneManager, this.heightfield, this.appContainer);
+    wurmDisponivel().then(ok => this.toolbarUI.setPlaceablesDisponivel(ok));
+    carregarPilar().then(ok => { if (ok) this.pinMesh.rebuildPins(); });
+
     // Controlador de Interação
     this.interactionController = new InteractionController({
       canvas: this.canvas,
@@ -117,6 +125,7 @@ class JackalSandboxApp {
       layersPanelUI: this.layersPanelUI,
       infoBarUI: this.infoBarUI,
       pinModalUI: this.pinModalUI,
+      placeables: this.placeables,
     });
 
     // Restaura Autosave se existir
@@ -305,6 +314,7 @@ class JackalSandboxApp {
     requestAnimationFrame(this.animate);
     this.cameraController.update();
     this.terrainMesh.updateDirtyChunks();
+    this.placeables.atualizarAlturas();
     this.sceneManager.render(this.cameraController.getActiveCamera());
   };
 }

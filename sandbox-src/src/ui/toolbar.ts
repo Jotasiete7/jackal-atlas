@@ -10,6 +10,7 @@ export class ToolbarUI {
   private container: HTMLElement;
   private currentTool: ModelingTool = 'raise';
   private currentRole: UserRole = 'explorer';
+  private placeablesDisponivel = false; // 🌲 only when the Wurm assets were extracted locally
   private onToolChangeCallback: (tool: ModelingTool) => void;
   private onUndoCallback: () => void;
   private onRedoCallback: () => void;
@@ -50,6 +51,11 @@ export class ToolbarUI {
       btn.classList.toggle('active', bTool === tool);
     });
     this.onToolChangeCallback(tool);
+  }
+
+  public setPlaceablesDisponivel(disponivel: boolean): void {
+    this.placeablesDisponivel = disponivel;
+    this.render();
   }
 
   public setRole(role: UserRole): void {
@@ -108,6 +114,9 @@ export class ToolbarUI {
       </button>
       <button class="tool-btn ${this.currentTool === 'station' ? 'active' : ''}" data-tool="station" title="${t('tool_station')}">
         ${ICONS.compass}
+      </button>
+      <button class="tool-btn ${this.currentTool === 'place' ? 'active' : ''}" data-tool="place" title="${i18n.getLang() === 'en' ? 'Placeables (Wurm models)' : 'Objetos (modelos do Wurm)'}" style="font-size:16px; display:${this.placeablesDisponivel ? 'flex' : 'none'};">
+        🌲
       </button>
 
       <div class="tool-divider"></div>

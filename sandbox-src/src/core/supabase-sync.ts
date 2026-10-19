@@ -80,7 +80,7 @@ export class SupabaseSyncManager {
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle(); // no row is a normal case, not an error
 
       if (error && error.code !== 'PGRST116') {
         console.warn('Aviso ao carregar perfil:', error.message);
@@ -129,7 +129,7 @@ export class SupabaseSyncManager {
         .from('relief_state')
         .select('*')
         .eq('id', 'jackal_r2_main')
-        .single();
+        .maybeSingle(); // empty until the first relief is published
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -138,7 +138,10 @@ export class SupabaseSyncManager {
         throw error;
       }
 
-      if (!data || !data.heightmap) {
+      if (!data) {
+        return { success: false, message: 'Nenhum relevo oficial publicado ainda' };
+      }
+      if (!data.heightmap) {
         return { success: false, message: 'Estado de relevo vazio' };
       }
 
@@ -204,7 +207,7 @@ export class SupabaseSyncManager {
         .from('relief_state')
         .select('version')
         .eq('id', 'jackal_r2_main')
-        .single();
+        .maybeSingle();
 
       const nextVersion = (current?.version || 0) + 1;
       const heightmapJson = JSON.stringify({ chunks: snapshot.chunks });

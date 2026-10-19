@@ -32,7 +32,8 @@ export type ModelingTool =
   | 'eraser'   // Devolve célula para UNKNOWN
   | 'lock'     // Trancar / Destrancar relevo (Cadeado do Cartógrafo)
   | 'pin'      // Criar/editar marco geodésico
-  | 'station'; // Definir posição de estação da visita
+  | 'station'  // Definir posição de estação da visita
+  | 'place';   // Objetos: colocar/mover/girar/apagar modelos do Wurm (placeables)
 
 /** Papel do usuário no trabalho colaborativo */
 export type UserRole = 'scout' | 'explorer' | 'cartographer';

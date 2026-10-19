@@ -96,3 +96,24 @@ npm run test
 npm run build
 ```
 Os artefatos otimizados serão gerados na pasta `dist/`, prontos para deploy no Cloudflare Pages.
+
+---
+
+## 6. Objetos do Wurm (Placeables) • Wurm models (Placeables)
+
+A ferramenta **🌲 Objetos** coloca modelos reais do Wurm no relevo (bétula, carvalho, torre de guarda Freedom, guarda da torre e pilar). Clique num modelo e depois no terreno para colocar; clique num objeto para selecionar, arraste para mover, **R / Shift+R** gira 15°, **Del** apaga, **Esc** solta. Os objetos acompanham o relevo quando ele é esculpido. O pilar de spawn também passa a usar o modelo real do jogo.
+
+The **🌲 Placeables** tool puts real Wurm models on the relief (birch, oak, Freedom guard tower, tower guard and pillar). Pick a model, click the terrain to place it; click an object to select it, drag to move, **R / Shift+R** rotates 15°, **Del** deletes, **Esc** deselects. Objects ride the terrain as it is sculpted. Pillar pins also use the real in-game model.
+
+**Os modelos não estão no repositório • The models are not in the repository.** Eles pertencem à Game Chest Group / Code Club AB e o repositório é público, então cada pessoa extrai do próprio cliente do Wurm: • They belong to Game Chest Group / Code Club AB and this repository is public, so each person extracts them from their own Wurm client:
+
+```powershell
+cd sandbox-src
+npm run extract-wurm                      # procura/looks in %USERPROFILE%\wurm\packs\graphics.jar
+npm run extract-wurm -- "D:/Games/wurm"   # ou a pasta do seu Wurm / or your Wurm folder
+npm run dev
+```
+
+Os arquivos vão para `sandbox-src/public/wurm/` (e `sandbox/wurm/` no build), ambos no `.gitignore`: **não comite nem publique** sem permissão da Game Chest. Sem eles, o botão 🌲 fica oculto e o resto do Sandbox funciona normalmente. • Files go to `sandbox-src/public/wurm/` (and `sandbox/wurm/` when built), both git-ignored: **do not commit or deploy them** without Game Chest's permission. Without them the 🌲 button stays hidden and the rest of the Sandbox works as before.
+
+Escala • Scale: modelos `.wom` estão em metros (cerca de 1 tile = 4 m); árvores são guardadas pequenas e o jogo as cresce com a idade, aqui ×8 ≈ 10 m. • `.wom` models are in metres (a fence section is exactly 4 = one tile); trees are stored small and grown with age in game, here ×8 ≈ 10 m. Objetos ficam salvos no navegador (localStorage) por enquanto. • Placements are saved in the browser (localStorage) for now.

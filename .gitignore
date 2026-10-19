@@ -24,3 +24,8 @@ jackal_original_iso_4096.png
 jackal_original_topo_4096.png
 jackal_original_terrain_4096.png
 wurm_bundle.js
+
+# Modelos e texturas do Wurm extraídos do cliente local (propriedade da Game Chest / Code Club AB: não publicar)
+# Wurm models/textures extracted from the local client (Game Chest / Code Club AB property: do not publish)
+sandbox-src/public/wurm/
+sandbox/wurm/
