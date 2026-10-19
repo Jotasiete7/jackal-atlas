@@ -1,13 +1,16 @@
-# 🌙 Jackal Atlas — Central Tática • A Guilda
+# 🌙 Jackal Atlas & Sandbox 3D — Central Tática • A Guilda
 
 > 🇺🇸 English version: [README.en.md](README.en.md)
 
-Mapa tático e cartográfico colaborativo para o evento **Jackal Round 2** de Wurm Online (outubro de 2026).
-Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, arquitetura em tempo real com **Supabase** e suporte completo a infraestrutura viária, controle territorial de beacons e objetivos prioritários (P1/P2/P3).
+Mapa tático e cartográfico colaborativo completo para o evento **Jackal Round 2** de Wurm Online (outubro de 2026).
+Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, arquitetura em tempo real com **Supabase** e integração entre duas ferramentas complementares de alta performance:
+
+1. **Atlas Tático 2D & Esboço Colaborativo (`/`)**: Base cartográfica com visualização multiescala, desenho à mão com versionamento estilo Git (commits com revisão e reversão), infraestrutura viária e controle territorial.
+2. **Caixa de Areia 3D de Relevo (Jackal Sandbox — `/sandbox`)**: Motor 3D em WebGL/Three.js a 60 FPS para captação de dados de campo, modelagem de elevações, curvas de nível dinâmicas e proteção de setores por travas cartográficas.
 
 ---
 
-## 🗺️ Funcionalidades Principais
+## 🗺️ Funcionalidades Principais do Atlas 2D
 
 - **Base Cartográfica Leaflet Ágil**: Motor de renderização suave e direto (estilo Harmony Atlas), com grade de 4096×4096 tiles, alternância entre camadas *Terrain*, *Isométrico* e *Topográfico* e controle de zoom suíço.
 - **Mira Tática Alvo Pulsante & URL Dinâmica**: Clique com botão esquerdo em qualquer ponto para cravar uma mira pulsante vermelha (`@keyframes sw-ping`) e atualizar o link do navegador instantaneamente (`#X,Y`) para compartilhamento rápido via Discord ou chat do Wurm.
@@ -30,6 +33,30 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
 
 ---
 
+## 🏔️ Caixa de Areia 3D de Relevo (Jackal Sandbox — `/sandbox`)
+
+Uma ferramenta cartográfica 3D em tempo real desenvolvida para captar dados exploratórios e esculpir a topografia do mapa com precisão de jogo:
+
+- **Malha 3D Contínua (Zero-Seams & 60 FPS)**: Malha única sem divisórias visíveis, com shader GLSL customizado para hipsometria (vales verdes, encostas ocres, picos rochosos), iluminação Hillshade direcional e hachura tática em áreas desconhecidas.
+- **Modelo de Setores 100×100 & Cadeado do Cartógrafo**: 
+  - O mapa é subdividido em Folhas Cartográficas de 100×100 tiles (20×20 células de 5×5 tiles).
+  - Trava rápida no rodapé (`[🔓]/[🔒]`) para bloquear a folha atual inteira (`N0-L0`, etc.) ou via pincel de trava (`🔒 [K]`).
+  - Áreas consolidadas/trancadas ficam 100% imunes a pinceladas acidentais de outros modeladores.
+- **3 Papéis Operacionais (Permissions)**:
+  - 🧭 **Batedor (Scout)**: Focado em registrar marcos, pilares e pinos no terreno sem risco de deformar o relevo (ferramentas de escultura bloqueadas).
+  - ⛏️ **Modelador (Explorer)**: Esculpe montanhas, vales e costas (subir, descer, suavizar, aplainar, água) respeitando estritamente os setores e células trancadas.
+  - 👑 **Cartógrafo (Cartographer)**: Permissão máxima de aprovação, fixação de cotas rígidas e trancamento de quadrantes.
+- **Proteção Ativa de Água e Costa (`[x] Proteger Água / Costa existente`)**: Impede que pincéis de relevo (subir, descer, suavizar) alterem ou sequem rios, lagos ou costas marinhas já desenhadas, e impede que a ferramenta de água afogue terras consolidadas (> 0m).
+- **Raymarch Analítico Anti-Paralaxe**: Algoritmo de busca binária em 14 passos direto na superfície interpolada do heightfield, eliminando completamente o deslocamento do cursor do mouse nas vistas Isométrica, Lateral e Livre. O anel do pincel segue com precisão milimétrica a superfície 3D real do relevo.
+- **Curvas de Nível Dinâmicas 3D**: Cálculo em segundo plano via *Marching Squares* em *Web Worker*, com suavização anti-pontas (Chaikin / Bézier), espaçamento configurável (2m a 50m) e renderização sobreposta sem oclusão de texto.
+- **Escala Real de Wurm Online**: Referência tática instantânea no terreno com escala comparativa: Boneco humano (1.8m) e Torre de Guarda (12m), com 1 tile = 4 metros e 10 dirts = 1 metro de elevação.
+- **Sessões de Campo & Raio de Estação**: Simulação de estações de triangulação com anel de alcance tático de 100 tiles e limitação de pinceladas dentro do raio da estação.
+- **Armazenamento Seguro Local-First (IndexedDB)**: Autosave contínuo, backups de segurança automáticos antes de restaurações ou limpezas, exportação/importação direta de arquivos `.json` e histórico de snapshots.
+- **Navegação Multieixo Híbrida**: Controle simultâneo por Mouse (órbita, pan e zoom) e Teclado (`W`, `A`, `S`, `D`), com correção de inversão angular no modo Isométrico.
+- **Suporte a Idiomas (i18n)**: Interface bilíngue completa com alternância instantânea entre Português (`PT-BR`) e Inglês (`EN`).
+
+---
+
 ## 📖 Documentação & Guias
 
 - 📘 **[Manual de Operações & Tutorial Completo](TUTORIAL.md)**: Guia passo a passo com fotos conceituais, atalhos de teclado e instruções para batedores e oficiais.
@@ -40,7 +67,7 @@ Desenvolvido com o **Design System Swisstopo (Dark Swiss)** oficial da guilda, a
 
 ## 🚀 Como Executar Localmente
 
-### 1. Início Rápido (Windows)
+### 1. Início Rápido do Atlas 2D (Windows)
 Basta dar dois cliques no arquivo:
 ```cmd
 Iniciar-Jackal-Atlas.bat
@@ -53,19 +80,37 @@ Ele iniciará o servidor local na porta `3001` e abrirá seu navegador automatic
 node server.js
 ```
 Acesse:
-- **Mapa Tático**: `http://localhost:3001/index.html`
+- **Mapa Tático 2D**: `http://localhost:3001/index.html`
+- **Caixa de Areia 3D (Sandbox)**: `http://localhost:3001/sandbox/`
 - **Login Discord**: `http://localhost:3001/login.html`
 - **Painel de Oficiais / Admin**: `http://localhost:3001/admin.html`
 
-### 3. Bateria de Testes Automatizados
+### 3. Desenvolvimento no Motor 3D (`sandbox-src`)
+Para desenvolver, rodar testes ou modificar o Sandbox 3D:
+```bash
+cd sandbox-src
+npm install
+
+# Servidor de desenvolvimento com Hot-Reload (Three.js/Vite)
+npm run dev
+
+# Executar bateria de testes de invariantes e travas de relevo (Vitest)
+npm test
+
+# Compilar versão de produção estática (gera diretamente em ../sandbox)
+npm run build
+```
+
+### 4. Bateria de Testes Automatizados do Atlas 2D
 O projeto conta com uma suíte de testes com 42 verificações de sintaxe, DOM, cálculos cartográficos e conexão com o Supabase:
 ```bash
 node test_suite.js
 ```
 
-### 4. Deploy em Produção
+### 5. Deploy em Produção
 O projeto está configurado para deploy contínuo no **Cloudflare Pages** conectado à branch `main`:
-- **Produção**: [https://jackal-atlas.pages.dev](https://jackal-atlas.pages.dev)
+- **Atlas Principal**: [https://jackal-atlas.pages.dev](https://jackal-atlas.pages.dev)
+- **Caixa de Areia 3D**: [https://jackal-atlas.pages.dev/sandbox](https://jackal-atlas.pages.dev/sandbox)
 
 ---
 
@@ -99,12 +144,13 @@ Scripts SQL na pasta `migrations/`:
 
 ```
 Jackal-Atlas/
-├── index.html                  # Aplicação principal e mapa tático
+├── index.html                  # Aplicação principal do Atlas 2D e mapa tático
 ├── login.html                  # Autenticação Discord e checagem de aprovação
 ├── admin.html                  # Painel de gestão de membros e fila de moderação
 ├── TUTORIAL.md                 # Manual de operações e tutorial detalhado
-├── README.md                   # Apresentação do projeto e guia técnico
-├── test_suite.js               # Suíte de testes automatizados (42 verificações)
+├── README.md                   # Apresentação do projeto e guia técnico (Português)
+├── README.en.md                # English presentation & technical guide
+├── test_suite.js               # Suíte de testes automatizados do Atlas 2D (42 verificações)
 ├── server.js                   # Servidor de desenvolvimento local (porta 3001)
 ├── Iniciar-Jackal-Atlas.bat     # Atalho executável para inicialização
 ├── config.example.js           # Template de credenciais Supabase
@@ -114,6 +160,17 @@ Jackal-Atlas/
 ├── _headers                    # Cabeçalhos CSP para deploy no Cloudflare Pages
 ├── robots.txt                  # Bloqueio de indexação pública
 ├── jackal_original_terrain_4096.png # Imagem mestre em alta definição
+│
+├── sandbox/                    # 🏔️ Bundle estático de produção da Caixa de Areia 3D (Cloudflare Pages)
+│   ├── index.html              # Ponto de entrada do Sandbox 3D
+│   └── assets/                 # Scripts JS minificados, Web Workers e folhas de estilo CSS
+│
+├── sandbox-src/                # 🛠️ Código-fonte TypeScript/Three.js do Sandbox 3D
+│   ├── src/                    # Motor de relevo, shaders GLSL, Web Workers e interface UI
+│   ├── tests/                  # Testes unitários de invariantes e travas de relevo (Vitest)
+│   ├── package.json            # Dependências (Three.js, Lucide, Vitest, TypeScript)
+│   └── vite.config.ts          # Configuração de build para compilar direto em ../sandbox
+│
 ├── tiles_custom/               # Tiles personalizados ativos
 ├── tiles_terrain/              # Tiles locais de terreno (Zoom 0 ao 4)
 ├── tiles_topo/                 # Tiles locais de curvas de nível
@@ -127,7 +184,7 @@ Jackal-Atlas/
 ## ⚡ Política de Cache de Tiles & Versionamento
 
 Para garantir tempo de resposta de 60 FPS e carregamento sem travamentos de I/O de rede:
-- As pirâmides de tiles (`/tiles_custom/*`, `/tiles_terrain/*`, `/tiles_iso/*`, `/tiles_topo/*`) são servidas no Cloudflare Pages com `Cache-Control: public, max-age=31536000, immutable`.
+- As pirâmides de tiles (`/tiles_custom/*`, `/tiles_terrain/*`, `/tiles_iso/*`, `/tiles_topo/*`) e assets do sandbox são servidos no Cloudflare Pages com `Cache-Control: public, max-age=31536000, immutable`.
 - **REGRA OBRIGATÓRIA**: Caso o mapa de terreno seja regerado ou atualizado no futuro, **NUNCA** substitua os arquivos diretamente nas mesmas pastas de tiles sem alterar o caminho. O cache imutável nos nós de borda da Cloudflare e nos navegadores dos oficiais manterá a versão antiga gravada. Crie sempre uma nova pasta versionada (exemplo: `tiles_terrain_v2/`, `tiles_custom_r2/`) e aponte no `index.html` ou nas configurações do mapa.
 
 ---

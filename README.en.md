@@ -1,13 +1,16 @@
-# 🌙 Jackal Atlas — Tactical HQ • The Guild
+# 🌙 Jackal Atlas & 3D Sandbox — Tactical HQ • The Guild
 
 > Versão em português: [README.md](README.md) • This is the English version of the README.
 
-Collaborative tactical and cartographic map for the Wurm Online **Jackal Round 2** event (October 2026).
-Built on the guild's official **Swisstopo Design System (Dark Swiss)**, with a real-time **Supabase** backend and full support for road infrastructure, territorial beacon control and priority objectives (P1/P2/P3).
+Complete collaborative tactical and cartographic map for the Wurm Online **Jackal Round 2** event (October 2026).
+Built on the guild's official **Swisstopo Design System (Dark Swiss)**, with a real-time **Supabase** backend and the seamless integration of two high-performance tools:
+
+1. **Tactical 2D Atlas & Collaborative Sketch (`/`)**: Multi-scale cartographic base, whiteboard-style hand drawing with Git-style versioning (drafts, commits with officer review and atomic reverts), road infrastructure and territorial influence radar.
+2. **3D Collaborative Relief Sandbox (Jackal Sandbox — `/sandbox`)**: Real-time WebGL/Three.js engine running at 60 FPS for exploratory data capture, terrain heightfield sculpting, dynamic contour generation, and sector-level cartographic locking.
 
 ---
 
-## 🗺️ Main Features
+## 🗺️ Main Features of the 2D Atlas
 
 - **Fast Leaflet Map Base**: Smooth, direct rendering engine (Harmony Atlas style), with a 4096×4096 tile grid, switchable *Terrain*, *Isometric* and *Topographic* layers and Swiss-style zoom controls.
 - **Pulsing Tactical Crosshair & Dynamic URL**: Left-click anywhere to drop a pulsing red crosshair (`@keyframes sw-ping`) and instantly update the browser link (`#X,Y`) for quick sharing on Discord or in Wurm chat.
@@ -29,6 +32,30 @@ Built on the guild's official **Swisstopo Design System (Dark Swiss)**, with a r
 
 ---
 
+## 🏔️ 3D Collaborative Relief Sandbox (Jackal Sandbox — `/sandbox`)
+
+A real-time 3D cartographic sculpting tool engineered to capture exploratory field observations and model terrain relief with game-accurate physics:
+
+- **Continuous 3D Mesh (Zero-Seams & 60 FPS)**: Single seamless geometry with custom GLSL shaders for hypsometric elevation coloring (green valleys, ochre slopes, rocky peaks), directional hillshading, and tactical hatching for unexplored void.
+- **100×100 Sector Locks & Cartographer Padlocks**:
+  - The map is partitioned into cartographic sheets of 100×100 tiles (20×20 cells of 5×5 tiles each).
+  - Quick footer toggle (`[🔓]/[🔒]`) to lock the entire active sheet (`N0-L0`, etc.) or lock specific cells using the Padlock Brush (`🔒 [K]`).
+  - Consolidated and locked areas are 100% immune to accidental brush strokes by other modellers.
+- **3 Operational Roles (Permissions)**:
+  - 🧭 **Scout**: Focused on placing field pins, pillars, and landmarks without risk of deforming the 3D relief (sculpting tools disabled).
+  - ⛏️ **Explorer / Modeller**: Sculpts terrain (raise, lower, smooth, flatten, water) strictly respecting sheet locks and locked cells.
+  - 👑 **Cartographer**: Master authority for approving terrain, setting immutable benchmark pins, and locking quadrants.
+- **Active Coastline & Water Protection (`[x] Protect Water / Coastline`)**: Prevents relief sculpting brushes (raise, lower, smooth) from inadvertently drying or modifying existing rivers, lakes, and oceans, while preventing the water tool from submerging terraformed land (> 0m).
+- **Anti-Parallax Analytical Raymarch**: Fast 14-step binary search algorithm executed directly against the interpolated heightfield surface. Completely eliminates cursor parallax displacement in Isometric, Side, and Free 3D views. The brush ring locks onto the mouse pointer with sub-centimetre precision on any mountain slope.
+- **Dynamic 3D Contour Lines**: Calculated asynchronously in a Web Worker using *Marching Squares* with Chaikin/Bézier anti-corner smoothing, configurable intervals (2m to 50m), and high-contrast layered rendering that never occludes text.
+- **Real Wurm Online Scale Reference**: Real-time scale objects on the terrain: human character (1.8m) and Guard Tower (12m), respecting Wurm standards (1 tile = 4m, 10 dirts = 1m elevation).
+- **Field Sessions & Station Range**: Triangulation station simulation with a 100-tile tactical range ring and optional brush constraint within the station radius.
+- **Safe Local-First Storage (IndexedDB)**: Continuous autosave, automatic safety backups before destructive restores or map clears, direct JSON import/export, and snapshot versioning.
+- **Hybrid Multi-Axis Navigation**: Simultaneous Orbit/Pan/Zoom via mouse and continuous `W`, `A`, `S`, `D` keyboard panning with angle inversion correction in Isometric mode.
+- **Full Bilingual Support (i18n)**: Seamless instant switching between Portuguese (`PT-BR`) and English (`EN`).
+
+---
+
 ## 📖 Documentation & Guides
 
 - 📘 **[Operations Manual & Full Tutorial](TUTORIAL.en.md)**: Step-by-step guide with conceptual screenshots, keyboard shortcuts and instructions for scouts and officers.
@@ -39,7 +66,7 @@ Built on the guild's official **Swisstopo Design System (Dark Swiss)**, with a r
 
 ## 🚀 Running Locally
 
-### 1. Quick Start (Windows)
+### 1. 2D Atlas Quick Start (Windows)
 Just double-click:
 ```cmd
 Iniciar-Jackal-Atlas.bat
@@ -52,19 +79,37 @@ It starts the local server on port `3001` and automatically opens your browser a
 node server.js
 ```
 Then open:
-- **Tactical Map**: `http://localhost:3001/index.html`
+- **Tactical 2D Map**: `http://localhost:3001/index.html`
+- **3D Relief Sandbox**: `http://localhost:3001/sandbox/`
 - **Discord Login**: `http://localhost:3001/login.html`
 - **Officers / Admin Panel**: `http://localhost:3001/admin.html`
 
-### 3. Automated Test Suite
+### 3. Developing the 3D Engine (`sandbox-src`)
+To develop, run tests or modify the 3D Sandbox:
+```bash
+cd sandbox-src
+npm install
+
+# Vite development server with Hot-Reload (Three.js/Vite)
+npm run dev
+
+# Run Vitest test suite for terrain invariants and lock protection
+npm test
+
+# Build static production bundle (outputs directly into ../sandbox)
+npm run build
+```
+
+### 4. Automated 2D Atlas Test Suite
 The project ships with a test suite of 42 checks covering syntax, DOM, cartographic calculations and the Supabase connection:
 ```bash
 node test_suite.js
 ```
 
-### 4. Production Deploy
+### 5. Production Deploy
 The project is set up for continuous deployment on **Cloudflare Pages**, connected to the `main` branch:
-- **Production**: [https://jackal-atlas.pages.dev](https://jackal-atlas.pages.dev)
+- **Main Atlas**: [https://jackal-atlas.pages.dev](https://jackal-atlas.pages.dev)
+- **3D Relief Sandbox**: [https://jackal-atlas.pages.dev/sandbox](https://jackal-atlas.pages.dev/sandbox)
 
 ---
 
@@ -98,37 +143,50 @@ SQL scripts in the `migrations/` folder:
 
 ```
 Jackal-Atlas/
-├── index.html                  # Main application and tactical map
-├── login.html                  # Discord authentication and approval check
-├── admin.html                  # Member management panel and moderation queue
-├── TUTORIAL.md                 # Operations manual and detailed tutorial
-├── README.md                   # Project overview and technical guide
-├── test_suite.js               # Automated test suite (42 checks)
+├── index.html                  # Main 2D Atlas application & tactical map
+├── login.html                  # Discord OAuth login & approval verification
+├── admin.html                  # Member management & proposal moderation panel
+├── TUTORIAL.md                 # Operations manual & detailed tutorial (Portuguese)
+├── TUTORIAL.en.md              # Operations manual & detailed tutorial (English)
+├── README.md                   # Project presentation & technical guide (Portuguese)
+├── README.en.md                # Project presentation & technical guide (English)
+├── test_suite.js               # 2D Atlas automated test suite (42 checks)
 ├── server.js                   # Local development server (port 3001)
-├── Iniciar-Jackal-Atlas.bat     # Launcher shortcut
+├── Iniciar-Jackal-Atlas.bat     # Windows batch launcher
 ├── config.example.js           # Supabase credentials template
-├── config.js                   # Active Supabase settings
-├── swisstopo-ui.css            # The Guild's Swisstopo Design System
+├── config.js                   # Active Supabase configuration
+├── swisstopo-ui.css            # Guild Swisstopo Design System
 ├── swiss-toponyms.css          # Toponym and label styling
-├── _headers                    # CSP headers for Cloudflare Pages deploys
-├── robots.txt                  # Blocks public indexing
-├── jackal_original_terrain_4096.png # High-resolution master image
+├── _headers                    # CSP and security headers for Cloudflare Pages
+├── robots.txt                  # Public crawler indexing disallow
+├── jackal_original_terrain_4096.png # Master high-resolution image
+│
+├── sandbox/                    # 🏔️ Production static bundle for 3D Relief Sandbox (Cloudflare Pages)
+│   ├── index.html              # 3D Sandbox entry point
+│   └── assets/                 # Minified JS bundles, Web Workers and CSS stylesheets
+│
+├── sandbox-src/                # 🛠️ 3D Sandbox TypeScript/Three.js source code
+│   ├── src/                    # Heightfield engine, GLSL shaders, Web Workers and UI
+│   ├── tests/                  # Terrain invariant and lock protection test suite (Vitest)
+│   ├── package.json            # Dependencies (Three.js, Lucide, Vitest, TypeScript)
+│   └── vite.config.ts          # Build configuration to output directly to ../sandbox
+│
 ├── tiles_custom/               # Active custom tiles
-├── tiles_terrain/              # Local terrain tiles (zoom 0 to 4)
-├── tiles_topo/                 # Local contour-line tiles
-├── tiles_iso/                  # Local isometric-view tiles
-├── migrations/                 # Numbered SQL migrations (001 to 018)
+├── tiles_terrain/              # Local terrain tiles (Zoom 0 to 4)
+├── tiles_topo/                 # Local contour line tiles
+├── tiles_iso/                  # Local isometric tiles
+├── migrations/                 # Sequential SQL migrations (001 to 018)
 └── scripts/                    # Tile extraction and slicing utilities
 ```
 
 ---
 
-## ⚡ Tile Caching & Versioning Policy
+## ⚡ Tile Caching Policy & Versioning
 
-To keep rendering at 60 FPS and loading free of network I/O stalls:
-- The tile pyramids (`/tiles_custom/*`, `/tiles_terrain/*`, `/tiles_iso/*`, `/tiles_topo/*`) are served on Cloudflare Pages with `Cache-Control: public, max-age=31536000, immutable`.
-- **MANDATORY RULE**: If the terrain map is regenerated or updated in the future, **NEVER** overwrite files in the same tile folders without changing the path. The immutable cache on Cloudflare's edge nodes and in officers' browsers will keep serving the old version. Always create a new versioned folder (for example `tiles_terrain_v2/`, `tiles_custom_r2/`) and point `index.html` or the map settings at it.
+To ensure 60 FPS responsiveness and eliminate network I/O stalls:
+- Tile pyramids (`/tiles_custom/*`, `/tiles_terrain/*`, `/tiles_iso/*`, `/tiles_topo/*`) and sandbox assets are served on Cloudflare Pages with `Cache-Control: public, max-age=31536000, immutable`.
+- **MANDATORY RULE**: If the terrain map is re-rendered or updated in the future, **NEVER** overwrite files directly in the same tile folders without changing the path. Edge cache on Cloudflare nodes and browser caches will hold onto the old tiles. Always create a new versioned folder (e.g. `tiles_terrain_v2/`, `tiles_custom_r2/`) and point to it in `index.html` or map configuration.
 
 ---
 
-*Built for the Guild • Wurm Online Jackal Round 2 (2026).*
+*Engineered for A Guilda • Wurm Online Jackal Round 2 (2026).*
