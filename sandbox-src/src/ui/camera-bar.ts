@@ -154,9 +154,9 @@ export class CameraBarUI {
           ${isPt ? 'PT 🇧🇷' : 'EN 🇺🇸'}
         </button>
 
-        <!-- Guia de Comandos e Atalhos -->
-        <button class="btn" id="btn-help-guide" style="padding: 4px 9px; font-size: 12px; font-weight: bold; color: var(--accent-gold); border: 1px solid rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1);" title="${t('help_btn_title')}">
-          ?
+        <!-- Tutorial e Guia Tático 3D -->
+        <button class="btn" id="btn-help-guide" style="padding: 4px 9px; font-size: 11px; font-weight: bold; color: var(--accent-gold); border: 1px solid rgba(245, 166, 35, 0.45); background: rgba(245, 166, 35, 0.12); display: flex; align-items: center; gap: 4px;" title="${t('help_btn_title')}">
+          <span>🎓</span> <span>${isPt ? 'Tutorial' : 'Tutorial'}</span>
         </button>
       </div>
     `;

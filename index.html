@@ -601,21 +601,30 @@
     <div id="floatingModesBar" class="sw-floating-modes-bar">
         <button id="modeBtnNavegar" class="sw-mode-btn active" onclick="definirModoInteracao('navegar')">
             <span>👁️</span> <span data-i18n="modoNavegar">Navegar</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('navegar', this)" title="Ajuda">?</span>
         </button>
         <button id="modeBtnPonto" class="sw-mode-btn" onclick="definirModoInteracao('ponto')">
             <span>📍</span> <span data-i18n="modoPonto">Anotar Ponto</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('ponto', this)" title="Ajuda">?</span>
         </button>
         <button id="modeBtnEstrada" class="sw-mode-btn" onclick="definirModoInteracao('estrada')">
             <span>🛣️</span> <span data-i18n="modoEstrada">Traçar Estrada</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('estrada', this)" title="Ajuda">?</span>
         </button>
         <button id="modeBtnPonte" class="sw-mode-btn" onclick="definirModoInteracao('ponte')">
             <span>🌉</span> <span data-i18n="modoPonte">Traçar Ponte</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('ponte', this)" title="Ajuda">?</span>
         </button>
         <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles" data-i18n-title="ttModoArea">
             <span>📐</span> <span data-i18n="modoArea">Medir Área</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('area', this)" title="Ajuda">?</span>
         </button>
         <button id="modeBtnSketch" class="sw-mode-btn" onclick="definirModoInteracao('sketch')" title="Rascunho Tático: desenhe setas, rotas, avisos de perigo e notas rápidas (relevo/água oficial são na Caixa de Areia 3D) • Tactical Sketch: draw arrows, routes, warnings and quick notes (official relief/water in 3D Sandbox)">
             <span>✏️</span> <span data-i18n="modoSketch">Rascunho</span>
+            <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('sketch', this)" title="Ajuda">?</span>
+        </button>
+        <button id="btnTutorialAtlas" class="sw-mode-btn" onclick="abrirGuiaCompletoAtlas()" style="border-left: 1px solid var(--sw-border); color: var(--jk-accent);" title="Tutorial e Guia Tático 2D / 3D">
+            <span>🎓</span> <span data-i18n="modoTutorial">Tutorial</span>
         </button>
     </div>
 
@@ -694,6 +703,17 @@
             <a href="sandbox/" class="sw-base-btn" style="padding: 3px 8px; font-size: 10px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 4px; font-weight: 700;" title="Abrir Modelagem de Relevo 3D" data-i18n-title="ttAbrirSandbox">
                 <span data-i18n="btnAbrirSandbox">Abrir 3D</span> ↗
             </a>
+        </div>
+
+        <!-- LINK GUIA & TUTORIAL 2D/3D -->
+        <div style="padding: 6px 12px; background: rgba(245, 166, 35, 0.08); border-bottom: 1px solid var(--sw-border-subtle); display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--jk-accent); display: flex; align-items: center; gap: 6px;">
+                <span>🎓</span>
+                <span data-i18n="labelGuiaTutorial">Tutorial & Guia 2D/3D</span>
+            </div>
+            <button class="sw-base-btn" onclick="abrirGuiaCompletoAtlas()" style="padding: 3px 8px; font-size: 10px; background: var(--jk-accent); color: #000; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Abrir Tutorial Completo e Atalhos">
+                <span data-i18n="btnAbrirGuia">Abrir</span> 📖
+            </button>
         </div>
 
         <!-- BUSCA ESTILO SWISSTOPO COM DROPDOWN INTERATIVO -->
@@ -7188,6 +7208,9 @@
             modoPonte: 'Traçar Ponte',
             modoArea: 'Medir Área',
             modoSketch: 'Rascunho',
+            modoTutorial: 'Tutorial',
+            labelGuiaTutorial: 'Tutorial & Guia 2D/3D',
+            btnAbrirGuia: 'Abrir',
             baseWhite: '📜 White',
             baseTopo: '⛰️ Topo',
             baseRelevo3D: '🏔️ Relevo 3D',
@@ -7448,6 +7471,9 @@
             modoPonte: 'Trace Bridge',
             modoArea: 'Measure Area',
             modoSketch: 'Sketch',
+            modoTutorial: 'Tutorial',
+            labelGuiaTutorial: 'Tutorial & 2D/3D Guide',
+            btnAbrirGuia: 'Open',
             baseWhite: '📜 White',
             baseTopo: '⛰️ Topo',
             baseRelevo3D: '🏔️ Relief 3D',
@@ -8067,6 +8093,396 @@
         } catch (e) {
             console.error('Erro ao carregar rotas:', e);
         }
+
+    // ==============================================================
+    // SISTEMA DE INTERROGAÇÃO (?) E AJUDA CONTEXTUAL TÁTICA (2D ATLAS)
+    // ==============================================================
+    const TOOL_HELP_2D = {
+        navegar: {
+            titlePt: 'Navegação e Inspeção',
+            titleEn: 'Navigation & Inspection',
+            role: 'all',
+            roleLabelPt: 'Todos / Visitante',
+            roleLabelEn: 'All / Visitor',
+            whatPt: 'Modo padrão do mapa. Permite arrastar o mapa, dar zoom e clicar em vilas, minas, cavernas ou rotas para inspecionar informações detalhadas.',
+            whatEn: 'Default map mode. Pan the map, zoom, and click on deeds, mines, caves or routes to inspect full details.',
+            howPt: 'Clique com botão esquerdo para selecionar elementos. Pressione Esc ou N a qualquer momento para voltar à navegação livre.',
+            howEn: 'Left-click to select map features. Press Esc or N at any time to return to free navigation.',
+            shortcut: 'N ou Esc'
+        },
+        ponto: {
+            titlePt: 'Anotar Ponto / Marco',
+            titleEn: 'Add Marker / Geodetic Pin',
+            role: 'member',
+            roleLabelPt: 'Membro+',
+            roleLabelEn: 'Member+',
+            whatPt: 'Registra marcos estratégicos no mapa (Vilamento/Deed, Mina, Caverna, Torre de Guarda, Marco Geodésico ou Ponto de Suprimento).',
+            whatEn: 'Registers strategic markers on the map (Deed, Mine, Cave, Guard Tower, Survey Pin or Supply Point).',
+            howPt: 'Ative a ferramenta e clique no local exato do mapa. Preencha o nome, categoria e coordenadas.',
+            howEn: 'Activate tool and click exact map location. Fill in name, category, and coordinates.',
+            shortcut: 'P'
+        },
+        estrada: {
+            titlePt: 'Traçar Estrada',
+            titleEn: 'Trace Road',
+            role: 'member',
+            roleLabelPt: 'Membro+',
+            roleLabelEn: 'Member+',
+            whatPt: 'Desenha rotas de estradas de pedra ou calçamento, calculando a extensão total em tiles reais e número de nós.',
+            whatEn: 'Traces stone or paved road routes, calculating total length in tiles and node count.',
+            howPt: 'Clique no mapa para adicionar pontos sucessivos do traçado. Clique duas vezes no último ponto para salvar como rota planejada.',
+            howEn: 'Click on map to add consecutive path nodes. Double-click on last node to finish and save.',
+            shortcut: 'E'
+        },
+        ponte: {
+            titlePt: 'Traçar Ponte',
+            titleEn: 'Trace Bridge',
+            role: 'member',
+            roleLabelPt: 'Membro+',
+            roleLabelEn: 'Member+',
+            whatPt: 'Calcula o comprimento e vão de pontes sobre água ou desfiladeiros para planejamento de vigas e rampas.',
+            whatEn: 'Calculates length and span for bridges crossing water or canyons for planning support arches and ramps.',
+            howPt: 'Clique nas duas extremidades (margem de partida e chegada). Dê duplo clique para concluir a ponte planejada.',
+            howEn: 'Click on starting and ending banks. Double-click to complete planned bridge.',
+            shortcut: 'B'
+        },
+        area: {
+            titlePt: 'Medir Área (Deed Sizer)',
+            titleEn: 'Measure Area (Deed Sizer)',
+            role: 'member',
+            roleLabelPt: 'Membro+',
+            roleLabelEn: 'Member+',
+            whatPt: 'Simula o perímetro de assentamentos (deeds) em tiles reais do Wurm, calculando largura, altura, área e custo estimado de upkeep.',
+            whatEn: 'Simulates settlement perimeters (deeds) in real Wurm tiles, calculating width, height, total area, and upkeep.',
+            howPt: 'Clique e arraste no mapa para desenhar um retângulo ou clique nos vértices para medir áreas livres.',
+            howEn: 'Click and drag on map to draw a rectangle or click corners to measure custom areas.',
+            shortcut: 'A'
+        },
+        sketch: {
+            titlePt: 'Rascunho Tático Livre',
+            titleEn: 'Tactical Sketch',
+            role: 'officer',
+            roleLabelPt: 'Oficial+',
+            roleLabelEn: 'Officer+',
+            whatPt: 'Camada vetorial de planejamento de combate e exploração (setas táticas, rotas, círculos de aviso e anotações rápidas).',
+            whatEn: 'Collaborative vector overlay for combat and exploration planning (tactical arrows, routes, warnings and quick notes).',
+            howPt: 'Escolha caneta, seta, cor e espessura na barra tática superior e desenhe diretamente sobre o mapa.',
+            howEn: 'Select pen, arrow, color, and thickness on top tactical bar and sketch freely on map.',
+            shortcut: 'S'
+        }
+    };
+
+    let popoverAjuda2DAtivo = null;
+
+    function fecharAjudaPopovers2D() {
+        if (popoverAjuda2DAtivo) {
+            popoverAjuda2DAtivo.remove();
+            popoverAjuda2DAtivo = null;
+        }
+    }
+
+    function abrirAjudaFerramenta2D(toolKey, anchorEl) {
+        fecharAjudaPopovers2D();
+        const data = TOOL_HELP_2D[toolKey];
+        if (!data) return;
+
+        const isPt = (typeof idiomaAtual !== 'undefined') ? (idiomaAtual === 'pt') : true;
+        const title = isPt ? data.titlePt : data.titleEn;
+        const roleLabel = isPt ? data.roleLabelPt : data.roleLabelEn;
+        const what = isPt ? data.whatPt : data.whatEn;
+        const how = isPt ? data.howPt : data.howEn;
+
+        const pop = document.createElement('div');
+        pop.className = 'jk-help-popover';
+        pop.innerHTML = `
+            <div class="jk-help-title">
+                <span>${sanitize(title)}</span>
+                <span class="jk-help-perm ${data.role}">${sanitize(roleLabel)}</span>
+            </div>
+            <div class="jk-help-body">
+                <div style="margin-bottom:6px;">
+                    <strong style="color:var(--jk-accent);">${isPt ? 'O que faz:' : 'What it does:'}</strong> ${sanitize(what)}
+                </div>
+                <div>
+                    <strong style="color:#38bdf8;">${isPt ? 'Como usar:' : 'How to use:'}</strong> ${sanitize(how)}
+                </div>
+            </div>
+            <div class="jk-help-footer">
+                <span>${isPt ? 'Atalho:' : 'Shortcut:'}</span>
+                <span class="jk-help-shortcut">[${data.shortcut}]</span>
+            </div>
+        `;
+        document.body.appendChild(pop);
+        popoverAjuda2DAtivo = pop;
+
+        const rect = anchorEl.getBoundingClientRect();
+        let left = rect.left + (rect.width / 2) - 145;
+        let top = rect.bottom + 10;
+        if (left < 10) left = 10;
+        if (left + 300 > window.innerWidth) left = window.innerWidth - 310;
+        if (top + 180 > window.innerHeight) top = Math.max(10, rect.top - 190);
+
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+
+        const dismissHandler = (e) => {
+            if (popoverAjuda2DAtivo && !popoverAjuda2DAtivo.contains(e.target) && !anchorEl.contains(e.target)) {
+                fecharAjudaPopovers2D();
+                document.removeEventListener('pointerdown', dismissHandler);
+            }
+        };
+        setTimeout(() => document.addEventListener('pointerdown', dismissHandler), 10);
+    }
+
+    // ==============================================================
+    // SPOTLIGHT TOUR INTERATIVO (2D ATLAS)
+    // ==============================================================
+    const TOUR_STEPS_2D = [
+        {
+            selector: '#floatingModesBar',
+            titlePt: 'Barra Flutuante de Modos',
+            titleEn: 'Floating Modes Bar',
+            descPt: 'Alterne rapidamente entre Navegação (N), Adicionar Ponto (P), Traçado de Estradas (E), Pontes (B), Medição de Deeds (A) e Rascunho (S). Cada botão possui um balão [?] com detalhes de uso.',
+            descEn: 'Quickly switch between Navigation (N), Add Marker (P), Road Tracing (E), Bridges (B), Deed Sizer (A), and Sketch (S). Each button includes a [?] contextual help bubble.'
+        },
+        {
+            selector: '#sidebarLeft',
+            titlePt: 'Painel de Camadas & Cartografia',
+            titleEn: 'Layers & Cartography Panel',
+            descPt: 'Gerencie visibilidade de vilas, minas, cavernas, raio de cobertura de torres de guarda (100x100 tiles), zonas de influência de beacons e troque bases cartográficas.',
+            descEn: 'Control visibility of deeds, mines, caves, guard tower coverage (100x100 tiles), beacon influence zones, and toggle cartographic base maps.'
+        },
+        {
+            selector: '#modeBtnArea',
+            titlePt: 'Deed Sizer & Medidor de Área',
+            titleEn: 'Deed Sizer & Area Tool',
+            descPt: 'Desenhe perímetros de assentamento em escala real do Wurm, calculando a área exata em tiles e a estimativa de custos de upkeep antes de fixar seu vilamento.',
+            descEn: 'Project settlement boundaries in true Wurm scale, calculating exact tile area and upkeep cost estimates before staking your deed.'
+        },
+        {
+            selector: '#hudTab',
+            titlePt: 'Painel de Atividades & Metas',
+            titleEn: 'Activity & Objectives Panel',
+            descPt: 'Acompanhe as obras comunitárias da guilda, metas ativas de pavimentação, exploração e histórico de pontos cadastrados pelos companheiros.',
+            descEn: 'Track guild community infrastructure projects, active paving goals, exploration objectives, and markers posted by companions.'
+        },
+        {
+            selector: '#tabAbrirEsquerda',
+            titlePt: 'Simulador 3D & Relevo Altimétrico',
+            titleEn: '3D Sandbox & Metric Altimetry',
+            descPt: 'Use a Caixa de Areia 3D para modelar o relevo com curvas de nível, luz solar e objetos de escala reais (Torre de 24m e Boneco de 1.8m).',
+            descEn: 'Launch the 3D Sandbox to sculpt terrain with contour lines, sun hillshading, and real Wurm scale models (24m Tower and 1.8m Human).'
+        }
+    ];
+
+    let tour2DStep = 0;
+    let tour2DBackdrop = null;
+    let tour2DCard = null;
+
+    function fecharTour2D() {
+        if (tour2DBackdrop) { tour2DBackdrop.remove(); tour2DBackdrop = null; }
+        if (tour2DCard) { tour2DCard.remove(); tour2DCard = null; }
+        try { localStorage.setItem('jackal_tour_2d_completed', 'true'); } catch (e) {}
+    }
+
+    function renderTour2DStep() {
+        const isPt = (typeof idiomaAtual !== 'undefined') ? (idiomaAtual === 'pt') : true;
+        const step = TOUR_STEPS_2D[tour2DStep];
+
+        if (!tour2DBackdrop) {
+            tour2DBackdrop = document.createElement('div');
+            tour2DBackdrop.className = 'jk-tour-backdrop';
+            document.body.appendChild(tour2DBackdrop);
+            tour2DBackdrop.addEventListener('click', (e) => {
+                if (e.target === tour2DBackdrop) fecharTour2D();
+            });
+        }
+        if (!tour2DCard) {
+            tour2DCard = document.createElement('div');
+            tour2DCard.className = 'jk-tour-card';
+            document.body.appendChild(tour2DCard);
+        }
+
+        const title = isPt ? step.titlePt : step.titleEn;
+        const desc = isPt ? step.descPt : step.descEn;
+        const stepNumber = `${tour2DStep + 1} / ${TOUR_STEPS_2D.length}`;
+
+        tour2DCard.innerHTML = `
+            <div class="jk-tour-step">TUTORIAL ATLAS 2D • ${stepNumber}</div>
+            <div class="jk-tour-title">${title}</div>
+            <div class="jk-tour-desc">${desc}</div>
+            <div class="jk-tour-nav">
+                <button onclick="fecharTour2D()" style="color:#94a3b8;">${isPt ? 'Pular' : 'Skip'}</button>
+                <div style="display:flex; gap:6px;">
+                    ${tour2DStep > 0 ? `<button onclick="tour2DStep--; renderTour2DStep()">${isPt ? '◀ Anterior' : '◀ Prev'}</button>` : ''}
+                    <button class="primary" onclick="${tour2DStep === TOUR_STEPS_2D.length - 1 ? 'fecharTour2D()' : 'tour2DStep++; renderTour2DStep()'}">
+                        ${tour2DStep === TOUR_STEPS_2D.length - 1 ? (isPt ? 'Concluir ✓' : 'Finish ✓') : (isPt ? 'Próximo ▶' : 'Next ▶')}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const target = document.querySelector(step.selector);
+        if (target) {
+            const rect = target.getBoundingClientRect();
+            let cardLeft = rect.left + 20;
+            let cardTop = rect.bottom + 15;
+            if (cardLeft + 340 > window.innerWidth) cardLeft = window.innerWidth - 350;
+            if (cardTop + 220 > window.innerHeight) cardTop = Math.max(20, rect.top - 230);
+            if (cardLeft < 10) cardLeft = 10;
+            if (cardTop < 10) cardTop = 10;
+            tour2DCard.style.left = cardLeft + 'px';
+            tour2DCard.style.top = cardTop + 'px';
+            tour2DCard.style.transform = 'none';
+        } else {
+            tour2DCard.style.left = '50%';
+            tour2DCard.style.top = '50%';
+            tour2DCard.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+
+    function iniciarTourAtlas(forcar = false) {
+        fecharModalGuiaAtlas();
+        tour2DStep = 0;
+        renderTour2DStep();
+    }
+
+    // ==============================================================
+    // MODAL DE GUIA TÁTICO COMPLETO COM ABAS (2D ATLAS & 3D)
+    // ==============================================================
+    let guiaAtlasTabAtiva = 'overview';
+
+    function abrirGuiaCompletoAtlas(tab) {
+        if (tab) guiaAtlasTabAtiva = tab;
+        const modal = document.getElementById('modalGuiaAtlas');
+        if (modal) {
+            renderConteudoGuiaAtlas();
+            modal.style.display = 'flex';
+        }
+    }
+
+    function fecharModalGuiaAtlas() {
+        const modal = document.getElementById('modalGuiaAtlas');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function trocarAbaGuiaAtlas(tab) {
+        guiaAtlasTabAtiva = tab;
+        renderConteudoGuiaAtlas();
+    }
+
+    function renderConteudoGuiaAtlas() {
+        const isPt = (typeof idiomaAtual !== 'undefined') ? (idiomaAtual === 'pt') : true;
+        const container = document.getElementById('guiaAtlasBody');
+        const tabBtns = document.querySelectorAll('.jk-guia-tab-btn');
+        tabBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === guiaAtlasTabAtiva);
+        });
+
+        if (!container) return;
+
+        if (guiaAtlasTabAtiva === 'overview') {
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <p>
+                        ${isPt
+                            ? 'O <strong>Jackal Tactical Atlas</strong> é a central geoespacial da aliança para o <strong>Wurm Online</strong>. Integrando visualização 2D tática e simulação de relevo 3D, ele permite registrar vilas, planejar estradas e sincronizar estratégias em tempo real.'
+                            : 'The <strong>Jackal Tactical Atlas</strong> is the alliance\'s official geospatial system for <strong>Wurm Online</strong>. Combining 2D tactical intelligence and 3D terrain simulation, it coordinates deeds, infrastructure, and real-time operations.'}
+                    </p>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--sw-border); border-radius:6px; padding:10px;">
+                            <div style="color:var(--jk-accent); font-weight:800; margin-bottom:4px;">🗺️ Atlas 2D (Leaflet)</div>
+                            <div style="font-size:11px; color:#cbd5e1;">
+                                ${isPt ? '• Grade de Quadrantes e Tiles reais.<br>• Deeds, minas e cavernas cadastradas.<br>• Cobertura de torres (100x100 tiles).<br>• Traçado de estradas e pontes.' : '• Wurm coordinates and tile grid.<br>• Deeds, mines, and caves markers.<br>• Guard tower coverage (100x100 tiles).<br>• Road and bridge planning.'}
+                            </div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--sw-border); border-radius:6px; padding:10px;">
+                            <div style="color:#38bdf8; font-weight:800; margin-bottom:4px;">🏔️ Sandbox 3D (Three.js)</div>
+                            <div style="font-size:11px; color:#cbd5e1;">
+                                ${isPt ? '• Altimetria métrica real (1 tile = 4m).<br>• Curvas de nível em cotas de 5m a 20m.<br>• Modelagem de terreno (elevar/rebaixar).<br>• Boneco humano (1.8m) e Torre (24m).' : '• Real metric altimetry (1 tile = 4m).<br>• Contour lines at 5m to 20m intervals.<br>• Terrain sculpting (raise/lower/flatten).<br>• 1.8m human and 24m guard tower scale.'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (guiaAtlasTabAtiva === 'tools') {
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--sw-border); border-radius:6px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <strong style="color:#fff;">👁️ ${isPt ? 'Navegar' : 'Navigate'} [N / Esc]</strong>
+                            <span class="jk-help-perm all">${isPt ? 'Todos' : 'All'}</span>
+                        </div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Arrastar mapa, dar zoom e clicar em elementos para ver detalhes.' : 'Pan, zoom and click markers to view full metadata.'}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--sw-border); border-radius:6px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <strong style="color:#fff;">📍 ${isPt ? 'Anotar Ponto' : 'Add Marker'} [P]</strong>
+                            <span class="jk-help-perm member">${isPt ? 'Membro+' : 'Member+'}</span>
+                        </div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Clique no mapa para marcar deeds, minas, cavernas ou marcos geodésicos.' : 'Click map to place deeds, mines, caves, or geodetic survey points.'}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--sw-border); border-radius:6px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <strong style="color:#fff;">🛣️ ${isPt ? 'Traçar Estrada' : 'Trace Road'} [E]</strong>
+                            <span class="jk-help-perm member">${isPt ? 'Membro+' : 'Member+'}</span>
+                        </div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Clique para adicionar nós de rota e duplo clique para concluir a obra planejada.' : 'Click to add road nodes and double-click to finish planned road.'}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--sw-border); border-radius:6px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <strong style="color:#fff;">🌉 ${isPt ? 'Traçar Ponte' : 'Trace Bridge'} [B]</strong>
+                            <span class="jk-help-perm member">${isPt ? 'Membro+' : 'Member+'}</span>
+                        </div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Mede extensão e vãos sobre rios ou cânions calculando rampas necessárias.' : 'Measures bridge spans across rivers or canyons calculating needed ramps.'}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--sw-border); border-radius:6px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <strong style="color:#fff;">📐 ${isPt ? 'Deed Sizer (Medir Área)' : 'Deed Sizer'} [A]</strong>
+                            <span class="jk-help-perm member">${isPt ? 'Membro+' : 'Member+'}</span>
+                        </div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Simula perímetros em tiles reais com cálculo instantâneo de custo de upkeep.' : 'Simulates deed bounds with instant upkeep calculation in Wurm coins.'}</div>
+                    </div>
+                </div>
+            `;
+        } else if (guiaAtlasTabAtiva === 'roles') {
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:rgba(0,230,118,0.05); border:1px solid rgba(0,230,118,0.3); border-radius:6px; padding:10px;">
+                        <div style="color:#00e676; font-weight:800; margin-bottom:2px;">🧭 ${isPt ? 'Visitante / Batedor (Scout)' : 'Visitor / Scout'}</div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Visualização completa das camadas públicas, navegação e consulta de deeds. Não altera rotas ou relevo oficial.' : 'Full read-only viewing of public layers, deed search, and coordinates.'}</div>
+                    </div>
+                    <div style="background:rgba(56,189,248,0.05); border:1px solid rgba(56,189,248,0.3); border-radius:6px; padding:10px;">
+                        <div style="color:#38bdf8; font-weight:800; margin-bottom:2px;">⚔️ ${isPt ? 'Membro Verificado (Discord Member)' : 'Verified Member'}</div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Pode criar anotações de pontos, cadastrar estradas e pontes planejadas, usar o Deed Sizer e modelar no 3D Sandbox.' : 'Can create map markers, plan roads and bridges, use Deed Sizer and sculpt terrain.'}</div>
+                    </div>
+                    <div style="background:rgba(245,166,35,0.08); border:1px solid rgba(245,166,35,0.4); border-radius:6px; padding:10px;">
+                        <div style="color:var(--jk-accent); font-weight:800; margin-bottom:2px;">👑 ${isPt ? 'Oficial & Administrador (Officer / Admin)' : 'Officer & Admin'}</div>
+                        <div style="font-size:11px; color:#cbd5e1;">${isPt ? 'Aprova pontos da comunidade, gerencia metas da guilda, desenha no Rascunho Tático, tranca relevo no 3D e publica na nuvem.' : 'Approves markers, creates guild objectives, draws tactical sketches, locks terrain, and publishes to cloud.'}</div>
+                    </div>
+                </div>
+            `;
+        } else if (guiaAtlasTabAtiva === 'shortcuts') {
+            container.innerHTML = `
+                <table style="width:100%; border-collapse:collapse; font-size:11.5px;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--sw-border); text-align:left; color:var(--jk-accent);">
+                            <th style="padding:4px 6px;">${isPt ? 'Tecla' : 'Key'}</th>
+                            <th style="padding:4px 6px;">${isPt ? 'Ação' : 'Action'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">N / Esc</td><td style="padding:4px 6px;">${isPt ? 'Modo Navegação' : 'Navigation Mode'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">P</td><td style="padding:4px 6px;">${isPt ? 'Anotar Ponto / Marco' : 'Add Marker'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">E</td><td style="padding:4px 6px;">${isPt ? 'Traçar Estrada' : 'Trace Road'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">B</td><td style="padding:4px 6px;">${isPt ? 'Traçar Ponte' : 'Trace Bridge'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">A</td><td style="padding:4px 6px;">${isPt ? 'Deed Sizer (Área)' : 'Deed Sizer'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">S</td><td style="padding:4px 6px;">${isPt ? 'Rascunho Tático' : 'Tactical Sketch'}</td></tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:4px 6px; font-family:'JetBrains Mono'; color:#38bdf8;">Ctrl + P</td><td style="padding:4px 6px;">${isPt ? 'Captura em Alta Resolução (Goldfish®)' : 'High-Res Print Capture'}</td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
     }
 
     // Inicialização geral de dados e preferências persistentes do usuário
@@ -8081,7 +8497,7 @@
         const sidebarRightSalva = localStorage.getItem('jackal_sidebar_right_open');
         toggleSidebarDireita(sidebarRightSalva === 'true');
 
-        // 3. Restaurar Base do Mapa (Pergaminho em branco por padrão no Round 2; Goldfish, Terrain, Iso e Topo são o mapa antigo do Round 1)
+        // 3. Restaurar Base do Mapa
         const baseSalva = localStorage.getItem('jackal_base_map');
         trocarBase(baseSalva || 'parchment');
 
@@ -8101,7 +8517,7 @@
         await carregarRotasDoBanco();
         dadosIniciaisCarregados = true;
 
-        // Camada de esboço (localStorage, ou Supabase se config.js tiver sketchShared: true) • Sketch layer
+        // Camada de esboço
         const opacidadeSketch = localStorage.getItem('jackal_sketch_opacity');
         if (opacidadeSketch) {
             const slider = document.getElementById('sliderSketchOpacity');
@@ -8118,7 +8534,6 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco(filtroObjetivosAtual))
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => carregarRotasDoBanco())
                 .subscribe((status, err) => {
-                    // (Re)connected: reload, since changes made while disconnected were not delivered
                     if (status === 'SUBSCRIBED') {
                         carregarPontosDoBanco();
                         carregarEventosDoBanco();
@@ -8134,7 +8549,47 @@
     inicializarDados();
     </script>
 
+    <!-- ================================================================
+         MODAL DE GUIA TÁTICO & TUTORIAL DO ATLAS (COM ABAS)
+         ================================================================ -->
+    <div id="modalGuiaAtlas" class="sw-modal-overlay" style="display:none; align-items:center; justify-content:center; z-index:100050;">
+        <div class="sw-modal-card" style="max-width:560px; width:92%; max-height:86vh; display:flex; flex-direction:column; background:var(--sw-bg-panel); border:1px solid var(--jk-accent-border); border-top:3px solid var(--jk-accent); border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.9); padding:16px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--sw-border); padding-bottom:8px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:16px;">🎓</span>
+                    <strong style="color:var(--sw-text-main); font-size:14px;" data-i18n="guiaTitulo">GUIA & TUTORIAL — JACKAL ATLAS</strong>
+                </div>
+                <button onclick="fecharModalGuiaAtlas()" class="sw-base-btn" style="padding:2px 8px; font-size:13px; color:var(--sw-text-muted);">✕</button>
+            </div>
 
+            <!-- Abas do Guia -->
+            <div style="display:flex; gap:4px; border-bottom:1px solid var(--sw-border); margin-bottom:12px;">
+                <button class="jk-modal-tab-btn jk-guia-tab-btn active" data-tab="overview" onclick="trocarAbaGuiaAtlas('overview')">🗺️ Visão Geral</button>
+                <button class="jk-modal-tab-btn jk-guia-tab-btn" data-tab="tools" onclick="trocarAbaGuiaAtlas('tools')">🛠️ Ferramentas</button>
+                <button class="jk-modal-tab-btn jk-guia-tab-btn" data-tab="roles" onclick="trocarAbaGuiaAtlas('roles')">🛡️ Permissões</button>
+                <button class="jk-modal-tab-btn jk-guia-tab-btn" data-tab="shortcuts" onclick="trocarAbaGuiaAtlas('shortcuts')">⌨️ Atalhos</button>
+            </div>
+
+            <!-- Conteúdo Rolável -->
+            <div id="guiaAtlasBody" style="flex:1; overflow-y:auto; padding-right:4px; font-size:12px; color:var(--sw-text-main); line-height:1.5;">
+            </div>
+
+            <!-- Rodapé do Modal -->
+            <div style="margin-top:14px; border-top:1px solid var(--sw-border); padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                <button onclick="iniciarTourAtlas(true)" class="sw-btn-action" style="background:rgba(245,166,35,0.15); color:var(--jk-accent); border:1px solid var(--jk-accent-border); font-size:11px; font-weight:800; cursor:pointer;">
+                    🚀 Iniciar Tour Interativo 2D
+                </button>
+                <div style="display:flex; gap:6px;">
+                    <a href="sandbox/" class="sw-base-btn" style="background:#2563eb; color:#fff; font-size:11px; font-weight:700; text-decoration:none; padding:4px 10px; border-radius:4px;">
+                        🏔️ Abrir Sandbox 3D ↗
+                    </a>
+                    <button onclick="fecharModalGuiaAtlas()" class="sw-btn-action" style="background:var(--jk-accent); color:#000; font-size:11px; font-weight:800; padding:4px 14px;">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ================================================================
          TOOLTIP FLUTUANTE DE ADIÇÃO DE PONTO (CROSSHAIR TRACKER)
