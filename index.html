@@ -681,6 +681,8 @@
                     <button class="sw-btn-action" style="font-size:10px; border-color:var(--jk-accent-border); color:var(--jk-accent);" onclick="window.location.href='admin.html'">
                         👑 <span data-i18n="painelAdmin">Painel Admin / Fila</span> (<span id="adminPendingCount">0</span>)
                     </button>
+                </div>
+            </div>
         </div>
 
         <!-- LINK CAIXA DE AREIA 3D (SANDBOX) -->
@@ -689,8 +691,8 @@
                 <span>🏔️</span>
                 <span data-i18n="linkSandbox">Caixa de Areia 3D (Relevo)</span>
             </div>
-            <a href="sandbox/" class="sw-base-btn" style="padding: 3px 8px; font-size: 10px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 4px; font-weight: 700;" title="Abrir Modelagem de Relevo 3D">
-                Abrir 3D ↗
+            <a href="sandbox/" class="sw-base-btn" style="padding: 3px 8px; font-size: 10px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 4px; font-weight: 700;" title="Abrir Modelagem de Relevo 3D" data-i18n-title="ttAbrirSandbox">
+                <span data-i18n="btnAbrirSandbox">Abrir 3D</span> ↗
             </a>
         </div>
 
@@ -1269,7 +1271,7 @@
             </div>
             <div class="sw-modal-actions">
                 <button class="sw-btn-modal-cancel" onclick="fecharModal('modalNickWurm')" data-i18n="cancelar">Cancelar</button>
-                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" onclick="confirmarNickModal()" data-i18n="salvar">Salvar</button>
+                <button class="sw-btn-modal-save" style="background:var(--jk-accent); color:#000;" id="btnSalvarNick" onclick="confirmarNickModal()" data-i18n="salvar">Salvar</button>
             </div>
         </div>
     </div>
@@ -3218,12 +3220,46 @@
         document.getElementById('modalNickWurm').classList.add('open');
     }
 
-    function confirmarNickModal() {
-        const nick = document.getElementById('inputNovoNick').value.trim();
-        if (nick) {
-            document.getElementById('userWurmNick').textContent = nick;
-            if (currentProfile) currentProfile.nick = nick;
+    // Saves profiles.nick (unique, 2-24 letters/numbers/space/_/-); the sidebar only changes once it is saved
+    async function confirmarNickModal() {
+        const input = document.getElementById('inputNovoNick');
+        const nick = input.value.trim().replace(/\s+/g, ' ');
+        if (!nick) { input.focus(); return; }
+        if (!/^[A-Za-z0-9_ -]{2,24}$/.test(nick)) {
+            alert(txt('O nick precisa ter de 2 a 24 caracteres: letras, números, espaço, _ ou -.', 'The nick must be 2 to 24 characters: letters, numbers, space, _ or -.'));
+            input.focus();
+            return;
+        }
+        if (!supabaseClient || !currentUser) {
+            alert(txt('Entre com o Discord para salvar seu nick do Wurm.', 'Sign in with Discord to save your Wurm nick.'));
+            return;
+        }
+        const btn = document.getElementById('btnSalvarNick');
+        if (btn) btn.disabled = true;
+        try {
+            const { data, error } = await supabaseClient.from('profiles').update({ nick }).eq('id', currentUser.id).select('nick');
+            if (error) {
+                if (error.code === '23505') {
+                    alert(txt(`O nick "${nick}" já está em uso por outro membro.`, `The nick "${nick}" is already taken by another member.`));
+                } else if (error.code === '23514') {
+                    alert(txt('Nick inválido: use de 2 a 24 letras, números, espaço, _ ou -.', 'Invalid nick: use 2 to 24 letters, numbers, space, _ or -.'));
+                } else {
+                    alert(txt('Erro ao salvar o nick: ', 'Error saving nick: ') + error.message);
+                }
+                input.focus();
+                return;
+            }
+            if (!data || !data.length) {
+                alert(txt('Não foi possível salvar o nick (perfil não encontrado).', 'Could not save the nick (profile not found).'));
+                return;
+            }
+            const salvo = data[0].nick;
+            document.getElementById('userWurmNick').textContent = salvo;
+            if (currentProfile) currentProfile.nick = salvo;
             fecharModal('modalNickWurm');
+            mostrarToastCartografico(txt(`✓ Nick salvo: <strong>${sanitize(salvo)}</strong>`, `✓ Nick saved: <strong>${sanitize(salvo)}</strong>`));
+        } finally {
+            if (btn) btn.disabled = false;
         }
     }
 
@@ -4356,6 +4392,7 @@
         if (modoTracado) cancelarTracado();
         if (modoAdicionar) desativarModoAdicionarPonto();
         modoMedicaoArea = true;
+        map.dragging.disable(); // drawing the area must not pan the map
         map.getContainer().style.cursor = 'crosshair';
 
         const hudNormal = document.getElementById('hudBottomNormal');
@@ -4375,6 +4412,7 @@
         modoMedicaoArea = false;
         isDrawingArea = false;
         areaStartPoint = null;
+        if (!modoSketch) map.dragging.enable(); // sketch mode keeps its own drag setting
         map.getContainer().style.cursor = '';
 
         const hudNormal = document.getElementById('hudBottomNormal');
@@ -4909,11 +4947,15 @@
     }
 
     // PostgREST returns at most 1000 rows per request, so page through big tables
+    // ordenar: columns that together are unique (e.g. created_at then id). With a non-unique sort,
+    // rows that tie across a 1000-row page boundary can be skipped or repeated between pages.
     async function buscarTodosSketch(tabela, colunas, ordenar) {
         const todos = [];
         const passo = 1000;
         for (let de = 0; ; de += passo) {
-            const { data, error } = await supabaseClient.from(tabela).select(colunas).order(ordenar, { ascending: true }).range(de, de + passo - 1);
+            let q = supabaseClient.from(tabela).select(colunas);
+            for (const col of ordenar) q = q.order(col, { ascending: true });
+            const { data, error } = await q.range(de, de + passo - 1);
             if (error) throw error;
             todos.push(...(data || []));
             if (!data || data.length < passo) break;
@@ -4927,9 +4969,9 @@
         if (sketchModoArmazenamento === 'shared' && supabaseClient) {
             try {
                 const [commits, strokes, erasures] = await Promise.all([
-                    buscarTodosSketch('sketch_commits', '*, author_profile:profiles!sketch_commits_author_fkey(discord_username, avatar_url, guild:guilds!profiles_guild_id_fkey(id, name, tag, color))', 'created_at'),
-                    buscarTodosSketch('sketch_strokes', '*', 'created_at'),
-                    buscarTodosSketch('sketch_commit_erasures', '*', 'commit_id')
+                    buscarTodosSketch('sketch_commits', '*, author_profile:profiles!sketch_commits_author_fkey(discord_username, avatar_url, guild:guilds!profiles_guild_id_fkey(id, name, tag, color))', ['created_at', 'id']),
+                    buscarTodosSketch('sketch_strokes', '*', ['created_at', 'id']), // drawing order kept
+                    buscarTodosSketch('sketch_commit_erasures', '*', ['commit_id', 'stroke_id'])
                 ]);
                 if (geracao !== sketchCargaGeracao) return;
                 sketchCommits = new Map(commits.map(c => [c.id, c]));
@@ -4991,6 +5033,40 @@
         sketchDraft = { strokes: [], erase: [], ops: [] };
         gravarDraftSketch();
     }
+
+    // After a commit: drop only what was committed. Re-reads the draft first, so strokes another
+    // tab added while the commit was being sent are kept (with their undo steps).
+    function removerDoDraftSketch(idsTracos, idsApagados) {
+        carregarDraftSketch();
+        const tracos = new Set(idsTracos), apagados = new Set(idsApagados);
+        sketchDraft.strokes = sketchDraft.strokes.filter(st => !tracos.has(st.id));
+        sketchDraft.erase = sketchDraft.erase.filter(id => !apagados.has(id));
+        const resta = new Set([...sketchDraft.strokes.map(st => st.id), ...sketchDraft.erase]);
+        sketchDraft.ops = sketchDraft.ops.filter(op => {
+            if (!op) return false;
+            if (op.tipo === 'add' || op.tipo === 'erase' || op.tipo === 'modify-draft') return resta.has(op.id);
+            if (op.tipo === 'erase-bulk') {
+                op.ids = (op.ids || []).filter(id => resta.has(id));
+                return op.ids.length > 0;
+            }
+            if (op.tipo === 'replace') return resta.has(op.eraseId) || resta.has(op.addId);
+            if (op.tipo === 'remove-draft') return !(op.stroke && tracos.has(op.stroke.id));
+            return true;
+        });
+        gravarDraftSketch();
+    }
+
+    // Another tab changed this draft: pick up its version so neither tab overwrites the other
+    window.addEventListener('storage', (e) => {
+        if (e.key !== chaveDraftSketch()) return;
+        carregarDraftSketch();
+        if (sketchSelecaoId && String(sketchSelecaoId).startsWith('draft-') && !sketchDraft.strokes.some(st => st.id === sketchSelecaoId)) {
+            deselecionarTextoSketch();
+        }
+        renderizarSketch();
+        atualizarBarraDraftSketch();
+        if (historicoSketchAberto()) renderizarHistoricoSketch();
+    });
 
     function sketchBloqueadoPorHistorico() {
         if (!sketchVersaoAtual) return false;
@@ -5118,6 +5194,7 @@
     let sketchCommitEmAndamento = false;
     async function confirmarCommitSketch() {
         if (sketchCommitEmAndamento) return;
+        carregarDraftSketch(); // latest version, in case another tab changed it
         if (!sketchDraft.strokes.length && !sketchDraft.erase.length) {
             fecharModal('modalSketchCommit');
             mostrarToastCartografico(txt('Nada para fazer commit: o rascunho está vazio.', 'Nothing to commit: your draft is empty.'));
@@ -5133,6 +5210,8 @@
         const btn = document.getElementById('btnConfirmarCommitSketch');
         if (btn) btn.disabled = true;
         sketchCommitEmAndamento = true;
+        const idsTracos = sketchDraft.strokes.map(st => st.id);
+        const idsApagados = [...sketchDraft.erase];
         try {
             const strokes = sketchDraft.strokes.map(s => ({
                 kind: s.kind, path: s.path, width: s.width, label: s.label || null, stamp: s.stamp || null,
@@ -5144,7 +5223,7 @@
             if (sketchModoArmazenamento === 'shared' && supabaseClient) {
                 const { data, error } = await supabaseClient.rpc('sketch_commit_create', { p_message: mensagem, p_strokes: strokes, p_erase: erase });
                 if (error) throw error;
-                limparDraftSketch();
+                removerDoDraftSketch(idsTracos, idsApagados);
                 fecharModal('modalSketchCommit');
                 await carregarSketchDoBanco();
                 const status = data && (data.status || (Array.isArray(data) && data[0] && data[0].status));
@@ -5169,7 +5248,7 @@
                     sketchErasures.length = nErasures;
                     return;
                 }
-                limparDraftSketch();
+                removerDoDraftSketch(idsTracos, idsApagados);
                 fecharModal('modalSketchCommit');
                 renderizarSketch();
                 mostrarToastCartografico(txt('✓ Commit feito (salvo neste navegador).', '✓ Committed (saved in this browser).'));
@@ -5660,7 +5739,11 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_commits' }, agendarRecargaSketch)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_strokes' }, agendarRecargaSketch)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sketch_commit_erasures' }, agendarRecargaSketch)
-                .subscribe();
+                .subscribe((status, err) => {
+                    // (Re)connected: reload, since changes made while disconnected were not delivered
+                    if (status === 'SUBSCRIBED') agendarRecargaSketch();
+                    else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[realtime] jackal_sketch_sync', status, err || '');
+                });
             iniciarCanalAoVivoSketch();
         }
     }
@@ -7069,6 +7152,9 @@
             ttDesconectar: 'Desconectar',
             definirNick: 'Definir Nick Wurm',
             painelAdmin: 'Painel Admin / Fila',
+            linkSandbox: 'Caixa de Areia 3D (Relevo)',
+            btnAbrirSandbox: 'Abrir 3D',
+            ttAbrirSandbox: 'Abrir Modelagem de Relevo 3D',
             baseIso: 'Isométrico',
             ttAtalhoY: 'Atalho: tecla [Y]',
             ttAtalhoI: 'Atalho: tecla [I]',
@@ -7317,6 +7403,9 @@
             ttDesconectar: 'Sign out',
             definirNick: 'Set Wurm Nick',
             painelAdmin: 'Admin Panel / Queue',
+            linkSandbox: '3D Relief Sandbox',
+            btnAbrirSandbox: 'Open 3D',
+            ttAbrirSandbox: 'Open the 3D relief modelling sandbox',
             baseIso: 'Isometric',
             ttAtalhoY: 'Shortcut: [Y] key',
             ttAtalhoI: 'Shortcut: [I] key',
@@ -7802,7 +7891,7 @@
                 // Wide invisible line on top so thin roads and bridges are easy to click
                 const alvoClique = L.polyline(latlngs, { weight: 18, opacity: 0, renderer: tacticalCanvasRenderer });
                 const grupoRota = L.featureGroup([line, alvoClique]);
-                grupoRota.bindPopup(`
+                const popupRota = `
                     <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
                             <span>${isBridge ? '🌉' : '🛣️'} ${sanitize(r.name)}</span>
@@ -7814,7 +7903,13 @@
                         ${adminMetaBtn}
                         ${actionBtns}
                     </div>
-                `);
+                `;
+                // No popup while another tool owns the click (tracing, Add Marker, Sketch, Deed Sizer):
+                // the wide click target would otherwise swallow clicks near roads
+                grupoRota.on('click', (e) => {
+                    if (modoTracado || modoAdicionar || modoSketch || modoMedicaoArea) return;
+                    L.popup().setLatLng(e.latlng).setContent(popupRota).openOn(map);
+                });
 
                 grupoRota.addTo(targetLayer);
             });
@@ -7871,7 +7966,17 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'point_events' }, () => { carregarPontosDoBanco(); carregarEventosDoBanco(); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco(filtroObjetivosAtual))
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => carregarRotasDoBanco())
-                .subscribe();
+                .subscribe((status, err) => {
+                    // (Re)connected: reload, since changes made while disconnected were not delivered
+                    if (status === 'SUBSCRIBED') {
+                        carregarPontosDoBanco();
+                        carregarEventosDoBanco();
+                        carregarObjetivosDoBanco(filtroObjetivosAtual);
+                        carregarRotasDoBanco();
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        console.warn('[realtime] jackal_live_sync', status, err || '');
+                    }
+                });
         }
     }
 
