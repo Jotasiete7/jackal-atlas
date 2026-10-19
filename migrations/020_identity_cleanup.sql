@@ -1,11 +1,11 @@
 -- ==============================================================================
--- JACKAL ATLAS — MIGRATION 019: IDENTITY CLEANUP AND ADMIN DELETE LOCK
+-- JACKAL ATLAS — MIGRATION 020: IDENTITY CLEANUP AND ADMIN DELETE LOCK
 -- 1. Discord name, avatar and ID on every profile are reset to exactly what the
 --    Discord identity says. Profiles without a Discord identity are cleared, so a
 --    name or avatar copied from user-editable metadata before 018 cannot survive.
 -- 2. Deleting an admin takes the same lock as demoting one, so concurrent deletes
 --    and demotions cannot leave the Atlas with no admin.
--- Run AFTER migrations 001-018.
+-- Run AFTER migrations 001-019.
 -- ==============================================================================
 
 -- 1. Trusted identity data only (nulls from Discord stay null)

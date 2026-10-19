@@ -1,10 +1,10 @@
 -- ==============================================================================
--- JACKAL ATLAS — MIGRATION 020: DISCARD UNMERGED SKETCH COMMITS
+-- JACKAL ATLAS — MIGRATION 021: DISCARD UNMERGED SKETCH COMMITS
 -- Permanently deletes a commit that is not on main, with its strokes and erasures.
 -- - Authors can discard their own pending or rejected commits (withdraw them).
 -- - Officers and admins can discard any pending, rejected or reverted commit.
 -- Commits on main (approved) cannot be discarded: revert them first.
--- Run AFTER migrations 001-019.
+-- Run AFTER migrations 001-020.
 -- ==============================================================================
 
 create or replace function public.sketch_commit_discard(p_commit uuid)
