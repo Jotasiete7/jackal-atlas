@@ -28,6 +28,7 @@ import { ConfidenceLegendUI } from './ui/confidence-legend';
 import { InfoBarUI } from './ui/info-bar';
 import { PinModalUI } from './ui/pin-modal';
 import { RouteModalUI } from './ui/route-modal';
+import { RouteHUDUI } from './ui/route-hud';
 
 import { RouteManager } from './core/routes';
 import { RouteMeshManager } from './renderer/route-mesh';
@@ -68,6 +69,7 @@ class JackalSandboxApp {
   private infoBarUI!: InfoBarUI;
   private pinModalUI!: PinModalUI;
   private routeModalUI!: RouteModalUI;
+  private routeHUDUI!: RouteHUDUI;
 
   // 4. Controlador de Interação
   private interactionController!: InteractionController;
@@ -137,6 +139,7 @@ class JackalSandboxApp {
       infoBarUI: this.infoBarUI,
       pinModalUI: this.pinModalUI,
       routeModalUI: this.routeModalUI,
+      routeHUDUI: this.routeHUDUI,
       placeables: this.placeables,
     });
 
@@ -360,6 +363,7 @@ class JackalSandboxApp {
     });
 
     this.routeModalUI = new RouteModalUI(this.appContainer);
+    this.routeHUDUI = new RouteHUDUI(this.appContainer);
     this.routeModalUI.setOnSave(async (route) => {
       this.routeManager.saveRoute(route);
       await this.supabaseSync.saveRouteToCloud(route);

@@ -27,6 +27,7 @@ import { PlaceablesManager } from '../placeables/placeables';
 import { RouteManager, calcularSnapWurm, computeRouteDistance } from '../core/routes';
 import { RouteMeshManager } from '../renderer/route-mesh';
 import { RouteModalUI } from '../ui/route-modal';
+import { RouteHUDUI } from '../ui/route-hud';
 
 export class InteractionController {
   private canvas: HTMLCanvasElement;
@@ -53,9 +54,11 @@ export class InteractionController {
   private infoBarUI: InfoBarUI;
   private pinModalUI: PinModalUI;
   private routeModalUI: RouteModalUI;
+  private routeHUDUI: RouteHUDUI;
   private placeables: PlaceablesManager;
 
   private routeDrawingNodes: Array<[number, number]> = [];
+  private selectedRouteType: 'road' | 'bridge' | 'tunnel' = 'road';
 
   private activeTool: ModelingTool = 'raise';
   private brushSettings: BrushSettings = {
@@ -98,6 +101,7 @@ export class InteractionController {
     infoBarUI: InfoBarUI;
     pinModalUI: PinModalUI;
     routeModalUI: RouteModalUI;
+    routeHUDUI: RouteHUDUI;
     placeables: PlaceablesManager;
   }) {
     this.canvas = deps.canvas;
@@ -121,7 +125,23 @@ export class InteractionController {
     this.infoBarUI = deps.infoBarUI;
     this.pinModalUI = deps.pinModalUI;
     this.routeModalUI = deps.routeModalUI;
+    this.routeHUDUI = deps.routeHUDUI;
     this.placeables = deps.placeables;
+
+    this.routeHUDUI.setCallbacks({
+      onTypeChange: (type) => {
+        this.selectedRouteType = type;
+        if (this.routeDrawingNodes.length > 0) {
+          this.routeMesh.updatePreview(this.routeDrawingNodes, this.selectedRouteType, 'planned');
+        }
+      },
+      onFinish: () => {
+        this.finishRouteDrawing();
+      },
+      onCancel: () => {
+        this.cancelRouteDrawing();
+      },
+    });
 
     this.bindEvents();
   }
@@ -135,12 +155,36 @@ export class InteractionController {
     }, 1500);
   }
 
+  public cancelRouteDrawing(): void {
+    this.routeDrawingNodes = [];
+    this.routeMesh.clearPreview();
+    if (this.routeHUDUI) {
+      this.routeHUDUI.updateState(0, 0);
+    }
+  }
+
+  public finishRouteDrawing(): void {
+    if (this.routeDrawingNodes.length >= 2) {
+      const measuredDist = computeRouteDistance(this.routeDrawingNodes);
+      const pathCopy = [...this.routeDrawingNodes];
+      this.cancelRouteDrawing();
+      this.routeModalUI.open(pathCopy, this.selectedRouteType, measuredDist, null);
+    }
+  }
+
   public setActiveTool(tool: ModelingTool): void {
-    if (this.activeTool === 'route' && tool !== 'route' && this.routeDrawingNodes.length > 0) {
-      this.routeDrawingNodes = [];
-      this.routeMesh.clearPreview();
+    if (this.activeTool === 'route' && tool !== 'route') {
+      this.cancelRouteDrawing();
     }
     this.activeTool = tool;
+    if (tool === 'route') {
+      this.routeHUDUI.setType(this.selectedRouteType);
+      const dist = computeRouteDistance(this.routeDrawingNodes);
+      this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
+      this.routeHUDUI.show();
+    } else {
+      this.routeHUDUI.hide();
+    }
     this.placeables.setAtivo(tool === 'place');
     this.brushCursor.setTool(tool);
     this.brushPanelUI.setToolMode(tool);
@@ -309,7 +353,9 @@ export class InteractionController {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
           const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
           const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
-          this.routeMesh.updatePreview(previewPath, 'road', 'planned');
+          this.routeMesh.updatePreview(previewPath, this.selectedRouteType, 'planned');
+          const dist = computeRouteDistance(previewPath);
+          this.routeHUDUI.updateState(previewPath.length, dist);
         }
         return;
       }
@@ -329,10 +375,7 @@ export class InteractionController {
     // 2. Duplo clique — Finaliza rota ou centraliza a órbita no ponto do terreno
     this.canvas.addEventListener('dblclick', (e) => {
       if (this.activeTool === 'route' && this.routeDrawingNodes.length >= 2) {
-        const measuredDist = computeRouteDistance(this.routeDrawingNodes);
-        this.routeModalUI.open([...this.routeDrawingNodes], 'road', measuredDist, null);
-        this.routeDrawingNodes = [];
-        this.routeMesh.clearPreview();
+        this.finishRouteDrawing();
         return;
       }
 
@@ -343,8 +386,25 @@ export class InteractionController {
       }
     });
 
+    // 2.5 ContextMenu (Botão Direito) — Cancela traçado de rota em andamento sem abrir menu nativo do browser
+    this.canvas.addEventListener('contextmenu', (e) => {
+      if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
+        e.preventDefault();
+        this.cancelRouteDrawing();
+      }
+    });
+
     // 3. MouseDown
     this.canvas.addEventListener('mousedown', (e) => {
+      // Botão Direito cancela traçado da rota/ponte/túnel em andamento
+      if (e.button === 2) {
+        if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
+          e.preventDefault();
+          this.cancelRouteDrawing();
+          return;
+        }
+      }
+
       // Shift + Clique move a Referência de Escala (Torre ou Boneco) para qualquer ponto do terreno!
       if (e.shiftKey && e.button === 0) {
         const hit = this.getGroundTileAtMouse(e);
@@ -369,6 +429,8 @@ export class InteractionController {
         if (clickedRouteId) {
           const route = this.routeManager.getById(clickedRouteId);
           if (route) {
+            this.selectedRouteType = route.type;
+            this.routeHUDUI.setType(route.type);
             const measuredDist = computeRouteDistance(route.path);
             this.routeModalUI.open(route.path, route.type, measuredDist, route);
             return;
@@ -407,11 +469,14 @@ export class InteractionController {
       if (this.activeTool === 'route') {
         if (this.routeDrawingNodes.length === 0) {
           this.routeDrawingNodes.push([hit.tileX, hit.tileY]);
+          this.routeHUDUI.updateState(1, 0);
         } else {
           const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
           const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
           if (snap.x2 !== last[0] || snap.y2 !== last[1]) {
             this.routeDrawingNodes.push([snap.x2, snap.y2]);
+            const dist = computeRouteDistance(this.routeDrawingNodes);
+            this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
           }
         }
         return;
@@ -563,16 +628,16 @@ export class InteractionController {
       if (this.activeTool === 'route') {
         if (e.key === 'Enter' && this.routeDrawingNodes.length >= 2) {
           e.preventDefault();
-          const measuredDist = computeRouteDistance(this.routeDrawingNodes);
-          this.routeModalUI.open([...this.routeDrawingNodes], 'road', measuredDist, null);
-          this.routeDrawingNodes = [];
-          this.routeMesh.clearPreview();
+          this.finishRouteDrawing();
           return;
         }
-        if (e.key === 'Escape' && this.routeDrawingNodes.length > 0) {
+        if (e.key === 'Escape') {
           e.preventDefault();
-          this.routeDrawingNodes = [];
-          this.routeMesh.clearPreview();
+          if (this.routeDrawingNodes.length > 0) {
+            this.cancelRouteDrawing();
+          } else {
+            this.toolbarUI.setTool('raise');
+          }
           return;
         }
       }

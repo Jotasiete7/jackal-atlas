@@ -146,8 +146,8 @@ export const TOOL_HELP_DATA: Record<string, ToolHelpItem> = {
     roleLabelEn: 'All (Scouts+)',
     whatPt: 'Traça estradas coladas ao relevo, pontes como réguas suspensas e túneis em raio-X. Permite cravar a medida real de tiles do jogo para aferir e corrigir o mapa.',
     whatEn: 'Traces roads draped on terrain, bridges as suspended rulers, and tunnels in X-ray. Enables setting true in-game tile counts to calibrate and correct the terrain.',
-    howPt: 'Clique para iniciar o traçado (trava em 45°/90°; segure Shift para livre). Clique para nós adicionais e dê duplo clique para salvar ou cravar os tiles reais.',
-    howEn: 'Click to start tracing (snaps to 45°/90°; hold Shift for free angle). Click for additional nodes and double-click to save or fix true tile length.',
+    howPt: 'Escolha Estrada, Ponte ou Túnel no painel flutuante. Clique no relevo para fixar pontos (0°/45°/90°; segure Shift para livre). Conclua com Enter ou duplo-clique. Cancele com Botão Direito ou Esc.',
+    howEn: 'Select Road, Bridge or Tunnel in floating panel. Click terrain to set points (0°/45°/90°; hold Shift for free). Finish with Enter or double-click. Cancel with Right-Click or Esc.',
     shortcut: 'B'
   },
   undo: {

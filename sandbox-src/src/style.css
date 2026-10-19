@@ -219,6 +219,58 @@ body, html {
   z-index: 10;
 }
 
+/* Painel Flutuante da Ferramenta de Rotas & Aferições */
+.route-hud-panel {
+  position: absolute;
+  top: 76px;
+  left: 78px;
+  width: 280px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.hud-pill-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 5px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.hud-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.hud-pill-btn.active-road {
+  background: rgba(245, 166, 35, 0.2);
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
+.hud-pill-btn.active-bridge {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.hud-pill-btn.active-tunnel {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: #c084fc;
+}
+
 .panel-header {
   font-size: 11px;
   font-weight: 700;
