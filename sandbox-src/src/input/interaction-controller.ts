@@ -23,6 +23,7 @@ import { InfoBarUI } from '../ui/info-bar';
 import { PinModalUI } from '../ui/pin-modal';
 
 import { StorageManager } from '../core/storage';
+import { PlaceablesManager } from '../placeables/placeables';
 
 export class InteractionController {
   private canvas: HTMLCanvasElement;
@@ -46,6 +47,7 @@ export class InteractionController {
   private layersPanelUI: LayersPanelUI;
   private infoBarUI: InfoBarUI;
   private pinModalUI: PinModalUI;
+  private placeables: PlaceablesManager;
 
   private activeTool: ModelingTool = 'raise';
   private brushSettings: BrushSettings = {
@@ -85,6 +87,7 @@ export class InteractionController {
     layersPanelUI: LayersPanelUI;
     infoBarUI: InfoBarUI;
     pinModalUI: PinModalUI;
+    placeables: PlaceablesManager;
   }) {
     this.canvas = deps.canvas;
     this.heightfield = deps.heightfield;
@@ -104,6 +107,7 @@ export class InteractionController {
     this.layersPanelUI = deps.layersPanelUI;
     this.infoBarUI = deps.infoBarUI;
     this.pinModalUI = deps.pinModalUI;
+    this.placeables = deps.placeables;
 
     this.bindEvents();
   }
@@ -119,6 +123,7 @@ export class InteractionController {
 
   public setActiveTool(tool: ModelingTool): void {
     this.activeTool = tool;
+    this.placeables.setAtivo(tool === 'place');
     this.brushCursor.setTool(tool);
     this.brushPanelUI.setToolMode(tool);
   }
@@ -248,6 +253,12 @@ export class InteractionController {
 
       this.infoBarUI.updateCoordinates(hit.tileX, hit.tileY, hit.height, cell.state, cell.confidence);
 
+      if (this.activeTool === 'place') {
+        this.brushCursor.hide();
+        this.placeables.mouseMove(hit);
+        return;
+      }
+
       const surfaceY = hit.height * this.sceneManager.getVerticalExaggeration();
       this.brushCursor.setPosition(hit.worldX, surfaceY, hit.worldZ);
 
@@ -285,6 +296,12 @@ export class InteractionController {
       }
 
       if (e.button !== 0 || e.altKey || e.ctrlKey || e.shiftKey) return;
+
+      // Placeables tool: select / drag / place Wurm models (before pins, so objects on top of pins win)
+      if (this.activeTool === 'place') {
+        this.placeables.mouseDown(e, this.cameraController.getActiveCamera(), this.canvas, this.getGroundTileAtMouse(e));
+        return;
+      }
 
       // Prioridade: Clicar em um Pino 3D existente
       const clickedPinId = this.getPinUnderMouse(e);
@@ -366,6 +383,7 @@ export class InteractionController {
 
     // 4. MouseUp
     window.addEventListener('mouseup', () => {
+      this.placeables.mouseUp();
       this.stopContinuousSculpt();
       if (this.isMouseDown) {
         this.isMouseDown = false;
@@ -399,6 +417,12 @@ export class InteractionController {
     window.addEventListener('keydown', (e) => {
       const target = e.target as HTMLElement | null;
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return;
+      }
+
+      // Placeables: rotate / delete / deselect the selected object
+      if (this.placeables.keyDown(e)) {
+        e.preventDefault();
         return;
       }
 

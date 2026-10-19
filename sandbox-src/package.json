@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "extract-wurm": "node scripts/extract-wurm-assets.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",

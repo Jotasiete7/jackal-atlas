@@ -3,6 +3,7 @@ import { CONFIG } from '../config';
 import { MapPin } from '../core/types';
 import { PinManager } from '../core/pins';
 import { HeightfieldManager } from '../core/heightfield';
+import { modeloPilar } from '../wurm/models';
 
 export class PinMeshManager {
   private parentGroup: THREE.Group;
@@ -133,6 +134,15 @@ export class PinMeshManager {
       }
 
       case 'pillar': {
+        // Real in-game survey pillar when the Wurm assets are extracted (~1.4 m square, ~5 m tall)
+        const modeloWurm = modeloPilar();
+        if (modeloWurm) {
+          modelHeight = 5.0;
+          const real = modeloWurm.clone();
+          real.traverse(o => { (o as any).userData = { pinId: pin.id }; });
+          group.add(real);
+          break;
+        }
         // Pilar Geodésico de Pedra do Wurm: Base quadrada 1.4m, altura 4.0m
         modelHeight = 4.5;
         const stoneMat = new THREE.MeshStandardMaterial({
