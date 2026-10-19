@@ -74,6 +74,8 @@ export class InteractionController {
   private lastTilePos: { tileX: number; tileY: number } | null = null;
   private continuousTimer: number | null = null;
   private autosaveTimeout: number | null = null;
+  private rightClickDownPos: { x: number; y: number } | null = null;
+  private lastRightClickReleaseTime = 0;
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -386,23 +388,16 @@ export class InteractionController {
       }
     });
 
-    // 2.5 ContextMenu (Botão Direito) — Cancela traçado de rota em andamento sem abrir menu nativo do browser
+    // 2.5 ContextMenu (Botão Direito) — Previne menu nativo do navegador sobre o canvas
     this.canvas.addEventListener('contextmenu', (e) => {
-      if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
-        e.preventDefault();
-        this.cancelRouteDrawing();
-      }
+      e.preventDefault();
     });
 
     // 3. MouseDown
     this.canvas.addEventListener('mousedown', (e) => {
-      // Botão Direito cancela traçado da rota/ponte/túnel em andamento
+      // Guarda posição do botão direito para diferenciar arrasto de câmera de clique/duplo clique
       if (e.button === 2) {
-        if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
-          e.preventDefault();
-          this.cancelRouteDrawing();
-          return;
-        }
+        this.rightClickDownPos = { x: e.clientX, y: e.clientY };
       }
 
       // Shift + Clique move a Referência de Escala (Torre ou Boneco) para qualquer ponto do terreno!
@@ -533,7 +528,27 @@ export class InteractionController {
     });
 
     // 4. MouseUp
-    window.addEventListener('mouseup', () => {
+    window.addEventListener('mouseup', (e: MouseEvent) => {
+      // Detecção de Duplo Clique com o Botão Direito para cancelar rota (arrastos de câmera são ignorados)
+      if (e.button === 2 && this.rightClickDownPos) {
+        const dx = e.clientX - this.rightClickDownPos.x;
+        const dy = e.clientY - this.rightClickDownPos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        this.rightClickDownPos = null;
+
+        // Se o mouse moveu menos de 6 pixels, foi um clique rápido parado (e não um arrasto de câmera)
+        if (dist < 6 && this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
+          const now = performance.now();
+          if (now - this.lastRightClickReleaseTime < 380) {
+            // DUPLO CLIQUE COM O DIREITO: cancela o traçado elástico!
+            this.cancelRouteDrawing();
+            this.lastRightClickReleaseTime = 0;
+          } else {
+            this.lastRightClickReleaseTime = now;
+          }
+        }
+      }
+
       this.placeables.mouseUp();
       this.stopContinuousSculpt();
       if (this.isMouseDown) {
@@ -579,6 +594,15 @@ export class InteractionController {
 
       if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault();
+        if (this.activeTool === 'route' && this.routeDrawingNodes.length > 0) {
+          this.routeDrawingNodes.pop();
+          const dist = computeRouteDistance(this.routeDrawingNodes);
+          this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
+          if (this.routeDrawingNodes.length === 0) {
+            this.routeMesh.clearPreview();
+          }
+          return;
+        }
         if (e.shiftKey) this.handleRedo();
         else this.handleUndo();
         return;
@@ -626,6 +650,18 @@ export class InteractionController {
 
       // Atalhos específicos da ferramenta Rota
       if (this.activeTool === 'route') {
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          if (this.routeDrawingNodes.length > 0) {
+            e.preventDefault();
+            this.routeDrawingNodes.pop();
+            const dist = computeRouteDistance(this.routeDrawingNodes);
+            this.routeHUDUI.updateState(this.routeDrawingNodes.length, dist);
+            if (this.routeDrawingNodes.length === 0) {
+              this.routeMesh.clearPreview();
+            }
+            return;
+          }
+        }
         if (e.key === 'Enter' && this.routeDrawingNodes.length >= 2) {
           e.preventDefault();
           this.finishRouteDrawing();

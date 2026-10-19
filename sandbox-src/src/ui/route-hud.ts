@@ -142,12 +142,12 @@ export class RouteHUDUI {
           this.nodesCount > 0
             ? `
           <button id="btn-hud-cancel" class="btn" style="padding:5px 8px; font-size:11px; color:#ef4444; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); justify-content:center;">
-            ✕ ${isPt ? 'Cancelar (Direito/Esc)' : 'Cancel (Right/Esc)'}
+            ✕ ${isPt ? 'Cancelar (2x Direito/Esc)' : 'Cancel (2x Right/Esc)'}
           </button>
         `
             : `
-          <div style="font-size:10px; color:var(--text-dim); text-align:center; width:100%;">
-            ${isPt ? 'Botão Direito ou Esc cancela o traçado' : 'Right-Click or Esc cancels path'}
+          <div style="font-size:10px; color:var(--text-dim); text-align:center; width:100%; line-height:1.3;">
+            ${isPt ? '🖱️ Arraste Direito: Câmera | 2x Direito ou Esc: Cancela' : '🖱️ Right Drag: Camera | 2x Right or Esc: Cancel'}
           </div>
         `
         }
