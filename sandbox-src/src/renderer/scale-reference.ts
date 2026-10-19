@@ -42,7 +42,7 @@ export class ScaleReferenceManager {
     this.container.add(this.pillarGroup);
 
     this.setMode('tower');
-    this.setPosition(2, 0, 0);
+    this.setPosition(0, 0, 0);
 
     i18n.subscribe(() => {
       this.updateLabels();

@@ -10,7 +10,7 @@ export class PinManager {
   private listeners: Array<() => void> = [];
 
   constructor() {
-    this.createInitialPillars();
+    // Pinos reais vêm da nuvem ou do usuário; o marco visual do (0,0) é gerenciado pelo ScaleReferenceManager
   }
 
   /**
