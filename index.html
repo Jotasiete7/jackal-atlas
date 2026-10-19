@@ -3549,20 +3549,21 @@
     async function carregarERenderizarRelevo3DNoAtlas(modo = 'topo') {
         if (cacheReliefData) {
             renderizarCanvasRelevo3D(cacheReliefData, modo);
+            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
         }
         if (supabaseClient) {
             try {
                 let { data, error } = await supabaseClient
                     .from('relief_state')
                     .select('*')
-                    .eq('id', 'main')
+                    .eq('id', 'jackal_r2_main')
                     .maybeSingle();
 
                 if (!data) {
                     const fallback = await supabaseClient
                         .from('relief_state')
                         .select('*')
-                        .eq('id', 'jackal_r2_main')
+                        .eq('id', 'main')
                         .maybeSingle();
                     data = fallback.data;
                     error = fallback.error;
@@ -3572,12 +3573,19 @@
                     if (Array.isArray(data.chunks) && data.chunks.length > 0) {
                         cacheReliefData = data;
                     } else if (data.heightmap) {
-                        cacheReliefData = JSON.parse(data.heightmap);
+                        try {
+                            cacheReliefData = JSON.parse(data.heightmap);
+                        } catch(e) {}
                     }
-                    if (cacheReliefData) {
+                    if (cacheReliefData && cacheReliefData.chunks && cacheReliefData.chunks.length > 0) {
                         renderizarCanvasRelevo3D(cacheReliefData, modo);
+                        if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
                         mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded!`));
+                    } else {
+                        mostrarToastCartografico(txt('ℹ️ Nenhum relevo 3D publicado ainda na nuvem.', 'ℹ️ No 3D relief published to the cloud yet.'));
                     }
+                } else {
+                    mostrarToastCartografico(txt('ℹ️ Nenhum relevo 3D publicado ainda na nuvem.', 'ℹ️ No 3D relief published to the cloud yet.'));
                 }
             } catch (err) {
                 console.warn('Aviso ao carregar relevo 3D no Atlas:', err);
@@ -3592,10 +3600,10 @@
             if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
             if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
         } else if (tipo === 'topo_3d') {
-            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            if (!map.hasLayer(parchmentLayer) && !cacheReliefData) parchmentLayer.addTo(map);
             carregarERenderizarRelevo3DNoAtlas('topo');
         } else if (tipo === 'relief_shaded') {
-            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            if (!map.hasLayer(parchmentLayer) && !cacheReliefData) parchmentLayer.addTo(map);
             carregarERenderizarRelevo3DNoAtlas('relief_shaded');
         } else {
             tipo = 'parchment';

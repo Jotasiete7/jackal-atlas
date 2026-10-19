@@ -24,8 +24,12 @@ export class PinModalUI {
     this.onSaveCallback = onSave;
     this.currentPin = pinData as MapPin;
 
+    const zValue = (pinData.z !== null && pinData.z !== undefined && typeof pinData.z === 'number')
+      ? (Math.round(pinData.z * 10) / 10).toFixed(1)
+      : (pinData.z ?? '');
+
     this.backdrop.innerHTML = `
-      <div class="glass-panel modal-content">
+      <div class="glass-panel modal-content" style="box-sizing: border-box;">
         <div class="modal-header">
           <strong style="color: #fff; font-size: 14px;">
             ${t('pin_modal_title')}
@@ -35,15 +39,15 @@ export class PinModalUI {
 
         <div class="form-group">
           <label>${t('pin_coords')}</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="number" id="pin-x" class="form-control" value="${pinData.x ?? 0}" style="flex: 1;" placeholder="X" />
-            <input type="number" id="pin-y" class="form-control" value="${pinData.y ?? 0}" style="flex: 1;" placeholder="Y" />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input type="number" id="pin-x" class="form-control" value="${pinData.x ?? 0}" style="width: 100%; box-sizing: border-box; min-width: 0;" placeholder="X" />
+            <input type="number" id="pin-y" class="form-control" value="${pinData.y ?? 0}" style="width: 100%; box-sizing: border-box; min-width: 0;" placeholder="Y" />
           </div>
         </div>
 
         <div class="form-group">
           <label>${t('pin_elevation')}</label>
-          <input type="number" id="pin-z" class="form-control" step="0.5" value="${pinData.z !== null && pinData.z !== undefined ? pinData.z : ''}" placeholder="${t('pin_elevation_hint')}" />
+          <input type="number" id="pin-z" class="form-control" step="0.5" value="${zValue}" placeholder="${t('pin_elevation_hint')}" style="box-sizing: border-box; width: 100%;" />
         </div>
 
         <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #93c5fd; cursor: pointer; margin-bottom: 8px;">
