@@ -24,6 +24,9 @@ import { PinModalUI } from '../ui/pin-modal';
 
 import { StorageManager } from '../core/storage';
 import { PlaceablesManager } from '../placeables/placeables';
+import { RouteManager, calcularSnapWurm, computeRouteDistance } from '../core/routes';
+import { RouteMeshManager } from '../renderer/route-mesh';
+import { RouteModalUI } from '../ui/route-modal';
 
 export class InteractionController {
   private canvas: HTMLCanvasElement;
@@ -32,6 +35,7 @@ export class InteractionController {
   private pinManager: PinManager;
   private visitManager: VisitManager;
   private storageManager: StorageManager;
+  private routeManager: RouteManager;
 
   private sceneManager: SceneManager;
   private cameraController: CameraController;
@@ -39,6 +43,7 @@ export class InteractionController {
   private gridMesh: GridMeshManager;
   private brushCursor: BrushCursorManager;
   private pinMesh: PinMeshManager;
+  private routeMesh: RouteMeshManager;
   private scaleReference: ScaleReferenceManager;
   private contourRenderer: ContourRenderer;
 
@@ -47,7 +52,10 @@ export class InteractionController {
   private layersPanelUI: LayersPanelUI;
   private infoBarUI: InfoBarUI;
   private pinModalUI: PinModalUI;
+  private routeModalUI: RouteModalUI;
   private placeables: PlaceablesManager;
+
+  private routeDrawingNodes: Array<[number, number]> = [];
 
   private activeTool: ModelingTool = 'raise';
   private brushSettings: BrushSettings = {
@@ -74,12 +82,14 @@ export class InteractionController {
     pinManager: PinManager;
     visitManager: VisitManager;
     storageManager: StorageManager;
+    routeManager: RouteManager;
     sceneManager: SceneManager;
     cameraController: CameraController;
     terrainMesh: TerrainMeshManager;
     gridMesh: GridMeshManager;
     brushCursor: BrushCursorManager;
     pinMesh: PinMeshManager;
+    routeMesh: RouteMeshManager;
     scaleReference: ScaleReferenceManager;
     contourRenderer: ContourRenderer;
     toolbarUI: ToolbarUI;
@@ -87,6 +97,7 @@ export class InteractionController {
     layersPanelUI: LayersPanelUI;
     infoBarUI: InfoBarUI;
     pinModalUI: PinModalUI;
+    routeModalUI: RouteModalUI;
     placeables: PlaceablesManager;
   }) {
     this.canvas = deps.canvas;
@@ -94,12 +105,14 @@ export class InteractionController {
     this.pinManager = deps.pinManager;
     this.visitManager = deps.visitManager;
     this.storageManager = deps.storageManager;
+    this.routeManager = deps.routeManager;
     this.sceneManager = deps.sceneManager;
     this.cameraController = deps.cameraController;
     this.terrainMesh = deps.terrainMesh;
     this.gridMesh = deps.gridMesh;
     this.brushCursor = deps.brushCursor;
     this.pinMesh = deps.pinMesh;
+    this.routeMesh = deps.routeMesh;
     this.scaleReference = deps.scaleReference;
     this.contourRenderer = deps.contourRenderer;
     this.toolbarUI = deps.toolbarUI;
@@ -107,6 +120,7 @@ export class InteractionController {
     this.layersPanelUI = deps.layersPanelUI;
     this.infoBarUI = deps.infoBarUI;
     this.pinModalUI = deps.pinModalUI;
+    this.routeModalUI = deps.routeModalUI;
     this.placeables = deps.placeables;
 
     this.bindEvents();
@@ -117,11 +131,15 @@ export class InteractionController {
       window.clearTimeout(this.autosaveTimeout);
     }
     this.autosaveTimeout = window.setTimeout(() => {
-      this.storageManager.saveAutosave(this.heightfield, this.pinManager, this.visitManager);
+      this.storageManager.saveAutosave(this.heightfield, this.pinManager, this.visitManager, this.routeManager);
     }, 1500);
   }
 
   public setActiveTool(tool: ModelingTool): void {
+    if (this.activeTool === 'route' && tool !== 'route' && this.routeDrawingNodes.length > 0) {
+      this.routeDrawingNodes = [];
+      this.routeMesh.clearPreview();
+    }
     this.activeTool = tool;
     this.placeables.setAtivo(tool === 'place');
     this.brushCursor.setTool(tool);
@@ -233,6 +251,30 @@ export class InteractionController {
     return null;
   }
 
+  public getRouteUnderMouse(e: MouseEvent): string | null {
+    const rect = this.canvas.getBoundingClientRect();
+    this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const activeCamera = this.cameraController.getActiveCamera();
+    this.raycaster.setFromCamera(this.mouse, activeCamera);
+
+    const routeTargets = this.routeMesh.getRaycastTargets();
+    if (routeTargets.length === 0) return null;
+
+    const hits = this.raycaster.intersectObjects(routeTargets, false);
+    if (hits.length > 0) {
+      let obj: THREE.Object3D | null = hits[0].object;
+      while (obj) {
+        if ((obj as any).userData && (obj as any).userData.routeId && !(obj as any).userData.isPreview) {
+          return (obj as any).userData.routeId;
+        }
+        obj = obj.parent;
+      }
+    }
+    return null;
+  }
+
   public updateScalePosition(): void {
     const pos = this.scaleReference.getPosition();
     const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
@@ -262,6 +304,16 @@ export class InteractionController {
       const surfaceY = hit.height * this.sceneManager.getVerticalExaggeration();
       this.brushCursor.setPosition(hit.worldX, surfaceY, hit.worldZ);
 
+      if (this.activeTool === 'route') {
+        if (this.routeDrawingNodes.length > 0) {
+          const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
+          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
+          const previewPath: Array<[number, number]> = [...this.routeDrawingNodes, [snap.x2, snap.y2]];
+          this.routeMesh.updatePreview(previewPath, 'road', 'planned');
+        }
+        return;
+      }
+
       this.lastTilePos = { tileX: hit.tileX, tileY: hit.tileY };
 
       if (this.isMouseDown && this.isModelingTool(this.activeTool)) {
@@ -274,8 +326,16 @@ export class InteractionController {
       }
     });
 
-    // 2. Duplo clique — Centraliza a órbita no ponto do terreno
+    // 2. Duplo clique — Finaliza rota ou centraliza a órbita no ponto do terreno
     this.canvas.addEventListener('dblclick', (e) => {
+      if (this.activeTool === 'route' && this.routeDrawingNodes.length >= 2) {
+        const measuredDist = computeRouteDistance(this.routeDrawingNodes);
+        this.routeModalUI.open([...this.routeDrawingNodes], 'road', measuredDist, null);
+        this.routeDrawingNodes = [];
+        this.routeMesh.clearPreview();
+        return;
+      }
+
       const hit = this.getGroundTileAtMouse(e);
       if (hit) {
         const surfaceY = hit.height * this.sceneManager.getVerticalExaggeration();
@@ -301,6 +361,19 @@ export class InteractionController {
       if (this.activeTool === 'place') {
         this.placeables.mouseDown(e, this.cameraController.getActiveCamera(), this.canvas, this.getGroundTileAtMouse(e));
         return;
+      }
+
+      // Prioridade: Clicar em uma Rota 3D existente para abrir modal de inspeção/edição
+      if (this.routeDrawingNodes.length === 0) {
+        const clickedRouteId = this.getRouteUnderMouse(e);
+        if (clickedRouteId) {
+          const route = this.routeManager.getById(clickedRouteId);
+          if (route) {
+            const measuredDist = computeRouteDistance(route.path);
+            this.routeModalUI.open(route.path, route.type, measuredDist, route);
+            return;
+          }
+        }
       }
 
       // Prioridade: Clicar em um Pino 3D existente
@@ -330,6 +403,19 @@ export class InteractionController {
 
       const hit = this.getGroundTileAtMouse(e);
       if (!hit) return;
+
+      if (this.activeTool === 'route') {
+        if (this.routeDrawingNodes.length === 0) {
+          this.routeDrawingNodes.push([hit.tileX, hit.tileY]);
+        } else {
+          const last = this.routeDrawingNodes[this.routeDrawingNodes.length - 1];
+          const snap = calcularSnapWurm(last[0], last[1], hit.tileX, hit.tileY, e.shiftKey);
+          if (snap.x2 !== last[0] || snap.y2 !== last[1]) {
+            this.routeDrawingNodes.push([snap.x2, snap.y2]);
+          }
+        }
+        return;
+      }
 
       if (this.activeTool === 'pin') {
         const { cellX, cellY } = tileToCell(hit.tileX, hit.tileY);
@@ -473,6 +559,24 @@ export class InteractionController {
         return;
       }
 
+      // Atalhos específicos da ferramenta Rota
+      if (this.activeTool === 'route') {
+        if (e.key === 'Enter' && this.routeDrawingNodes.length >= 2) {
+          e.preventDefault();
+          const measuredDist = computeRouteDistance(this.routeDrawingNodes);
+          this.routeModalUI.open([...this.routeDrawingNodes], 'road', measuredDist, null);
+          this.routeDrawingNodes = [];
+          this.routeMesh.clearPreview();
+          return;
+        }
+        if (e.key === 'Escape' && this.routeDrawingNodes.length > 0) {
+          e.preventDefault();
+          this.routeDrawingNodes = [];
+          this.routeMesh.clearPreview();
+          return;
+        }
+      }
+
       // Atalhos de seleção de ferramentas (sem chaves WASD para navegação livre)
       const toolShortcuts: Record<string, ModelingTool> = {
         r: 'raise',
@@ -483,6 +587,7 @@ export class InteractionController {
         k: 'lock',
         p: 'pin',
         t: 'station',
+        b: 'route',
       };
       const keyLower = e.key.toLowerCase();
       if (!e.altKey && !e.ctrlKey && !e.metaKey && toolShortcuts[keyLower]) {
@@ -519,6 +624,7 @@ export class InteractionController {
       this.terrainMesh.updateDirtyChunks();
       this.updateScalePosition();
       this.pinMesh.updatePinsElevation();
+      this.routeMesh.refreshHeights();
     }
   }
 
@@ -529,6 +635,7 @@ export class InteractionController {
       this.contourRenderer.triggerDebouncedUpdate(200);
       this.updateScalePosition();
       this.pinMesh.updatePinsElevation();
+      this.routeMesh.refreshHeights();
       this.triggerAutosave();
     }
   }
@@ -540,6 +647,7 @@ export class InteractionController {
       this.contourRenderer.triggerDebouncedUpdate(200);
       this.updateScalePosition();
       this.pinMesh.updatePinsElevation();
+      this.routeMesh.refreshHeights();
       this.triggerAutosave();
     }
   }

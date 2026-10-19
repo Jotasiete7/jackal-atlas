@@ -6,11 +6,13 @@ import { StorageManager } from '../../core/storage';
 import { HeightfieldManager } from '../../core/heightfield';
 import { PinManager } from '../../core/pins';
 import { VisitManager } from '../../core/visits';
+import { RouteManager } from '../../core/routes';
 import { TerrainMeshManager } from '../../renderer/terrain-mesh';
 import { ContourRenderer } from '../../renderer/contour-renderer';
 import { PinMeshManager } from '../../renderer/pin-mesh';
 import { GridMeshManager } from '../../renderer/grid-mesh';
 import { ScaleReferenceManager } from '../../renderer/scale-reference';
+import { RouteMeshManager } from '../../renderer/route-mesh';
 import { ICONS } from '../icons';
 import { t } from '../../i18n';
 
@@ -25,6 +27,8 @@ export class SnapshotsSectionUI {
   private pinMesh: PinMeshManager;
   private gridMesh: GridMeshManager;
   private scaleReference: ScaleReferenceManager;
+  private routeManager?: RouteManager;
+  private routeMesh?: RouteMeshManager;
 
   constructor(
     parent: HTMLElement,
@@ -38,6 +42,8 @@ export class SnapshotsSectionUI {
       pinMesh: PinMeshManager;
       gridMesh: GridMeshManager;
       scaleReference: ScaleReferenceManager;
+      routeManager?: RouteManager;
+      routeMesh?: RouteMeshManager;
     }
   ) {
     this.storageManager = deps.storageManager;
@@ -49,6 +55,8 @@ export class SnapshotsSectionUI {
     this.pinMesh = deps.pinMesh;
     this.gridMesh = deps.gridMesh;
     this.scaleReference = deps.scaleReference;
+    this.routeManager = deps.routeManager;
+    this.routeMesh = deps.routeMesh;
 
     this.container = document.createElement('div');
     parent.appendChild(this.container);
@@ -147,7 +155,7 @@ export class SnapshotsSectionUI {
             // Salva backup automático do relevo atual antes de substituir
             await this.createAutoSafetyBackup();
             this.terrainMesh.clear();
-            this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager);
+            this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
             this.syncSceneAfterRestore();
             alert(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
           }
@@ -179,13 +187,15 @@ export class SnapshotsSectionUI {
 
   /** Cria snapshot de segurança automático para evitar perda de dados por engano */
   private async createAutoSafetyBackup(): Promise<void> {
-    if (this.heightfield.hasAnyData() || this.pinManager.getAll().length > 0) {
+    if (this.heightfield.hasAnyData() || this.pinManager.getAll().length > 0 || (this.routeManager && this.routeManager.getAll().length > 0)) {
       const snapName = `⚡ Auto-Backup (${new Date().toLocaleTimeString()})`;
       const snap = this.storageManager.serializeCurrentState(
         this.heightfield,
         this.pinManager,
         this.visitManager,
-        snapName
+        snapName,
+        false,
+        this.routeManager
       );
       await this.storageManager.saveSnapshot(snap);
       await this.loadSnapshotList();
@@ -196,6 +206,9 @@ export class SnapshotsSectionUI {
     this.terrainMesh.updateDirtyChunks();
     this.contourRenderer.requestUpdate();
     this.pinMesh.rebuildPins();
+    if (this.routeMesh) {
+      this.routeMesh.rebuildAllRoutes();
+    }
 
     const activeVisit = this.visitManager.getCurrentVisit();
     const stationElev = this.heightfield.getInterpolatedHeightAtTile(activeVisit.station_x, activeVisit.station_y);
@@ -215,7 +228,9 @@ export class SnapshotsSectionUI {
         this.heightfield,
         this.pinManager,
         this.visitManager,
-        name
+        name,
+        false,
+        this.routeManager
       );
       await this.storageManager.saveSnapshot(snap);
       inputSnap.value = '';
@@ -228,7 +243,9 @@ export class SnapshotsSectionUI {
         this.heightfield,
         this.pinManager,
         this.visitManager,
-        'Backup'
+        'Backup',
+        false,
+        this.routeManager
       );
       this.storageManager.exportSnapshotAsJSON(snap);
     });
@@ -245,7 +262,7 @@ export class SnapshotsSectionUI {
           // Salva backup automático antes de importar
           await this.createAutoSafetyBackup();
           this.terrainMesh.clear();
-          this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager);
+          this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
           this.syncSceneAfterRestore();
           alert(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
         } catch (e: any) {
@@ -261,6 +278,9 @@ export class SnapshotsSectionUI {
         this.terrainMesh.clear();
         this.heightfield.clear();
         this.pinManager.clear();
+        if (this.routeManager) {
+          this.routeManager.clear();
+        }
         this.syncSceneAfterRestore();
       }
     });

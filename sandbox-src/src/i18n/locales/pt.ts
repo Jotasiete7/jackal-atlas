@@ -54,6 +54,7 @@ export const pt = {
   layer_hillshade: 'Sombreamento (Hillshade)',
   layer_confidence: 'Mapa de Confiança',
   layer_pins: 'Pinos e Marcos',
+  layer_routes: 'Rotas e Aferições [B]',
   layer_station_range: 'Raio da Estação',
   layer_wireframe: 'Malha Aramada (Wireframe)',
 

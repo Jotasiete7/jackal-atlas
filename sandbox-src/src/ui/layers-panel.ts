@@ -8,6 +8,8 @@ import { VisitManager } from '../core/visits';
 import { StorageManager } from '../core/storage';
 import { HeightfieldManager } from '../core/heightfield';
 import { PinManager } from '../core/pins';
+import { RouteManager } from '../core/routes';
+import { RouteMeshManager } from '../renderer/route-mesh';
 
 import { MapLayersSectionUI } from './panels/map-layers-section';
 import { ExportSectionUI } from './panels/export-section';
@@ -35,6 +37,8 @@ export class LayersPanelUI {
       heightfield: HeightfieldManager;
       pinManager: PinManager;
       rendererCanvas: HTMLCanvasElement;
+      routeMesh?: RouteMeshManager;
+      routeManager?: RouteManager;
     }
   ) {
     this.container = document.createElement('div');
@@ -47,6 +51,7 @@ export class LayersPanelUI {
       pinMesh: deps.pinMesh,
       contourRenderer: deps.contourRenderer,
       scaleReference: deps.scaleReference,
+      routeMesh: deps.routeMesh,
     });
 
     this.exportSection = new ExportSectionUI(this.container, deps.contourRenderer);
@@ -63,6 +68,8 @@ export class LayersPanelUI {
       pinMesh: deps.pinMesh,
       gridMesh: deps.gridMesh,
       scaleReference: deps.scaleReference,
+      routeManager: deps.routeManager,
+      routeMesh: deps.routeMesh,
     });
 
     i18n.subscribe(() => {

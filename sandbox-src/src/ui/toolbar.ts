@@ -40,7 +40,7 @@ export class ToolbarUI {
   }
 
   public setTool(tool: ModelingTool): void {
-    if (this.currentRole === 'scout' && !['pin', 'station'].includes(tool)) {
+    if (this.currentRole === 'scout' && !['pin', 'station', 'route'].includes(tool)) {
       return;
     }
     if (this.currentRole === 'explorer' && tool === 'lock') {
@@ -153,6 +153,13 @@ export class ToolbarUI {
           ${ICONS.compass}
         </button>
         <span class="jk-help-btn" data-help="station" title="${helpTip}">?</span>
+      </div>
+
+      <div class="tool-btn-wrapper">
+        <button class="tool-btn ${this.currentTool === 'route' ? 'active' : ''}" data-tool="route" title="${i18n.getLang() === 'en' ? 'Infrastructure & Calibration (Road, Bridge, Tunnel) [B]' : 'Infraestrutura & Aferição (Estrada, Ponte, Túnel) [B]'}">
+          🛣️
+        </button>
+        <span class="jk-help-btn" data-help="route" title="${helpTip}">?</span>
       </div>
 
       <div class="tool-btn-wrapper" style="display:${this.placeablesDisponivel ? 'flex' : 'none'};">

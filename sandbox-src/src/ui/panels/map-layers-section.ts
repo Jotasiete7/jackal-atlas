@@ -7,6 +7,7 @@ import { GridMeshManager } from '../../renderer/grid-mesh';
 import { PinMeshManager } from '../../renderer/pin-mesh';
 import { ContourRenderer } from '../../renderer/contour-renderer';
 import { ScaleReferenceManager, ScaleReferenceMode } from '../../renderer/scale-reference';
+import { RouteMeshManager } from '../../renderer/route-mesh';
 import { t } from '../../i18n';
 
 export class MapLayersSectionUI {
@@ -16,6 +17,7 @@ export class MapLayersSectionUI {
   private pinMesh: PinMeshManager;
   private contourRenderer: ContourRenderer;
   private scaleReference: ScaleReferenceManager;
+  private routeMesh?: RouteMeshManager;
 
   private showGrid = true;
   private showContours = true;
@@ -23,6 +25,7 @@ export class MapLayersSectionUI {
   private showHillshade = true;
   private showConfidence = false;
   private showPins = true;
+  private showRoutes = true;
   private showStationRange = true;
   private showWireframe = false;
 
@@ -34,6 +37,7 @@ export class MapLayersSectionUI {
       pinMesh: PinMeshManager;
       contourRenderer: ContourRenderer;
       scaleReference: ScaleReferenceManager;
+      routeMesh?: RouteMeshManager;
     }
   ) {
     this.terrainMesh = deps.terrainMesh;
@@ -41,6 +45,7 @@ export class MapLayersSectionUI {
     this.pinMesh = deps.pinMesh;
     this.contourRenderer = deps.contourRenderer;
     this.scaleReference = deps.scaleReference;
+    this.routeMesh = deps.routeMesh;
 
     this.container = document.createElement('div');
     parent.appendChild(this.container);
@@ -83,6 +88,10 @@ export class MapLayersSectionUI {
         <label class="layer-toggle-row">
           <span>${t('layer_pins')}</span>
           <input type="checkbox" id="chk-pins" ${this.showPins ? 'checked' : ''} />
+        </label>
+        <label class="layer-toggle-row">
+          <span>🛣️ ${t('layer_routes') || 'Rotas e Aferições'}</span>
+          <input type="checkbox" id="chk-routes" ${this.showRoutes ? 'checked' : ''} />
         </label>
         <label class="layer-toggle-row">
           <span>${t('layer_station_range')}</span>
@@ -188,6 +197,12 @@ export class MapLayersSectionUI {
     chkPins?.addEventListener('change', () => {
       this.showPins = chkPins.checked;
       this.pinMesh.setVisible(chkPins.checked);
+    });
+
+    const chkRoutes = this.container.querySelector('#chk-routes') as HTMLInputElement;
+    chkRoutes?.addEventListener('change', () => {
+      this.showRoutes = chkRoutes.checked;
+      if (this.routeMesh) this.routeMesh.setVisible(chkRoutes.checked);
     });
 
     const chkRange = this.container.querySelector('#chk-station-range') as HTMLInputElement;

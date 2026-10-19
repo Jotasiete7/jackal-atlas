@@ -875,6 +875,14 @@
                         <input type="checkbox" data-layer="bridges_built" checked onchange="toggleCamada('bridges_built', this.checked)">
                         <span data-i18n="pontesConc">🌉 Pontes Concluídas</span>
                     </label>
+                    <label class="sw-filter-row" style="color:#c084fc;">
+                        <input type="checkbox" data-layer="tunnels_planned" checked onchange="toggleCamada('tunnels_planned', this.checked)">
+                        <span data-i18n="tuneisPlan">🚇 Túneis Planejados</span>
+                    </label>
+                    <label class="sw-filter-row" style="color:var(--jk-freedom);">
+                        <input type="checkbox" data-layer="tunnels_built" checked onchange="toggleCamada('tunnels_built', this.checked)">
+                        <span data-i18n="tuneisConc">🚇 Túneis Escavados</span>
+                    </label>
                 </div>
             </div>
 
@@ -2117,6 +2125,8 @@
         roads_built:      L.layerGroup().addTo(map),
         bridges_planned:  L.layerGroup().addTo(map),
         bridges_built:    L.layerGroup().addTo(map),
+        tunnels_planned:  L.layerGroup().addTo(map),
+        tunnels_built:    L.layerGroup().addTo(map),
         sketch:           L.layerGroup().addTo(map)
     };
 
@@ -8006,21 +8016,26 @@
             layers.roads_built.clearLayers();
             layers.bridges_planned.clearLayers();
             layers.bridges_built.clearLayers();
+            layers.tunnels_planned.clearLayers();
+            layers.tunnels_built.clearLayers();
 
             data.forEach(r => {
                 if (!Array.isArray(r.path) || r.path.length < 2) return;
                 const latlngs = r.path.map(pt => [mapSize - pt[1], pt[0]]);
                 const isBuilt = r.kind.endsWith('_built');
                 const isBridge = r.kind.startsWith('bridge');
-                const cor = isBuilt ? '#00e676' : (isBridge ? '#38bdf8' : '#f5a623');
+                const isTunnel = r.kind.startsWith('tunnel');
+                const cor = isBuilt ? '#00e676' : (isBridge ? '#38bdf8' : (isTunnel ? '#c084fc' : '#f5a623'));
                 const targetLayer = isBridge
                     ? (isBuilt ? layers.bridges_built : layers.bridges_planned)
+                    : isTunnel
+                    ? (isBuilt ? layers.tunnels_built : layers.tunnels_planned)
                     : (isBuilt ? layers.roads_built : layers.roads_planned);
 
                 const line = L.polyline(latlngs, {
                     color: cor,
                     weight: Number(r.width) || 3.5,
-                    dashArray: isBuilt ? null : '6 4',
+                    dashArray: isBuilt ? (isTunnel ? '3 3' : null) : '6 4',
                     opacity: 0.9,
                     renderer: tacticalCanvasRenderer
                 });
@@ -8039,6 +8054,8 @@
 
                 const nextKind = isBridge
                     ? (isBuilt ? 'bridge_planned' : 'bridge_built')
+                    : isTunnel
+                    ? (isBuilt ? 'tunnel_planned' : 'tunnel_built')
                     : (isBuilt ? 'road_planned' : 'road_built');
                 const flipText = isBuilt ? txt('📋 Reverter para Planejada', '📋 Revert to Planned') : txt('🔨 Marcar como Concluída', '🔨 Mark as Finished');
 
@@ -8068,14 +8085,15 @@
                 // Wide invisible line on top so thin roads and bridges are easy to click
                 const alvoClique = L.polyline(latlngs, { weight: 18, opacity: 0, renderer: tacticalCanvasRenderer });
                 const grupoRota = L.featureGroup([line, alvoClique]);
+                const iconRota = isBridge ? '🌉' : (isTunnel ? '🚇' : '🛣️');
                 const popupRota = `
                     <div style="font-family:'Inter',sans-serif; min-width:180px; padding:2px;">
                         <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
-                            <span>${isBridge ? '🌉' : '🛣️'} ${sanitize(r.name)}</span>
+                            <span>${iconRota} ${sanitize(r.name)}</span>
                             ${statusBadge}
                         </div>
                         <div style="font-size:10px; color:#94a3b8; margin-bottom:4px;">
-                            ${txt(`Distância: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nós)`, `Distance: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nodes)`)}
+                            ${txt(`Distância: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nós)${r.real_length ? ` • Gabarito real: <strong style="color:#f59e0b;">${r.real_length} tiles</strong>` : ''}`, `Distance: <strong style="color:#fff;">${distRound} tiles</strong> (${r.path.length} nodes)${r.real_length ? ` • Calibrated: <strong style="color:#f59e0b;">${r.real_length} tiles</strong>` : ''}`)}
                         </div>
                         ${adminMetaBtn}
                         ${actionBtns}

@@ -6,6 +6,7 @@
 import { HeightfieldManager } from './heightfield';
 import { PinManager } from './pins';
 import { VisitManager } from './visits';
+import { RouteManager } from './routes';
 import { SerializedSnapshot, SnapshotMeta, CellState, ConfidenceLevel } from './types';
 import { CONFIG } from '../config';
 
@@ -60,14 +61,15 @@ export class StorageManager {
   }
 
   /**
-   * Serializa o estado atual do heightfield, pinos e visita para snapshot
+   * Serializa o estado atual do heightfield, pinos, rotas e visita para snapshot
    */
   public serializeCurrentState(
     heightfield: HeightfieldManager,
     pins: PinManager,
     visits: VisitManager,
     snapshotName: string,
-    isDaily = false
+    isDaily = false,
+    routeManager?: RouteManager
   ): SerializedSnapshot {
     const chunksData: SerializedSnapshot['chunks'] = [];
 
@@ -96,6 +98,7 @@ export class StorageManager {
 
     const currentPins = pins.getAll();
     const currentVisit = visits.getCurrentVisit();
+    const currentRoutes = routeManager ? routeManager.getAll() : [];
 
     const meta: SnapshotMeta = {
       id: `snap-${Date.now()}`,
@@ -111,6 +114,7 @@ export class StorageManager {
       meta,
       chunks: chunksData,
       pins: currentPins,
+      routes: currentRoutes,
       visit: currentVisit,
       lockedSheets: heightfield.getLockedSheets(),
     };
@@ -123,7 +127,8 @@ export class StorageManager {
     snapshot: SerializedSnapshot,
     heightfield: HeightfieldManager,
     pins: PinManager,
-    visits: VisitManager
+    visits: VisitManager,
+    routeManager?: RouteManager
   ): void {
     heightfield.clear();
 
@@ -147,6 +152,10 @@ export class StorageManager {
       const cleanPins = snapshot.pins.filter((p) => p.id !== 'pin-spawn-zero');
       pins.loadPins(cleanPins);
       heightfield.updatePinAnchors(cleanPins);
+    }
+
+    if (snapshot.routes && routeManager) {
+      routeManager.loadRoutes(snapshot.routes);
     }
 
     if (snapshot.visit) {
@@ -225,11 +234,12 @@ export class StorageManager {
   public async saveAutosave(
     heightfield: HeightfieldManager,
     pins: PinManager,
-    visits: VisitManager
+    visits: VisitManager,
+    routeManager?: RouteManager
   ): Promise<void> {
     const db = await this.ensureDB();
     if (!db) return;
-    const snap = this.serializeCurrentState(heightfield, pins, visits, 'Autosave');
+    const snap = this.serializeCurrentState(heightfield, pins, visits, 'Autosave', false, routeManager);
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_AUTOSAVE, 'readwrite');
       const store = tx.objectStore(STORE_AUTOSAVE);

@@ -18,6 +18,7 @@ export class CameraBarUI {
   private onCloudPullCallback?: () => void;
   private onCloudPublishCallback?: () => void;
   private onSyncPinsCallback?: () => void;
+  private onSyncRoutesCallback?: () => void;
   private helpModal: HelpModalUI;
   private currentExaggeration = 1.0;
   private currentCameraMode: CameraMode = 'top';
@@ -32,6 +33,7 @@ export class CameraBarUI {
       onCloudPull?: () => void;
       onCloudPublish?: () => void;
       onSyncPins?: () => void;
+      onSyncRoutes?: () => void;
     }
   ) {
     this.cameraController = cameraController;
@@ -41,6 +43,7 @@ export class CameraBarUI {
     this.onCloudPullCallback = cloudDeps?.onCloudPull;
     this.onCloudPublishCallback = cloudDeps?.onCloudPublish;
     this.onSyncPinsCallback = cloudDeps?.onSyncPins;
+    this.onSyncRoutesCallback = cloudDeps?.onSyncRoutes;
     this.helpModal = new HelpModalUI(parent);
 
     this.container = document.createElement('div');
@@ -132,6 +135,9 @@ export class CameraBarUI {
           <button class="btn" id="btn-sync-pins" style="font-size: 11px; padding: 4px 8px; color: #fbbf24; border-color: rgba(251,191,36,0.35);" title="${t('cloud_sync_pins_title')}">
             📍 ${t('cloud_sync_pins')}
           </button>
+          <button class="btn" id="btn-sync-routes" style="font-size: 11px; padding: 4px 8px; color: #34d399; border-color: rgba(52,211,153,0.35);" title="${i18n.getLang() === 'en' ? 'Sync roads, bridges, and tunnels from 2D Atlas' : 'Sincronizar estradas, pontes e túneis do Atlas 2D'}">
+            🛣️ ${i18n.getLang() === 'en' ? 'Routes' : 'Rotas'}
+          </button>
         </div>
 
         <!-- Perfil do Usuário Discord -->
@@ -219,6 +225,10 @@ export class CameraBarUI {
 
     this.container.querySelector('#btn-sync-pins')?.addEventListener('click', () => {
       if (this.onSyncPinsCallback) this.onSyncPinsCallback();
+    });
+
+    this.container.querySelector('#btn-sync-routes')?.addEventListener('click', () => {
+      if (this.onSyncRoutesCallback) this.onSyncRoutesCallback();
     });
 
     this.container.querySelector('#btn-lang-toggle')?.addEventListener('click', () => {

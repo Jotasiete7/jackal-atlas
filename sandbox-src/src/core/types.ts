@@ -33,7 +33,23 @@ export type ModelingTool =
   | 'lock'     // Trancar / Destrancar relevo (Cadeado do Cartógrafo)
   | 'pin'      // Criar/editar marco geodésico
   | 'station'  // Definir posição de estação da visita
+  | 'route'    // Traçar infraestrutura (Estradas, Pontes, Túneis) e régua de aferição
   | 'place';   // Objetos: colocar/mover/girar/apagar modelos do Wurm (placeables)
+
+export type RouteType = 'road' | 'bridge' | 'tunnel';
+export type RouteStatus = 'planned' | 'built';
+
+export interface MapRoute {
+  id: string;
+  name: string;
+  type: RouteType;
+  status: RouteStatus;
+  path: Array<[number, number]>; // Coordenadas [x, y] em tiles relativas ao Spawn (0,0)
+  widthTiles: number; // Largura em tiles (padrão 2 ou 3)
+  realLengthTiles?: number | null; // Comprimento real cravado pelo jogador para calibração
+  author?: string;
+  created_at?: string;
+}
 
 /** Papel do usuário no trabalho colaborativo */
 export type UserRole = 'scout' | 'explorer' | 'cartographer';
@@ -162,6 +178,7 @@ export interface SerializedSnapshot {
     locked?: number[];
   }>;
   pins: MapPin[];
+  routes?: MapRoute[];
   visit: FieldVisit;
   lockedSheets?: string[];
 }

@@ -27,6 +27,10 @@ import { LayersPanelUI } from './ui/layers-panel';
 import { ConfidenceLegendUI } from './ui/confidence-legend';
 import { InfoBarUI } from './ui/info-bar';
 import { PinModalUI } from './ui/pin-modal';
+import { RouteModalUI } from './ui/route-modal';
+
+import { RouteManager } from './core/routes';
+import { RouteMeshManager } from './renderer/route-mesh';
 
 import { InteractionController } from './input/interaction-controller';
 import { PlaceablesManager } from './placeables/placeables';
@@ -42,6 +46,7 @@ class JackalSandboxApp {
   private visitManager: VisitManager;
   private storageManager: StorageManager;
   private supabaseSync: SupabaseSyncManager;
+  private routeManager: RouteManager;
 
   // 2. Renderizadores Three.js
   private sceneManager: SceneManager;
@@ -50,6 +55,7 @@ class JackalSandboxApp {
   private gridMesh: GridMeshManager;
   private brushCursor: BrushCursorManager;
   private pinMesh: PinMeshManager;
+  private routeMesh: RouteMeshManager;
   private contourRenderer: ContourRenderer;
   private scaleReference: ScaleReferenceManager;
 
@@ -61,6 +67,7 @@ class JackalSandboxApp {
   private confidenceLegendUI!: ConfidenceLegendUI;
   private infoBarUI!: InfoBarUI;
   private pinModalUI!: PinModalUI;
+  private routeModalUI!: RouteModalUI;
 
   // 4. Controlador de Interação
   private interactionController!: InteractionController;
@@ -76,6 +83,7 @@ class JackalSandboxApp {
     this.visitManager = new VisitManager();
     this.storageManager = new StorageManager();
     this.supabaseSync = new SupabaseSyncManager(this.storageManager);
+    this.routeManager = new RouteManager();
 
     // Sincroniza pinos iniciais (marco de spawn)
     this.heightfield.updatePinAnchors(this.pinManager.getAll());
@@ -89,6 +97,7 @@ class JackalSandboxApp {
     this.gridMesh = new GridMeshManager(this.sceneManager.overlayGroup);
     this.brushCursor = new BrushCursorManager(this.sceneManager.overlayGroup);
     this.pinMesh = new PinMeshManager(this.sceneManager.pinsGroup, this.pinManager, this.heightfield);
+    this.routeMesh = new RouteMeshManager(this.sceneManager.overlayGroup, this.routeManager, this.heightfield);
     this.contourRenderer = new ContourRenderer(this.sceneManager.overlayGroup, this.heightfield);
     this.scaleReference = new ScaleReferenceManager(this.sceneManager.overlayGroup);
 
@@ -112,12 +121,14 @@ class JackalSandboxApp {
       pinManager: this.pinManager,
       visitManager: this.visitManager,
       storageManager: this.storageManager,
+      routeManager: this.routeManager,
       sceneManager: this.sceneManager,
       cameraController: this.cameraController,
       terrainMesh: this.terrainMesh,
       gridMesh: this.gridMesh,
       brushCursor: this.brushCursor,
       pinMesh: this.pinMesh,
+      routeMesh: this.routeMesh,
       scaleReference: this.scaleReference,
       contourRenderer: this.contourRenderer,
       toolbarUI: this.toolbarUI,
@@ -125,6 +136,7 @@ class JackalSandboxApp {
       layersPanelUI: this.layersPanelUI,
       infoBarUI: this.infoBarUI,
       pinModalUI: this.pinModalUI,
+      routeModalUI: this.routeModalUI,
       placeables: this.placeables,
     });
 
@@ -139,12 +151,13 @@ class JackalSandboxApp {
     try {
       const autosave = await this.storageManager.loadAutosave();
       if (autosave && autosave.chunks && autosave.chunks.length > 0) {
-        this.storageManager.restoreSnapshot(autosave, this.heightfield, this.pinManager, this.visitManager);
+        this.storageManager.restoreSnapshot(autosave, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
         // Mescla de forma não-destrutiva qualquer relevo oficial da nuvem que não esteja no autosave local
         await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
         this.terrainMesh.updateDirtyChunks();
         this.contourRenderer.requestUpdate();
         this.pinMesh.rebuildPins();
+        this.routeMesh.rebuildAllRoutes();
         this.gridMesh.updateStationRange(this.visitManager.getCurrentVisit());
         const pos = this.scaleReference.getPosition();
         const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
@@ -166,6 +179,10 @@ class JackalSandboxApp {
       this.heightfield.updatePinAnchors(this.pinManager.getAll());
       this.pinMesh.rebuildPins();
 
+      // Sincroniza rotas e infraestruturas do Atlas 2D (public.routes)
+      await this.supabaseSync.syncRoutesFromCloud(this.routeManager);
+      this.routeMesh.rebuildAllRoutes();
+
       // Assina publicações de relevo em tempo real (mescla não-destrutiva para não perder edição em andamento)
       this.supabaseSync.listenToCloudRelief(async (version) => {
         const confirmUpdate = confirm(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja mesclar com seu trabalho agora?`);
@@ -175,6 +192,7 @@ class JackalSandboxApp {
             this.terrainMesh.updateDirtyChunks();
             this.contourRenderer.requestUpdate();
             this.pinMesh.rebuildPins();
+            this.routeMesh.refreshHeights();
           }
         }
       });
@@ -190,6 +208,7 @@ class JackalSandboxApp {
       (factor) => {
         this.sceneManager.setVerticalExaggeration(factor);
         this.pinMesh.setVerticalExaggeration(factor);
+        this.routeMesh.setVerticalExaggeration(factor);
         this.contourRenderer.setVerticalExaggeration(factor);
         if (this.interactionController) {
           this.interactionController.updateScalePosition();
@@ -211,6 +230,7 @@ class JackalSandboxApp {
             this.terrainMesh.updateDirtyChunks();
             this.contourRenderer.requestUpdate();
             this.pinMesh.rebuildPins();
+            this.routeMesh.refreshHeights();
             alert(t('alert_cloud_loaded'));
           } else {
             alert(res.message || 'Falha ao carregar relevo da nuvem.');
@@ -236,6 +256,11 @@ class JackalSandboxApp {
           this.heightfield.updatePinAnchors(this.pinManager.getAll());
           this.pinMesh.rebuildPins();
           alert(`Sincronizados ${count} pinos com sucesso!`);
+        },
+        onSyncRoutes: async () => {
+          const count = await this.supabaseSync.syncRoutesFromCloud(this.routeManager);
+          this.routeMesh.rebuildAllRoutes();
+          alert(`Sincronizadas ${count} rotas/obras com sucesso!`);
         },
       }
     );
@@ -275,6 +300,8 @@ class JackalSandboxApp {
       heightfield: this.heightfield,
       pinManager: this.pinManager,
       rendererCanvas: this.canvas,
+      routeMesh: this.routeMesh,
+      routeManager: this.routeManager,
     });
 
     this.confidenceLegendUI = new ConfidenceLegendUI(this.appContainer);
@@ -330,6 +357,21 @@ class JackalSandboxApp {
         },
         this.infoBarUI.getRole() === 'cartographer'
       );
+    });
+
+    this.routeModalUI = new RouteModalUI(this.appContainer);
+    this.routeModalUI.setOnSave(async (route) => {
+      this.routeManager.saveRoute(route);
+      await this.supabaseSync.saveRouteToCloud(route);
+      if (this.interactionController) {
+        this.interactionController.triggerAutosave();
+      }
+    });
+    this.routeModalUI.setOnDelete((id) => {
+      this.routeManager.deleteRoute(id);
+      if (this.interactionController) {
+        this.interactionController.triggerAutosave();
+      }
     });
   }
 

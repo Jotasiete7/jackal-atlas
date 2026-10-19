@@ -497,6 +497,100 @@ export class SupabaseSyncManager {
   }
 
   /**
+   * Sincroniza rotas do Atlas 2D (public.routes) para o Sandbox 3D
+   */
+  public async syncRoutesFromCloud(routeManager: any): Promise<number> {
+    if (!this.client) return 0;
+    try {
+      const { data, error } = await this.client.from('routes').select('*');
+      if (error) throw error;
+      if (!data || !Array.isArray(data)) return 0;
+
+      let syncedCount = 0;
+      for (const r of data) {
+        if (!Array.isArray(r.path) || r.path.length < 2) continue;
+
+        // Converte coordenadas do path de [0..4096] para centrado em [0, 0] se necessário
+        const convertedPath: Array<[number, number]> = r.path.map((pt: [number, number]) => {
+          let px = Number(pt[0]);
+          let py = Number(pt[1]);
+          if (px > 1024 && py > 1024 && px <= 4096 && py <= 4096) {
+            px = Math.round(px - 2048);
+            py = Math.round(py - 2048);
+          }
+          return [px, py];
+        });
+
+        const kind = String(r.kind || '');
+        const isBuilt = kind.endsWith('_built');
+        let rType: 'road' | 'bridge' | 'tunnel' = 'road';
+        if (kind.startsWith('bridge')) rType = 'bridge';
+        else if (kind.startsWith('tunnel')) rType = 'tunnel';
+
+        routeManager.saveRoute({
+          id: r.id,
+          name: r.name || 'Rota',
+          type: rType,
+          status: isBuilt ? 'built' : 'planned',
+          path: convertedPath,
+          widthTiles: Number(r.width) || 2,
+          realLengthTiles: r.distance ? Math.round(Number(r.distance)) : null,
+          author: r.created_by,
+          created_at: r.created_at,
+        });
+        syncedCount++;
+      }
+      return syncedCount;
+    } catch (err) {
+      console.warn('Erro ao sincronizar rotas da nuvem:', err);
+      return 0;
+    }
+  }
+
+  /**
+   * Salva uma rota do Sandbox 3D diretamente na tabela public.routes do Supabase
+   */
+  public async saveRouteToCloud(route: any): Promise<{ success: boolean; message?: string }> {
+    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.isApprovedMember()) {
+      return {
+        success: false,
+        message: 'Apenas membros aprovados podem salvar rotas na nuvem.',
+      };
+    }
+
+    try {
+      const user = (await this.client.auth.getUser()).data.user;
+      const isBuilt = route.status === 'built';
+      const kind = `${route.type}_${isBuilt ? 'built' : 'planned'}`;
+
+      // Converte coordenadas centradas em (0,0) para o padrão 0..4096 do Atlas 2D
+      const path2D = route.path.map((pt: [number, number]) => [pt[0] + 2048, pt[1] + 2048]);
+
+      let dist = 0;
+      for (let i = 1; i < route.path.length; i++) {
+        dist += Math.hypot(route.path[i][0] - route.path[i - 1][0], route.path[i][1] - route.path[i - 1][1]);
+      }
+
+      const { error } = await this.client.from('routes').upsert({
+        id: route.id,
+        name: route.name,
+        kind,
+        width: route.widthTiles || 2,
+        path: path2D,
+        distance: route.realLengthTiles || Math.round(dist),
+        created_by: user?.id,
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (err: any) {
+      console.warn('Erro ao salvar rota na nuvem:', err);
+      return { success: false, message: err.message };
+    }
+  }
+
+  /**
    * Assina mudanças em tempo real no relevo oficial publicado
    */
   public listenToCloudRelief(onUpdate: (version: number) => void): () => void {
@@ -520,3 +614,4 @@ export class SupabaseSyncManager {
     };
   }
 }
+

@@ -56,6 +56,7 @@ export const en: Record<TranslationKey, string> = {
   layer_hillshade: 'Hillshade Shading',
   layer_confidence: 'Confidence Map',
   layer_pins: 'Pins & Landmarks',
+  layer_routes: 'Routes & Calibrations [B]',
   layer_station_range: 'Station Range',
   layer_wireframe: 'Wireframe Mesh',
 
