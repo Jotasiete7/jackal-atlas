@@ -659,14 +659,34 @@
             if (!supabaseClient) return;
             const tbody = document.getElementById('tabela-guerra-corpo');
             try {
-                const { data, error } = await supabaseClient.from('points').select('*').eq('confirmed', false).order('created_at', { ascending: false });
+                // Pending points and pending beacon reports (cleared, attacked, reinforced... on a point)
+                const [{ data, error }, { data: eventos, error: erroEventos }] = await Promise.all([
+                    supabaseClient.from('points').select('*').eq('confirmed', false).order('created_at', { ascending: false }),
+                    supabaseClient.from('point_events').select('id, event_type, created_at, actor_id, points(name, kind, x, y)').eq('confirmed', false).order('created_at', { ascending: false })
+                ]);
                 if (error) throw error;
-                if (!data || data.length === 0) {
+                if (erroEventos) throw erroEventos;
+                if ((!data || data.length === 0) && (!eventos || eventos.length === 0)) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sw-text-muted); padding:16px;">${txt('Nenhuma submissão pendente de validação.', 'No submissions awaiting review.')}</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = data.map(p => `
+                const linhasEventos = (eventos || []).map(ev => {
+                    const p = ev.points || {};
+                    return `
+                    <tr>
+                        <td>📣 ${sanitize(String(ev.event_type).toUpperCase())}</td>
+                        <td><strong>${sanitize(p.name || txt('Sem nome', 'Unnamed'))}</strong> <span style="color:var(--sw-text-muted); font-size:10.5px;">${txt('relatório de beacon', 'beacon report')}</span></td>
+                        <td>${p.x !== undefined ? `X: ${Number(p.x)} &bull; Y: ${Number(p.y)}` : '—'}</td>
+                        <td>${sanitize(p.kind || '')}</td>
+                        <td>${ev.actor_id ? sanitize(ev.actor_id.slice(0,8)) : txt('Anônimo', 'Anonymous')}</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+                            <button class="btn-table-action approve" onclick="aprovarEvento('${sanitize(ev.id)}')">✓ ${txt('Aprovar', 'Approve')}</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                tbody.innerHTML = linhasEventos + (data || []).map(p => `
                     <tr>
                         <td>${sanitize(p.kind.toUpperCase())}</td>
                         <td><strong>${sanitize(p.name || txt('Sem nome', 'Unnamed'))}</strong></td>
@@ -682,6 +702,19 @@
             } catch (err) {
                 console.error(err);
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ff4444; padding:16px;">${txt('Erro ao carregar fila: ', 'Error loading queue: ')}${sanitize(err.message)}</td></tr>`;
+            }
+        }
+
+        async function aprovarEvento(id) {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient.from('point_events').update({ confirmed: true, confirmed_by: meuPerfil ? meuPerfil.id : null }).eq('id', id).select('id');
+                if (error) throw error;
+                if (!data || !data.length) throw new Error(txt('sem permissão (apenas oficiais e admins)', 'not allowed (officers and admins only)'));
+                alert(txt('✓ Relatório aprovado e aplicado ao beacon.', '✓ Report approved and applied to the beacon.'));
+                await carregarFilaGuerra();
+            } catch (err) {
+                alert(txt('Erro ao aprovar relatório: ', 'Error approving report: ') + err.message);
             }
         }
 

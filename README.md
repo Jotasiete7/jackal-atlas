@@ -135,8 +135,11 @@ Scripts SQL na pasta `migrations/`:
 16. `016_sketch_text_rotation.sql` — Rotação de textos (graus), imutável após o commit e gravada pela RPC; mover/redimensionar usam o caminho e a largura existentes. • Rotated text for sketches.
 17. `017_guilds.sql` — Tabela `guilds` (nome, tag, cor) e `profiles.guild_id`; só administradores criam guildas e atribuem membros, e membros não podem trocar a própria guilda. • Guilds (name, tag, colour) and one guild per member; admins only.
 18. `018_review_hardening.sql` — Nome, avatar e ID do Discord vêm da identidade do Discord (não dos metadados editáveis), só cadastros reais do Discord viram o primeiro admin, apagar um usuário mantém o trabalho dele no mapa, limites de commit sem corrida (2000 traços/hora, 2 MB) e travas extras no esboço. • Security hardening from code review.
+19. `019_sandbox_3d_relief.sql` — Relevo 3D oficial do Sandbox (`relief_state`) e histórico de commits/snapshots. • Official 3D relief for the Sandbox and its history.
+20. `020_identity_cleanup.sql` — Redefine nome, avatar e ID do Discord de todos os perfis a partir da identidade do Discord (apaga dados copiados de metadados antigos) e trava a exclusão de admins junto com o rebaixamento. • Identity cleanup and admin delete lock.
+21. `021_sketch_commit_discard.sql` — RPC `sketch_commit_discard`: apaga de vez um commit fora do main (pendente, rejeitado ou revertido) com seus traços; autores descartam os próprios pendentes/rejeitados, oficiais qualquer um. • Discard unmerged sketch commits.
 
-> Rode as migrações de 001 a 018, em ordem. Depois, defina `sketchShared: true` no `config.js`. • Run migrations 001 to 018 in order, then set `sketchShared: true` in `config.js`.
+> Rode as migrações de 001 a 021, em ordem. Depois, defina `sketchShared: true` no `config.js`. • Run migrations 001 to 020 in order, then set `sketchShared: true` in `config.js`.
 
 ---
 
@@ -175,7 +178,7 @@ Jackal-Atlas/
 ├── tiles_terrain/              # Tiles locais de terreno (Zoom 0 ao 4)
 ├── tiles_topo/                 # Tiles locais de curvas de nível
 ├── tiles_iso/                  # Tiles locais em visão isométrica
-├── migrations/                 # Migrações SQL numeradas (001 a 018)
+├── migrations/                 # Migrações SQL numeradas (001 a 021)
 └── scripts/                    # Utilitários de extração e fatiamento de tiles
 ```
 
