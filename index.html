@@ -614,8 +614,8 @@
         <button id="modeBtnArea" class="sw-mode-btn" onclick="definirModoInteracao('area')" title="Deed Sizer: Medir dimensões e área em tiles" data-i18n-title="ttModoArea">
             <span>📐</span> <span data-i18n="modoArea">Medir Área</span>
         </button>
-        <button id="modeBtnSketch" class="sw-mode-btn" onclick="definirModoInteracao('sketch')" title="Esboço: desenhe água, floresta, cristas, rótulos e setas no mapa compartilhado • Sketch: hand-draw water, forest, ridges, labels and arrows on the shared map">
-            <span>✏️</span> <span data-i18n="modoSketch">Esboço</span>
+        <button id="modeBtnSketch" class="sw-mode-btn" onclick="definirModoInteracao('sketch')" title="Rascunho Tático: desenhe setas, rotas, avisos de perigo e notas rápidas (relevo/água oficial são na Caixa de Areia 3D) • Tactical Sketch: draw arrows, routes, warnings and quick notes (official relief/water in 3D Sandbox)">
+            <span>✏️</span> <span data-i18n="modoSketch">Rascunho</span>
         </button>
     </div>
 
@@ -713,24 +713,18 @@
                     <span style="font-size:9.5px; opacity:0.8;" data-i18n="camadas">Camadas</span>
                 </div>
                 <div class="sw-acc-content open">
-                    <div class="sw-base-switcher" style="grid-template-columns: 1fr 1fr; margin-bottom:6px; gap:6px;">
-                        <button id="btnParchment" class="sw-base-btn active" onclick="trocarBase('parchment', this)" title="Mapa em branco para o Round 2: esboce o terreno conforme os batedores exploram • Blank map for Round 2" data-i18n="baseParchment">📜 Pergaminho (Round 2)</button>
-                        <button id="btnTopo3D" class="sw-base-btn" onclick="trocarBase('topo_3d', this)" title="Relevo Topográfico 3D ao vivo da Caixa de Areia • 3D Topographic Relief" data-i18n="baseTopo3D">⛰️ Topo 3D (Round 2)</button>
+                    <div class="sw-base-switcher" style="grid-template-columns: repeat(3, 1fr); margin-bottom:8px; gap:6px;">
+                        <button id="btnParchment" class="sw-base-btn active" onclick="trocarBase('parchment', this)" title="Base limpa de alto contraste / contorno tático • Clean tactical base" data-i18n="baseWhite">📜 White</button>
+                        <button id="btnTopo3D" class="sw-base-btn" onclick="trocarBase('topo_3d', this)" title="Curvas de nível e hipsometria geradas da Caixa de Areia • 3D Topographic Contours" data-i18n="baseTopo">⛰️ Topo</button>
+                        <button id="btnReliefShaded" class="sw-base-btn" onclick="trocarBase('relief_shaded', this)" title="Relevo sombreado 3D (Hillshade) • 3D Shaded Relief" data-i18n="baseRelevo3D">🏔️ Relevo 3D</button>
                     </div>
-                    <div style="font-size:9.5px; font-weight:700; color:var(--sw-text-muted); margin:0 0 4px 2px;" data-i18n="baseOldMap">Mapa antigo do Jackal (Round 1):</div>
-                    <div class="sw-base-switcher" style="grid-template-columns: repeat(4, 1fr);">
-                        <button id="btnCustom" class="sw-base-btn" onclick="trocarBase('custom', this)">Goldfish®</button>
-                        <button id="btnTerrain" class="sw-base-btn" onclick="trocarBase('terrain', this)">Terrain</button>
-                        <button id="btnIso" class="sw-base-btn" onclick="trocarBase('iso', this)" data-i18n="baseIso">Isométrico</button>
-                        <button id="btnTopo" class="sw-base-btn" onclick="trocarBase('topo_3d', this)">Topo</button>
-                    </div>
-                    <label class="sw-filter-row">
-                        <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
-                        <span data-i18n="grade">📐 Grade de Quadrantes Wurm</span>
-                    </label>
                     <label class="sw-filter-row" title="Linhas a cada 512 → 16 tiles conforme o zoom, com números de X e Y nas bordas • Lines every 512 → 16 tiles depending on zoom, with X and Y numbers on the edges">
-                        <input type="checkbox" id="chkGradeCoord" onchange="toggleGridCoord(this.checked)">
+                        <input type="checkbox" id="chkGradeCoord" checked onchange="toggleGridCoord(this.checked)">
                         <span data-i18n="gradeCoord">🔢 Grade de Coordenadas (tiles)</span>
+                    </label>
+                    <label class="sw-filter-row" style="color:var(--jk-accent);">
+                        <input type="checkbox" id="chkGrade" onchange="toggleGridTiles(this.checked)">
+                        <span data-i18n="gradeSetores">📐 Setores 100x100t (Spawn 0,0)</span>
                     </label>
                     <label class="sw-filter-row" style="color:#60a5fa;">
                         <input type="checkbox" data-layer="sketch" checked onchange="toggleCamada('sketch', this.checked)">
@@ -960,8 +954,8 @@
     <div class="sw-coord-hud-bar">
         <!-- BARRA NORMAL DE COORDENADAS -->
         <div id="hudBottomNormal" class="sw-coord-stamp">
-            <span id="coordBox" style="font-weight:700;">X: 2048 • Y: 2048</span>
-            <span id="quadBox" style="font-weight:800; color:var(--jk-accent); margin-left:8px; font-family:'JetBrains Mono'; background:rgba(245,166,35,0.12); padding:1px 5px; border-radius:3px; border:1px solid rgba(245,166,35,0.3);">M15</span>
+            <span id="coordBox" style="font-weight:700;">X: 0 • Y: 0</span>
+            <span id="quadBox" style="font-weight:800; color:var(--jk-accent); margin-left:8px; font-family:'JetBrains Mono'; background:rgba(245,166,35,0.12); padding:1px 5px; border-radius:3px; border:1px solid rgba(245,166,35,0.3);">⭐ Spawn</span>
             <span id="zoomBox" class="sw-coord-label">z2.0</span>
         </div>
 
@@ -1143,13 +1137,14 @@
                 </div>
             </div>
             <div style="font-size:10px; color:var(--sw-text-muted); margin-top:-6px; margin-bottom:12px;">
-                💡 <em data-i18n="dica">Dica:</em> <span data-i18n="dicaCole">Cole</span> <code>2897,2845</code> <span data-i18n="ou">ou</span> <code>X: 2897 Y: 2845</code> <span data-i18n="dicaAutoInst">para autocompletar X e Y instantaneamente.</span>
+                💡 <em data-i18n="dica">Dica:</em> <span data-i18n="dicaCole">Cole</span> <code>-120, 350</code> <span data-i18n="ou">ou</span> <code>X: -120 Y: 350</code> <span data-i18n="dicaAutoInst">para autocompletar X e Y instantaneamente (centro no Spawn 0,0).</span>
             </div>
 
             <div class="sw-form-group">
                 <label class="sw-form-label" data-i18n="tipoPontoAnot">Tipo de Ponto / Anotação</label>
                 <div class="jk-kind-chips" id="kindChipsContainer">
                     <span class="jk-kind-chip selected" data-kind="village">🏘️ Deed</span>
+                    <span class="jk-kind-chip" data-kind="landmark" data-i18n="kindMarco">📐 Marco / Pilar 3D</span>
                     <span class="jk-kind-chip" data-kind="tower" data-i18n="kindTorre">🏰 Torre de Guarda</span>
                     <span class="jk-kind-chip" data-kind="beacon">🔴 Beacon</span>
                     <span class="jk-kind-chip" data-kind="lodestone">🪨 Lodestone</span>
@@ -1158,8 +1153,17 @@
                     <span class="jk-kind-chip" data-kind="idol">✨ Idol / Plinth</span>
                     <span class="jk-kind-chip" data-kind="supply_point" data-i18n="chipSuprimento">📦 Suprimento</span>
                     <span class="jk-kind-chip" data-kind="fauna" data-i18n="kindFauna">🦗 Fauna / Montaria</span>
-                    <span class="jk-kind-chip" id="chipToponimo" data-kind="landmark" style="display:none;" data-i18n="kindToponimo">🏷️ Topônimo (Admin)</span>
                 </div>
+            </div>
+
+            <div class="sw-form-group">
+                <label class="sw-form-label" data-i18n="metodoMedicao">Método de Medição (Classe de Evidência)</label>
+                <select class="sw-form-select" id="selectMetodoMedicao">
+                    <option value="contagem_construida" data-i18n="metodoContagemConstruida">📏 Contagem Construída (Estrada / Pilar / Muro) — Alta Certeza</option>
+                    <option value="contagem_caminhada" data-i18n="metodoContagemCaminhada">🚶 Contagem Caminhada (Passos / Rumo com Picareta) — Média</option>
+                    <option value="estimativa_visual" data-i18n="metodoEstimativaVisual">👁️ Estimativa Visual (Avistamento à distância) — Provisório</option>
+                    <option value="regra_do_jogo" data-i18n="metodoRegraJogo">⚓ Regra do Jogo (Spawn 0,0 / Nível do Mar)</option>
+                </select>
             </div>
 
             <div class="sw-form-group">
@@ -1173,7 +1177,7 @@
 
             <div class="sw-form-group">
                 <label class="sw-form-label" data-i18n="nomeDescricao">Nome / Descrição</label>
-                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Deed Porto do Lobo, Torre Norte, Spot de Weta..." data-i18n-placeholder="phNomePonto">
+                <input type="text" class="sw-form-input" id="inputNomePonto" placeholder="Ex: Pilar N50, Deed Porto do Lobo, Torre Norte..." data-i18n-placeholder="phNomePonto">
             </div>
 
             <div class="sw-form-group" id="rowMayor" style="display:block;">
@@ -1800,48 +1804,62 @@
 
     function desenharGridYaga() {
         gridLayer.clearLayers();
-        const spacing = YAGA_GRID_SPACING;
-        const naParchment = (typeof baseAtual !== 'undefined' && baseAtual === 'parchment');
-        const corRotulo = naParchment ? 'rgba(91,74,50,0.7)' : 'rgba(148,163,184,0.6)';
+        const sectorSize = 100;
         const lineOpts = {
-            color: naParchment ? 'rgba(91, 74, 50, 0.45)' : 'rgba(100, 116, 139, 0.45)',
+            color: 'rgba(245, 166, 35, 0.45)',
             weight: 1.2,
-            dashArray: '5, 5',
+            dashArray: '4, 4',
+            renderer: tacticalCanvasRenderer,
+            interactive: false
+        };
+        const strongLineOpts = {
+            color: 'rgba(245, 166, 35, 0.85)',
+            weight: 1.8,
             renderer: tacticalCanvasRenderer,
             interactive: false
         };
 
-        // Linhas Horizontais (Leaflet Lat = MAP_SIZE - Wurm Y)
-        for (let i = 1; i <= 21; i++) {
-            const y = (i * spacing) + YAGA_GRID_OFFSETY;
-            if (y >= 0 && y <= MAP_SIZE) {
-                const lat = MAP_SIZE - y;
-                L.polyline([[lat, 0], [lat, MAP_SIZE]], lineOpts).addTo(gridLayer);
+        // Centro do mapa em Leaflet CRS: [2048, 2048]
+        const centerX = 2048;
+        const centerY = 2048;
+
+        // Linhas Horizontais a cada 100 tiles a partir do centro
+        for (let y = -2000; y <= 2000; y += sectorSize) {
+            const leafletLat = centerY + y;
+            if (leafletLat >= 0 && leafletLat <= MAP_SIZE) {
+                const ehCentro = (y === 0);
+                L.polyline([[leafletLat, 0], [leafletLat, MAP_SIZE]], ehCentro ? strongLineOpts : lineOpts).addTo(gridLayer);
             }
         }
 
-        // Linhas Verticais (Leaflet Lng = Wurm X)
-        for (let j = 1; j <= 21; j++) {
-            const x = (j * spacing) + YAGA_GRID_OFFSETX;
-            if (x >= 0 && x <= MAP_SIZE) {
-                L.polyline([[0, x], [MAP_SIZE, x]], lineOpts).addTo(gridLayer);
+        // Linhas Verticais a cada 100 tiles a partir do centro
+        for (let x = -2000; x <= 2000; x += sectorSize) {
+            const leafletLng = centerX + x;
+            if (leafletLng >= 0 && leafletLng <= MAP_SIZE) {
+                const ehCentro = (x === 0);
+                L.polyline([[0, leafletLng], [MAP_SIZE, leafletLng]], ehCentro ? strongLineOpts : lineOpts).addTo(gridLayer);
             }
         }
 
-        // Labels dos Quadrantes
-        for (let i = 0; i < 20; i++) {
-            for (let j = 0; j < 20; j++) {
-                const wurmY = (i * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETY;
-                const centerLat = MAP_SIZE - wurmY;
-                const centerLng = (j * spacing) + (spacing / 2.0) + YAGA_GRID_OFFSETX;
-                const labelText = YAGA_LETTERS[i] + (j + 7);
+        // Labels dos Setores (ex: N0-L0, N1-O1, S2-L3)
+        for (let y = -1000; y <= 1000; y += sectorSize) {
+            for (let x = -1000; x <= 1000; x += sectorSize) {
+                const centerLat = centerY + y + (sectorSize / 2);
+                const centerLng = centerX + x + (sectorSize / 2);
+                if (centerLat < 0 || centerLat > MAP_SIZE || centerLng < 0 || centerLng > MAP_SIZE) continue;
+
+                const sectorY = Math.floor((y + sectorSize / 2) / 100);
+                const sectorX = Math.floor((x + sectorSize / 2) / 100);
+                const dirY = sectorY >= 0 ? 'N' : 'S';
+                const dirX = sectorX >= 0 ? 'L' : 'O';
+                const labelText = `${dirY}${Math.abs(sectorY)}-${dirX}${Math.abs(sectorX)}`;
 
                 L.marker([centerLat, centerLng], {
                     icon: L.divIcon({
                         className: '',
-                        html: `<span style="font-size:10px; font-weight:800; color:${corRotulo}; font-family:'JetBrains Mono';">${labelText}</span>`,
-                        iconSize: [40, 20],
-                        iconAnchor: [20, 10]
+                        html: `<span style="font-size:9.5px; font-weight:800; color:rgba(245,166,35,0.75); font-family:'JetBrains Mono'; background:rgba(0,0,0,0.3); padding:1px 3px; border-radius:3px;">${labelText}</span>`,
+                        iconSize: [40, 16],
+                        iconAnchor: [20, 8]
                     }),
                     interactive: false
                 }).addTo(gridLayer);
@@ -2484,6 +2502,11 @@
                             <span>📍 X: ${x} • Y: ${y} &bull; <strong style="color:var(--jk-accent);">${quad}</strong></span>
                             <button onclick="event.stopPropagation(); copiarVamp(${x}, ${y}, this)" class="sw-btn-copy-vamp" title="${txt('Copiar coordenadas X,Y (para o Discord ou o formulário de marcador)', 'Copy X,Y coordinates (for Discord or the Add Marker form)')}">📋 X,Y</button>
                         </div>
+                        <div style="margin-top:4px; text-align:right;">
+                            <a href="sandbox/#${x},${y}" target="_blank" style="font-size:10px; color:#38bdf8; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                                🏔️ ${txt('Ver no Sandbox 3D ↗', 'View in 3D Sandbox ↗')}
+                            </a>
+                        </div>
                         ${moderacaoHtml}
                         ${adminMetaBtn}
                         ${actionBtns}
@@ -2600,23 +2623,40 @@
         const query = texto.trim().toLowerCase();
         let htmlExtraQuadrante = '';
 
-        // Detecção de Quadrante Wurm (ex: M15, k20, b7)
-        const quadMatch = query.match(/^([a-z])\s*(\d{1,2})$/i);
-        if (quadMatch) {
-            const letra = quadMatch[1].toUpperCase();
-            const num = quadMatch[2];
-            const bounds = obterBoundsQuadrante(letra, num);
-            if (bounds) {
-                htmlExtraQuadrante = `
-                    <div class="sw-search-item" onclick="selecionarQuadranteBusca('${sanitize(letra)}', '${sanitize(num)}')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
+        // Detecção de Coordenadas Numéricas (ex: 0,0 ou -120, 350 ou X: 100 Y: -50)
+        const coordNums = query.match(/-?\d+/g);
+        if (coordNums && coordNums.length >= 2) {
+            const cx = parseInt(coordNums[0], 10);
+            const cy = parseInt(coordNums[1], 10);
+            if (!isNaN(cx) && !isNaN(cy) && cx >= -2048 && cx <= 2048 && cy >= -2048 && cy <= 2048) {
+                htmlExtraQuadrante += `
+                    <div class="sw-search-item" onclick="focarPonto(${cx}, ${cy}, 'coord')" style="background:rgba(245,166,35,0.12); border-left:3px solid var(--jk-accent);">
                         <div>
-                            <strong style="color:#38bdf8;">🧭 ${txt('Quadrante Wurm', 'Wurm Quadrant')} ${sanitize(letra)}${sanitize(num)}</strong>
-                            <div style="font-size:9.5px; color:var(--sw-text-muted);">${txt('Navegar e Iluminar Quadrante', 'Go to and highlight quadrant')}</div>
+                            <strong style="color:var(--jk-accent);">🎯 Navegar para Coordenada (${cx}, ${cy})</strong>
+                            <div style="font-size:9.5px; color:var(--sw-text-muted);">Cravar mira alvo pulsante no Spawn 0,0</div>
                         </div>
-                        <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${sanitize(letra)}${sanitize(num)}</span>
+                        <span class="sw-search-badge" style="background:rgba(245,166,35,0.2); color:var(--jk-accent); border:1px solid rgba(245,166,35,0.4);">X,Y</span>
                     </div>
                 `;
             }
+        }
+
+        // Detecção de Setor Round 2 (ex: N1-L2, S0-O1)
+        const setorMatch = query.match(/^([ns])\s*(\d{1,2})[\s-]*([lo])\s*(\d{1,2})$/i);
+        if (setorMatch) {
+            const sigY = setorMatch[1].toUpperCase();
+            const valY = parseInt(setorMatch[2], 10) * 100 * (sigY === 'N' ? 1 : -1);
+            const sigX = setorMatch[3].toUpperCase();
+            const valX = parseInt(setorMatch[4], 10) * 100 * (sigX === 'L' ? 1 : -1);
+            htmlExtraQuadrante += `
+                <div class="sw-search-item" onclick="focarPonto(${valX + 50}, ${valY + 50}, 'coord')" style="background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8;">
+                    <div>
+                        <strong style="color:#38bdf8;">📐 Setor ${sigY}${setorMatch[2]}-${sigX}${setorMatch[4]} (100x100t)</strong>
+                        <div style="font-size:9.5px; color:var(--sw-text-muted);">Navegar para o centro do setor</div>
+                    </div>
+                    <span class="sw-search-badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">SETOR</span>
+                </div>
+            `;
         }
 
         // Busca unificada em todos os pontos do cache (Deeds, Beacons, Cavernas, etc.)
@@ -3070,9 +3110,11 @@
 
         const distAcumulada = calcularDistanciaRota(pontosTracado);
         const distTotal = Math.round(distAcumulada + snap.dist);
+        const endRelX = snap.x2 - 2048;
+        const endRelY = 2048 - snap.y2;
         const distEl = document.getElementById('hudLiveDistancia');
         if (distEl) {
-            distEl.textContent = `${distTotal} tiles (${snap.angle}° • ${snap.dist}t)`;
+            distEl.textContent = `${distTotal} tiles (${snap.angle}° • ${snap.dist}t) ➔ Ponto: (${endRelX}, ${endRelY})`;
         }
     }
 
@@ -3288,10 +3330,10 @@
     let cacheReliefData = null;
 
     function isModoRound2() {
-        return (baseAtual === 'parchment' || baseAtual === 'topo_3d');
+        return (baseAtual === 'parchment' || baseAtual === 'topo_3d' || baseAtual === 'relief_shaded');
     }
 
-    function renderizarCanvasRelevo3D(reliefData) {
+    function renderizarCanvasRelevo3D(reliefData, modo = 'topo') {
         const offCanvas = document.createElement('canvas');
         const size = 1024;
         offCanvas.width = size;
@@ -3299,7 +3341,7 @@
         const ctx = offCanvas.getContext('2d');
 
         // Fundo padrão
-        ctx.fillStyle = '#efe6cf';
+        ctx.fillStyle = (modo === 'relief_shaded') ? '#d8d4c9' : '#efe6cf';
         ctx.fillRect(0, 0, size, size);
 
         // Moldura
@@ -3313,6 +3355,11 @@
             const halfCells = totalCells / 2;
             const scale = size / totalCells;
 
+            // Para hillshade: vetor de luz do sol vindo de Noroeste (-1, -1, 1.2)
+            const lx = -0.7071;
+            const lySun = -0.7071;
+            const lz = 1.0;
+
             reliefData.chunks.forEach(chunk => {
                 const startCellX = chunk.chunkX * chunkCells + halfCells;
                 const startCellY = chunk.chunkY * chunkCells + halfCells;
@@ -3324,31 +3371,55 @@
                     if (cy < 0 || cy >= totalCells) continue;
                     const canvasY = Math.round((totalCells - 1 - cy) * scale);
 
-                    for (let lx = 0; lx < chunkCells; lx++) {
-                        const cx = startCellX + lx;
+                    for (let lxCell = 0; lxCell < chunkCells; lxCell++) {
+                        const cx = startCellX + lxCell;
                         if (cx < 0 || cx >= totalCells) continue;
                         const canvasX = Math.round(cx * scale);
 
-                        const idx = ly * chunkCells + lx;
+                        const idx = ly * chunkCells + lxCell;
                         const state = states[idx];
                         const h = heights[idx] || 0;
 
                         if (state === 1) {
-                            ctx.fillStyle = '#1e3a5f';
+                            ctx.fillStyle = (modo === 'relief_shaded') ? '#1e293b' : '#1e3a5f';
                             ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
                         } else if (state === 2) {
-                            let color = '#efe6cf';
-                            if (h >= 1.5 && h < 10) color = '#3d7a46';
-                            else if (h >= 10 && h < 25) color = '#8da242';
-                            else if (h >= 25 && h < 50) color = '#b38f4a';
-                            else if (h >= 50) color = '#8c6b4b';
+                            if (modo === 'relief_shaded') {
+                                // Hillshade: calcular inclinação com células vizinhas no mesmo chunk
+                                const hWest = (lxCell > 0) ? (heights[ly * chunkCells + (lxCell - 1)] || h) : h;
+                                const hEast = (lxCell < chunkCells - 1) ? (heights[ly * chunkCells + (lxCell + 1)] || h) : h;
+                                const hNorth = (ly < chunkCells - 1) ? (heights[(ly + 1) * chunkCells + lxCell] || h) : h;
+                                const hSouth = (ly > 0) ? (heights[(ly - 1) * chunkCells + lxCell] || h) : h;
 
-                            ctx.fillStyle = color;
-                            ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+                                const dzdx = ((hEast - hWest) * 0.5);
+                                const dzdy = ((hNorth - hSouth) * 0.5);
 
-                            if (Math.round(h) % 5 === 0 && h > 0) {
-                                ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.25)';
-                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), 1);
+                                // Normal do terreno (nx, ny, nz)
+                                const normX = -dzdx;
+                                const normY = -dzdy;
+                                const normZ = 1.0;
+                                const len = Math.hypot(normX, normY, normZ);
+                                const dot = (normX * lx + normY * lySun + normZ * lz) / len;
+                                const intensity = Math.max(0.35, Math.min(1.4, (dot + 0.4)));
+
+                                const baseVal = Math.max(80, Math.min(220, Math.round(155 * intensity)));
+                                ctx.fillStyle = `rgb(${baseVal + 10}, ${baseVal + 8}, ${baseVal - 5})`;
+                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+                            } else {
+                                // Modo Topo clássico (cores hipsométricas)
+                                let color = '#efe6cf';
+                                if (h >= 1.5 && h < 10) color = '#3d7a46';
+                                else if (h >= 10 && h < 25) color = '#8da242';
+                                else if (h >= 25 && h < 50) color = '#b38f4a';
+                                else if (h >= 50) color = '#8c6b4b';
+
+                                ctx.fillStyle = color;
+                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+
+                                if (Math.round(h) % 5 === 0 && h > 0) {
+                                    ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.25)';
+                                    ctx.fillRect(canvasX, canvasY, Math.ceil(scale), 1);
+                                }
                             }
                         }
                     }
@@ -3371,9 +3442,9 @@
         }
     }
 
-    async function carregarERenderizarRelevo3DNoAtlas() {
+    async function carregarERenderizarRelevo3DNoAtlas(modo = 'topo') {
         if (cacheReliefData) {
-            renderizarCanvasRelevo3D(cacheReliefData);
+            renderizarCanvasRelevo3D(cacheReliefData, modo);
         }
         if (supabaseClient) {
             try {
@@ -3385,8 +3456,8 @@
 
                 if (!error && data && data.heightmap) {
                     cacheReliefData = JSON.parse(data.heightmap);
-                    renderizarCanvasRelevo3D(cacheReliefData);
-                    mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado do Sandbox!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded from Sandbox!`));
+                    renderizarCanvasRelevo3D(cacheReliefData, modo);
+                    mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded!`));
                 }
             } catch (err) {
                 console.warn('Aviso ao carregar relevo 3D no Atlas:', err);
@@ -3395,33 +3466,28 @@
     }
 
     function trocarBase(tipo, btn = null) {
-        const urls = {
-            custom:  (CFG.tiles && CFG.tiles.custom) || 'tiles_custom/{z}/{x}/{y}.png',
-            terrain: (CFG.tiles && CFG.tiles.terrain) || 'tiles_terrain/{z}/{x}/{y}.png',
-            iso:     (CFG.tiles && (CFG.tiles.isometric || CFG.tiles.iso)) || 'tiles_iso/{z}/{x}/{y}.png',
-            topo:    (CFG.tiles && (CFG.tiles.topographic || CFG.tiles.topo)) || 'tiles_topo/{z}/{x}/{y}.png'
-        };
+        if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
+
         if (tipo === 'parchment') {
-            if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
             if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
             if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
         } else if (tipo === 'topo_3d') {
-            if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
             if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
-            carregarERenderizarRelevo3DNoAtlas();
+            carregarERenderizarRelevo3DNoAtlas('topo');
+        } else if (tipo === 'relief_shaded') {
+            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            carregarERenderizarRelevo3DNoAtlas('relief_shaded');
         } else {
-            if (!urls[tipo]) tipo = 'custom';
-            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+            tipo = 'parchment';
             if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
-            tileLayer.setUrl(urls[tipo]);
-            if (!map.hasLayer(tileLayer)) tileLayer.addTo(map);
+            if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
         }
-        const mudouRound2 = (baseAtual === 'parchment' || baseAtual === 'topo_3d') !== (tipo === 'parchment' || tipo === 'topo_3d');
+
         baseAtual = tipo;
 
-        // A grade usa linhas mais escuras no pergaminho • The grid uses darker lines on parchment
-        if (mudouRound2 && map.hasLayer(gridLayer)) desenharGridYaga();
-        if (mudouRound2 && map.hasLayer(gridCoordLayer)) desenharGridCoord();
+        // A grade redesenha para manter nitidez
+        if (map.hasLayer(gridLayer)) desenharGridYaga();
+        if (map.hasLayer(gridCoordLayer)) desenharGridCoord();
 
         document.querySelectorAll('#accBase .sw-base-btn').forEach(b => b.classList.remove('active'));
         if (btn) {
@@ -3430,10 +3496,7 @@
             const bMap = {
                 parchment: document.getElementById('btnParchment'),
                 topo_3d: document.getElementById('btnTopo3D'),
-                custom: document.getElementById('btnCustom'),
-                terrain: document.getElementById('btnTerrain'),
-                iso: document.getElementById('btnIso'),
-                topo: document.getElementById('btnTopo')
+                relief_shaded: document.getElementById('btnReliefShaded')
             };
             if (bMap[tipo]) bMap[tipo].classList.add('active');
         }
@@ -4459,9 +4522,11 @@
             layers.area_measurement.removeLayer(areaTooltipMarker);
         }
 
-        const quad1 = obterQuadranteWurm(y1, x1);
-        const quad2 = obterQuadranteWurm(y2, x2);
-        const quadTxt = (quad1 === quad2) ? quad1 : `${quad1} ➔ ${quad2}`;
+        const relCenterX = Math.round(centroLng - 2048);
+        const relCenterY = Math.round(2048 - (y1 + y2) / 2);
+        const sectorX = relCenterX >= 0 ? `L${Math.floor(relCenterX / 100)}` : `O${Math.floor(Math.abs(relCenterX) / 100)}`;
+        const sectorY = relCenterY >= 0 ? `N${Math.floor(relCenterY / 100)}` : `S${Math.floor(Math.abs(relCenterY) / 100)}`;
+        const quadTxt = `${sectorY}-${sectorX} • (${relCenterX}, ${relCenterY})`;
 
         const badgeHtml = `
             <div class="deed-sizer-badge">
@@ -6675,11 +6740,6 @@
     }
 
     async function salvarPontoSubmissao() {
-        if (kindSelecionado === 'landmark' && (!currentProfile || currentProfile.role !== 'admin')) {
-            alert(txt('Apenas Administradores têm permissão para registrar topônimos / marcos geográficos no mapa.', 'Only Admins can add place names / landmarks to the map.'));
-            return;
-        }
-
         const inCoordX = parseInt(document.getElementById('inputModalCoordX')?.value, 10);
         const inCoordY = parseInt(document.getElementById('inputModalCoordY')?.value, 10);
         const r2 = isModoRound2();
@@ -6694,8 +6754,11 @@
         const nome = document.getElementById('inputNomePonto').value.trim() || txt(`${kindSelecionado.toUpperCase()} em ${clickCoords.x}, ${clickCoords.y}`, `${kindSelecionado.toUpperCase()} at ${clickCoords.x}, ${clickCoords.y}`);
         const dificuldade = document.getElementById('selectDificuldade')?.value;
         const mayor = document.getElementById('inputMayor')?.value.trim();
+        const metodoMedicao = document.getElementById('selectMetodoMedicao')?.value || 'contagem_construida';
 
-        const attrs = {};
+        const attrs = {
+            metodo_medicao: metodoMedicao
+        };
         if (dificuldade) attrs.dificuldade = Number(dificuldade);
         if (mayor) attrs.mayor = mayor;
 
@@ -6922,11 +6985,19 @@
             modoEstrada: 'Traçar Estrada',
             modoPonte: 'Traçar Ponte',
             modoArea: 'Medir Área',
-            modoSketch: 'Esboço',
-            baseParchment: '📜 Pergaminho em Branco (Round 2)',
-            baseOldMap: 'Mapa antigo do Jackal (Round 1):',
-            camadaSketch: '✏️ Camada de Esboço',
-            skTitulo: '✏️ Esboço:',
+            modoSketch: 'Rascunho',
+            baseWhite: '📜 White',
+            baseTopo: '⛰️ Topo',
+            baseRelevo3D: '🏔️ Relevo 3D',
+            gradeSetores: '📐 Setores 100x100t (Spawn 0,0)',
+            kindMarco: '📐 Marco / Pilar 3D',
+            metodoMedicao: 'Método de Medição (Classe de Evidência)',
+            metodoContagemConstruida: '📏 Contagem Construída (Estrada / Pilar / Muro) — Alta Certeza',
+            metodoContagemCaminhada: '🚶 Contagem Caminhada (Passos / Rumo com Picareta) — Média',
+            metodoEstimativaVisual: '👁️ Estimativa Visual (Avistamento à distância) — Provisório',
+            metodoRegraJogo: '⚓ Regra do Jogo (Spawn 0,0 / Nível do Mar)',
+            camadaSketch: '✏️ Camada de Rascunho',
+            skTitulo: '✏️ Rascunho:',
             skAgua: 'Água',
             skFloresta: 'Floresta',
             skCrista: 'Crista',
@@ -7171,8 +7242,16 @@
             modoPonte: 'Trace Bridge',
             modoArea: 'Measure Area',
             modoSketch: 'Sketch',
-            baseParchment: '📜 Blank Parchment (Round 2)',
-            baseOldMap: 'Old Jackal map (Round 1):',
+            baseWhite: '📜 White',
+            baseTopo: '⛰️ Topo',
+            baseRelevo3D: '🏔️ Relief 3D',
+            gradeSetores: '📐 100x100t Sectors (Spawn 0,0)',
+            kindMarco: '📐 3D Pillar / Marker',
+            metodoMedicao: 'Measurement Method (Evidence Class)',
+            metodoContagemConstruida: '📏 Built Count (Road / Pillar / Wall) — High Certainty',
+            metodoContagemCaminhada: '🚶 Walk Count (Steps / Pickaxe Bearing) — Medium',
+            metodoEstimativaVisual: '👁️ Visual Estimate (Distant Sighting) — Provisional',
+            metodoRegraJogo: '⚓ Game Rule (Spawn 0,0 / Sea Level)',
             camadaSketch: '✏️ Sketch Layer',
             skTitulo: '✏️ Sketch:',
             skAgua: 'Water',
@@ -7478,9 +7557,6 @@
 
                 const btnObj = document.getElementById('btnAdminNovoObjetivo');
                 if (btnObj) btnObj.style.display = (profile.role === 'admin') ? 'block' : 'none';
-
-                const chipTopo = document.getElementById('chipToponimo');
-                if (chipTopo) chipTopo.style.display = (profile.role === 'admin') ? 'inline-flex' : 'none';
             }
         } catch (err) {
             console.warn('Erro ao carregar perfil do usuário:', err);
