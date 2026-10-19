@@ -2419,8 +2419,16 @@
 
             // Se for Torre de Guarda, a cobertura de 100x100 tiles é renderizada na camada dinâmica renderizarCoberturaTorres()
 
-            const canManage = (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer')) ||
-                              (currentUser && p.created_by === currentUser.id);
+            const isAdmin = !!(currentProfile && currentProfile.role === 'admin');
+            const isApprovedCreator = !!(
+                currentUser &&
+                currentProfile &&
+                currentProfile.role !== 'pending' &&
+                p.created_by === currentUser.id
+            );
+            const canManage = p.kind === 'landmark'
+                ? isAdmin
+                : (isStaff || (isApprovedCreator && p.confirmed === false));
 
             // Literal JS (JSON.stringify) e depois HTML: o atributo onclick decodifica o HTML antes de rodar o JS
             // JS literal (JSON.stringify) then HTML: the onclick attribute decodes the HTML before running the JS
@@ -3397,7 +3405,7 @@
         ctx.strokeRect(0, 0, size, size);
 
         if (reliefData && reliefData.chunks && Array.isArray(reliefData.chunks)) {
-            const chunkCells = 64;
+            const chunkCells = Number(reliefData.chunk_size || reliefData.chunkSize) || 64;
             const totalCells = 1024;
             const halfCells = totalCells / 2;
             const scale = size / totalCells;
@@ -3407,11 +3415,28 @@
             const lySun = -0.7071;
             const lz = 1.0;
 
+            const decodeFloat32 = (b64) => {
+                try {
+                    const bin = atob(b64);
+                    const bytes = new Uint8Array(bin.length);
+                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                    return new Float32Array(bytes.buffer);
+                } catch (e) { return []; }
+            };
+            const decodeUint8 = (b64) => {
+                try {
+                    const bin = atob(b64);
+                    const bytes = new Uint8Array(bin.length);
+                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                    return bytes;
+                } catch (e) { return []; }
+            };
+
             reliefData.chunks.forEach(chunk => {
                 const startCellX = chunk.chunkX * chunkCells + halfCells;
                 const startCellY = chunk.chunkY * chunkCells + halfCells;
-                const heights = chunk.heights || [];
-                const states = chunk.states || [];
+                const heights = chunk.heightsBase64 ? decodeFloat32(chunk.heightsBase64) : (chunk.heights || []);
+                const states = chunk.statesBase64 ? decodeUint8(chunk.statesBase64) : (chunk.states || []);
 
                 for (let ly = 0; ly < chunkCells; ly++) {
                     const cy = startCellY + ly;
@@ -3427,10 +3452,10 @@
                         const state = states[idx];
                         const h = heights[idx] || 0;
 
-                        if (state === 1) {
-                            ctx.fillStyle = (modo === 'relief_shaded') ? '#1e293b' : '#1e3a5f';
+                        if (state === 1 || (state >= 2 && h < 0)) {
+                            ctx.fillStyle = (modo === 'relief_shaded') ? '#1e293b' : (h < -12 ? '#29577a' : '#42789e');
                             ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
-                        } else if (state === 2) {
+                        } else if (state >= 2) {
                             if (modo === 'relief_shaded') {
                                 // Hillshade: calcular inclinação com células vizinhas no mesmo chunk
                                 const hWest = (lxCell > 0) ? (heights[ly * chunkCells + (lxCell - 1)] || h) : h;
@@ -3453,18 +3478,20 @@
                                 ctx.fillStyle = `rgb(${baseVal + 10}, ${baseVal + 8}, ${baseVal - 5})`;
                                 ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
                             } else {
-                                // Modo Topo clássico (cores hipsométricas)
-                                let color = '#efe6cf';
-                                if (h >= 1.5 && h < 10) color = '#3d7a46';
-                                else if (h >= 10 && h < 25) color = '#8da242';
-                                else if (h >= 25 && h < 50) color = '#b38f4a';
-                                else if (h >= 50) color = '#8c6b4b';
+                                // Modo Topo Swisstopo/USGS (cores hipsométricas)
+                                let color = '#dfd4b8';
+                                if (h >= 1.5 && h < 12) color = '#6ba166';
+                                else if (h >= 12 && h < 28) color = '#9eb86b';
+                                else if (h >= 28 && h < 50) color = '#dec785';
+                                else if (h >= 50 && h < 85) color = '#c7996b';
+                                else if (h >= 85 && h < 130) color = '#a37d66';
+                                else if (h >= 130) color = '#ebe6e0';
 
                                 ctx.fillStyle = color;
                                 ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
 
                                 if (Math.round(h) % 5 === 0 && h > 0) {
-                                    ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.25)';
+                                    ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(56, 31, 13, 0.85)' : 'rgba(97, 61, 31, 0.5)';
                                     ctx.fillRect(canvasX, canvasY, Math.ceil(scale), 1);
                                 }
                             }
@@ -3495,16 +3522,32 @@
         }
         if (supabaseClient) {
             try {
-                const { data, error } = await supabaseClient
+                let { data, error } = await supabaseClient
                     .from('relief_state')
                     .select('*')
-                    .eq('id', 'jackal_r2_main')
-                    .single();
+                    .eq('id', 'main')
+                    .maybeSingle();
 
-                if (!error && data && data.heightmap) {
-                    cacheReliefData = JSON.parse(data.heightmap);
-                    renderizarCanvasRelevo3D(cacheReliefData, modo);
-                    mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded!`));
+                if (!data) {
+                    const fallback = await supabaseClient
+                        .from('relief_state')
+                        .select('*')
+                        .eq('id', 'jackal_r2_main')
+                        .maybeSingle();
+                    data = fallback.data;
+                    error = fallback.error;
+                }
+
+                if (!error && data) {
+                    if (Array.isArray(data.chunks) && data.chunks.length > 0) {
+                        cacheReliefData = data;
+                    } else if (data.heightmap) {
+                        cacheReliefData = JSON.parse(data.heightmap);
+                    }
+                    if (cacheReliefData) {
+                        renderizarCanvasRelevo3D(cacheReliefData, modo);
+                        mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded!`));
+                    }
                 }
             } catch (err) {
                 console.warn('Aviso ao carregar relevo 3D no Atlas:', err);
@@ -7979,10 +8022,11 @@
                     </button>
                 ` : '';
 
-                // Same rules as the database: creator or officers change the status; creator or admins delete
-                const ehCriador = !!(currentUser && r.created_by === currentUser.id);
-                const podeAlterar = ehCriador || !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
-                const podeExcluir = ehCriador || !!(currentProfile && currentProfile.role === 'admin');
+                // Same rules as the database: officers/admins change built status or delete; approved creators can delete their own planned routes
+                const isStaffRota = !!(currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'officer'));
+                const ehCriadorPlanejada = !!(currentUser && currentProfile && currentProfile.role !== 'pending' && r.created_by === currentUser.id && !isBuilt);
+                const podeAlterar = isStaffRota;
+                const podeExcluir = isStaffRota || ehCriadorPlanejada;
 
                 const actionBtns = (podeAlterar || podeExcluir) ? `
                     <div style="display:flex; gap:6px; margin-top:6px;">

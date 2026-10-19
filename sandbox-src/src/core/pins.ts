@@ -91,6 +91,28 @@ export class PinManager {
     if (pinData.id && this.pins.has(pinData.id)) {
       return this.updatePin(pinData.id, pinData)!;
     }
+    if (pinData.id) {
+      const pin: MapPin = {
+        id: pinData.id,
+        x: pinData.x ?? 0,
+        y: pinData.y ?? 0,
+        z: pinData.z ?? null,
+        type: pinData.type ?? 'pillar',
+        method: pinData.method ?? 'marco_construido',
+        uncertainty_tiles: pinData.uncertainty_tiles ?? 2,
+        author: pinData.author ?? 'Cartógrafo',
+        validated: pinData.validated ?? false,
+        lockAltitude: pinData.lockAltitude ?? false,
+        notes: pinData.notes ?? '',
+        created_at: pinData.created_at ?? new Date().toISOString(),
+      };
+      if (pin.type === 'coast') {
+        pin.z = 0;
+      }
+      this.pins.set(pin.id, pin);
+      this.notify();
+      return pin;
+    }
     return this.addPin({
       x: pinData.x ?? 0,
       y: pinData.y ?? 0,
@@ -130,6 +152,7 @@ export class PinManager {
   public loadPins(pins: MapPin[]): void {
     this.pins.clear();
     for (const p of pins) {
+      if (p.id === 'pin-spawn-zero') continue;
       this.pins.set(p.id, p);
     }
     this.notify();

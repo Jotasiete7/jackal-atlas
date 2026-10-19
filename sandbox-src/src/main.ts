@@ -92,10 +92,10 @@ class JackalSandboxApp {
     this.contourRenderer = new ContourRenderer(this.sceneManager.overlayGroup, this.heightfield);
     this.scaleReference = new ScaleReferenceManager(this.sceneManager.overlayGroup);
 
-    // Posicionamento inicial da estação e da escala
+    // Posicionamento inicial da estação e da escala no marco zero (0, 0)
     this.gridMesh.updateStationRange(this.visitManager.getCurrentVisit());
-    const initialGroundZ = this.heightfield.getInterpolatedHeightAtTile(2, 0);
-    this.scaleReference.setPosition(2, 0, initialGroundZ);
+    const initialGroundZ = this.heightfield.getInterpolatedHeightAtTile(0, 0);
+    this.scaleReference.setPosition(0, 0, initialGroundZ);
 
     // Interface
     this.initUI();
@@ -128,7 +128,7 @@ class JackalSandboxApp {
       placeables: this.placeables,
     });
 
-    // Restaura Autosave se existir
+    // Restaura Autosave se existir e mescla com o relevo oficial da nuvem
     this.restoreAutosaveIfExists();
 
     // Inicia Loop de Renderização
@@ -140,6 +140,8 @@ class JackalSandboxApp {
       const autosave = await this.storageManager.loadAutosave();
       if (autosave && autosave.chunks && autosave.chunks.length > 0) {
         this.storageManager.restoreSnapshot(autosave, this.heightfield, this.pinManager, this.visitManager);
+        // Mescla de forma não-destrutiva qualquer relevo oficial da nuvem que não esteja no autosave local
+        await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
         this.terrainMesh.updateDirtyChunks();
         this.contourRenderer.requestUpdate();
         this.pinMesh.rebuildPins();
@@ -148,11 +150,14 @@ class JackalSandboxApp {
         const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
         this.scaleReference.setExactY(groundY);
       } else {
-        const cloudRes = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
+        const cloudRes = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, false);
         if (cloudRes.success) {
           this.terrainMesh.updateDirtyChunks();
           this.contourRenderer.requestUpdate();
           this.pinMesh.rebuildPins();
+          const pos = this.scaleReference.getPosition();
+          const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
+          this.scaleReference.setExactY(groundY);
         }
       }
 
@@ -161,11 +166,11 @@ class JackalSandboxApp {
       this.heightfield.updatePinAnchors(this.pinManager.getAll());
       this.pinMesh.rebuildPins();
 
-      // Assina publicações de relevo em tempo real
+      // Assina publicações de relevo em tempo real (mescla não-destrutiva para não perder edição em andamento)
       this.supabaseSync.listenToCloudRelief(async (version) => {
-        const confirmUpdate = confirm(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja atualizar agora?`);
+        const confirmUpdate = confirm(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja mesclar com seu trabalho agora?`);
         if (confirmUpdate) {
-          const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
+          const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
           if (res.success) {
             this.terrainMesh.updateDirtyChunks();
             this.contourRenderer.requestUpdate();
@@ -291,6 +296,24 @@ class JackalSandboxApp {
       },
     });
     this.sceneManager.setOnFpsUpdate((fps) => this.infoBarUI.updateFps(fps));
+
+    const syncRoleFromProfile = () => {
+      const profile = this.supabaseSync.getProfile();
+      if (!profile || profile.role === 'pending') {
+        this.infoBarUI.setRole('scout', false);
+      } else if (profile.role === 'admin' || profile.role === 'officer') {
+        this.infoBarUI.setRole('cartographer', true);
+      } else {
+        this.infoBarUI.setRole('explorer', false);
+      }
+      if (profile && (profile.nick || profile.discord_name)) {
+        this.visitManager.updateVisitDetails({
+          author: profile.nick || profile.discord_name,
+        });
+      }
+    };
+    syncRoleFromProfile();
+    this.supabaseSync.subscribe(syncRoleFromProfile);
 
     this.pinModalUI = new PinModalUI(this.appContainer, this.pinManager);
     this.pinMesh.setOnPinSelect((pin) => {

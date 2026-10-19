@@ -105,8 +105,29 @@ export class InfoBarUI {
     }
   }
 
+  private allowCartographer = false;
+
   public getRole(): UserRole {
     return this.currentRole;
+  }
+
+  public setRole(role: UserRole, allowCartographer = false): void {
+    this.allowCartographer = allowCartographer;
+    this.currentRole = role === 'cartographer' && !allowCartographer ? 'explorer' : role;
+    const btn = this.container.querySelector('#btn-toggle-role') as HTMLElement;
+    if (btn) {
+      btn.textContent = this.getRoleText();
+    }
+    if (this.onRoleChangeCallback) {
+      this.onRoleChangeCallback(this.currentRole);
+    }
+    this.updateCoordinates(
+      this.lastCoords.tileX,
+      this.lastCoords.tileY,
+      this.lastCoords.alt,
+      this.lastCoords.state,
+      this.lastCoords.conf
+    );
   }
 
   private getRoleText(): string {
@@ -153,9 +174,13 @@ export class InfoBarUI {
     `;
 
     this.container.querySelector('#btn-toggle-role')?.addEventListener('click', () => {
-      if (this.currentRole === 'scout') this.currentRole = 'explorer';
-      else if (this.currentRole === 'explorer') this.currentRole = 'cartographer';
-      else this.currentRole = 'scout';
+      if (this.currentRole === 'scout') {
+        this.currentRole = 'explorer';
+      } else if (this.currentRole === 'explorer') {
+        this.currentRole = this.allowCartographer ? 'cartographer' : 'scout';
+      } else {
+        this.currentRole = 'scout';
+      }
 
       const btn = this.container.querySelector('#btn-toggle-role') as HTMLElement;
       if (btn) {
@@ -174,6 +199,7 @@ export class InfoBarUI {
     });
 
     this.container.querySelector('#btn-sheet-lock')?.addEventListener('click', () => {
+      if (!this.allowCartographer) return;
       const sheet = getTileSheetName(this.lastCoords.tileX, this.lastCoords.tileY);
       if (this.onToggleSheetLockCallback) {
         const isNowLocked = this.onToggleSheetLockCallback(sheet);

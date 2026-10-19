@@ -682,6 +682,7 @@
                         <td>${ev.actor_id ? sanitize(ev.actor_id.slice(0,8)) : txt('Anônimo', 'Anonymous')}</td>
                         <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
                             <button class="btn-table-action approve" onclick="aprovarEvento('${sanitize(ev.id)}')">✓ ${txt('Aprovar', 'Approve')}</button>
+                            <button class="btn-table-action danger" onclick="rejeitarEvento('${sanitize(ev.id)}')">✕ ${txt('Rejeitar', 'Reject')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -715,6 +716,19 @@
                 await carregarFilaGuerra();
             } catch (err) {
                 alert(txt('Erro ao aprovar relatório: ', 'Error approving report: ') + err.message);
+            }
+        }
+
+        async function rejeitarEvento(id) {
+            if (!supabaseClient || !confirm(txt('Deseja realmente rejeitar e excluir este relatório de evento?', 'Really reject and delete this event report?'))) return;
+            try {
+                const { data, error } = await supabaseClient.from('point_events').delete().eq('id', id).select('id');
+                if (error) throw error;
+                if (!data || !data.length) throw new Error(txt('sem permissão (apenas oficiais e admins)', 'not allowed (officers and admins only)'));
+                alert(txt('Relatório de evento rejeitado e removido.', 'Event report rejected and removed.'));
+                await carregarFilaGuerra();
+            } catch (err) {
+                alert(txt('Erro ao rejeitar relatório: ', 'Error rejecting report: ') + err.message);
             }
         }
 

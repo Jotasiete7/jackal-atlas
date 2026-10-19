@@ -144,13 +144,81 @@ export class StorageManager {
     }
 
     if (snapshot.pins) {
-      pins.loadPins(snapshot.pins);
-      heightfield.updatePinAnchors(snapshot.pins);
+      const cleanPins = snapshot.pins.filter((p) => p.id !== 'pin-spawn-zero');
+      pins.loadPins(cleanPins);
+      heightfield.updatePinAnchors(cleanPins);
     }
 
     if (snapshot.visit) {
       visits.updateVisitDetails(snapshot.visit);
     }
+  }
+
+  /**
+   * Mescla de forma não-destrutiva os chunks oficiais da nuvem com os chunks locais:
+   * - Nunca apaga chunks que existem na nuvem mas não foram tocados localmente.
+   * - Nunca sobrescreve células mapeadas na nuvem com células UNKNOWN (0) locais.
+   * - Preserva células travadas (locked = 1) da nuvem caso o estado local não esteja explicitamente travado.
+   */
+  public mergeChunksNonDestructive(
+    cloudChunks: SerializedSnapshot['chunks'],
+    localChunks: SerializedSnapshot['chunks']
+  ): SerializedSnapshot['chunks'] {
+    const S = CONFIG.CHUNK_SIZE_CELLS;
+    const total = S * S;
+    const mergedMap = new Map<string, SerializedSnapshot['chunks'][0]>();
+
+    for (const c of cloudChunks || []) {
+      mergedMap.set(`${c.chunkX},${c.chunkY}`, {
+        chunkX: c.chunkX,
+        chunkY: c.chunkY,
+        heights: [...(c.heights || [])],
+        states: [...(c.states || [])],
+        confidence: [...(c.confidence || [])],
+        locked: c.locked ? [...c.locked] : new Array(total).fill(0),
+      });
+    }
+
+    for (const l of localChunks || []) {
+      const key = `${l.chunkX},${l.chunkY}`;
+      const existing = mergedMap.get(key);
+      if (!existing) {
+        mergedMap.set(key, {
+          chunkX: l.chunkX,
+          chunkY: l.chunkY,
+          heights: [...(l.heights || [])],
+          states: [...(l.states || [])],
+          confidence: [...(l.confidence || [])],
+          locked: l.locked ? [...l.locked] : new Array(total).fill(0),
+        });
+      } else {
+        for (let i = 0; i < total; i++) {
+          const cState = existing.states[i] ?? CellState.UNKNOWN;
+          const cLocked = existing.locked ? (existing.locked[i] || 0) : 0;
+          const lState = l.states[i] ?? CellState.UNKNOWN;
+          const lLocked = l.locked ? (l.locked[i] || 0) : 0;
+
+          // 1. Se a célula local está UNKNOWN (não esculpida localmente), preserva a célula da nuvem
+          if (lState === CellState.UNKNOWN && cState !== CellState.UNKNOWN) {
+            continue;
+          }
+
+          // 2. Se a célula na nuvem está travada (locked=1) e localmente não está travada, preserva a trava oficial
+          if (cLocked === 1 && lLocked === 0) {
+            continue;
+          }
+
+          existing.heights[i] = l.heights[i] || 0;
+          existing.states[i] = lState;
+          existing.confidence[i] = l.confidence[i] ?? ConfidenceLevel.SPECULATIVE;
+          if (existing.locked) {
+            existing.locked[i] = lLocked;
+          }
+        }
+      }
+    }
+
+    return Array.from(mergedMap.values());
   }
 
   /** Grava o estado atual como autosave contínuo no IndexedDB */

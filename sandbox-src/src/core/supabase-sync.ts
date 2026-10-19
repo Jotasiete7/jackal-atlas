@@ -114,22 +114,43 @@ export class SupabaseSyncManager {
     return this.currentProfile.role === 'admin' || this.currentProfile.role === 'officer';
   }
 
+  public isApprovedMember(): boolean {
+    if (!this.currentProfile) return false;
+    return (
+      this.currentProfile.role === 'admin' ||
+      this.currentProfile.role === 'officer' ||
+      this.currentProfile.role === 'member'
+    );
+  }
+
   /**
-   * Carrega o estado oficial do relevo 3D da nuvem
+   * Carrega o estado oficial do relevo 3D da nuvem.
+   * Se mergeWithLocal = true, mescla de forma não-destrutiva com o rascunho local.
    */
   public async fetchCloudRelief(
     heightfield: HeightfieldManager,
     pins: PinManager,
-    visits: VisitManager
+    visits: VisitManager,
+    mergeWithLocal = false
   ): Promise<{ success: boolean; version?: number; message?: string }> {
     if (!this.client) return { success: false, message: 'Supabase não inicializado' };
 
     try {
-      const { data, error } = await this.client
+      let { data, error } = await this.client
         .from('relief_state')
         .select('*')
         .eq('id', 'jackal_r2_main')
-        .maybeSingle(); // empty until the first relief is published
+        .maybeSingle();
+
+      if (!data) {
+        const alt = await this.client
+          .from('relief_state')
+          .select('*')
+          .eq('id', 'main')
+          .maybeSingle();
+        data = alt.data;
+        error = alt.error;
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -141,37 +162,65 @@ export class SupabaseSyncManager {
       if (!data) {
         return { success: false, message: 'Nenhum relevo oficial publicado ainda' };
       }
-      if (!data.heightmap) {
+
+      let cloudChunks: any[] = [];
+      if (Array.isArray(data.chunks) && data.chunks.length > 0) {
+        cloudChunks = data.chunks;
+      } else if (data.heightmap) {
+        const parsed = JSON.parse(data.heightmap);
+        if (parsed && Array.isArray(parsed.chunks)) {
+          cloudChunks = parsed.chunks;
+        }
+      }
+
+      if (cloudChunks.length === 0) {
         return { success: false, message: 'Estado de relevo vazio' };
       }
 
-      // Descompactar JSON das chunks do relevo
-      const parsed = JSON.parse(data.heightmap);
-      if (parsed && Array.isArray(parsed.chunks)) {
-        this.storage.restoreSnapshot(
-          {
-            meta: {
-              id: `cloud-${data.version}`,
-              name: `Relevo Oficial v${data.version}`,
-              created_at: data.updated_at,
-              is_daily: false,
-              author: data.metadata?.author || 'Oficial',
-              chunk_count: parsed.chunks.length,
-              pin_count: pins.getAll().length,
-            },
-            chunks: parsed.chunks,
-            pins: pins.getAll(),
-            visit: visits.getCurrentVisit(),
-            lockedSheets: data.metadata?.lockedSheets || [],
-          },
-          heightfield,
-          pins,
-          visits
-        );
-        return { success: true, version: data.version };
+      const localSnap = this.storage.serializeCurrentState(
+        heightfield,
+        pins,
+        visits,
+        'Backup Local (Pré-Sincronização)',
+        false
+      );
+
+      // Se o usuário pediu substituição completa mas tinha trabalho local, salva um backup automático no IndexedDB
+      if (!mergeWithLocal && localSnap.chunks.length > 0) {
+        localSnap.meta.id = `backup-local-pre-pull-${Date.now()}`;
+        await this.storage.saveSnapshot(localSnap);
       }
 
-      return { success: false, message: 'Formato inválido de relevo' };
+      const finalChunks = mergeWithLocal
+        ? this.storage.mergeChunksNonDestructive(cloudChunks, localSnap.chunks)
+        : cloudChunks;
+
+      const cloudLockedSheets: string[] = data.metadata?.lockedSheets || [];
+      const finalLockedSheets = mergeWithLocal
+        ? Array.from(new Set([...cloudLockedSheets, ...(localSnap.lockedSheets || [])]))
+        : cloudLockedSheets;
+
+      this.storage.restoreSnapshot(
+        {
+          meta: {
+            id: `cloud-${data.version}`,
+            name: `Relevo Oficial v${data.version}`,
+            created_at: data.updated_at,
+            is_daily: false,
+            author: data.metadata?.author || 'Oficial',
+            chunk_count: finalChunks.length,
+            pin_count: pins.getAll().length,
+          },
+          chunks: finalChunks,
+          pins: pins.getAll(),
+          visit: visits.getCurrentVisit(),
+          lockedSheets: finalLockedSheets,
+        },
+        heightfield,
+        pins,
+        visits
+      );
+      return { success: true, version: data.version };
     } catch (err: any) {
       console.error('Erro ao buscar relevo da nuvem:', err);
       return { success: false, message: err.message || 'Falha ao carregar' };
@@ -180,7 +229,12 @@ export class SupabaseSyncManager {
 
   /**
    * Publica o relevo atual na nuvem como a versão oficial compartilhada
-   * (Apenas Oficiais e Administradores: Jotasiete, Calvos, Mitchel)
+   * (Apenas Oficiais e Administradores: Jota7, Calvos, Mitchel)
+   * Inclui proteção anti-perda:
+   * 1. Bloqueia publicação de mapa vazio sobre mapa populado.
+   * 2. Salva backup local automático da versão anterior da nuvem no IndexedDB.
+   * 3. Mescla de forma não-destrutiva chunks/células da nuvem que não foram editados localmente.
+   * 4. Registra snapshot imutável na tabela append-only public.relief_commits.
    */
   public async publishCloudRelief(
     heightfield: HeightfieldManager,
@@ -202,19 +256,69 @@ export class SupabaseSyncManager {
         false
       );
 
-      // 1. Obter versão atual
+      // 1. Obter estado e versão atual da nuvem para mesclagem segura e backup
       const { data: current } = await this.client
         .from('relief_state')
-        .select('version')
+        .select('*')
         .eq('id', 'jackal_r2_main')
         .maybeSingle();
 
-      const nextVersion = (current?.version || 0) + 1;
-      const heightmapJson = JSON.stringify({ chunks: snapshot.chunks });
-      const statemapJson = JSON.stringify({ lockedSheets: snapshot.lockedSheets });
-      const authorId = this.currentProfile?.id || null;
+      let cloudChunks: any[] = [];
+      let cloudLockedSheets: string[] = [];
+      if (current) {
+        if (Array.isArray(current.chunks) && current.chunks.length > 0) {
+          cloudChunks = current.chunks;
+        } else if (current.heightmap) {
+          try {
+            const parsed = JSON.parse(current.heightmap);
+            if (parsed && Array.isArray(parsed.chunks)) {
+              cloudChunks = parsed.chunks;
+            }
+          } catch {}
+        }
+        cloudLockedSheets = current.metadata?.lockedSheets || [];
+      }
 
-      // 2. Atualizar ou inserir estado ativo
+      // Proteção contra publicação de mapa em branco
+      if (snapshot.chunks.length === 0) {
+        return {
+          success: false,
+          message: 'Proteção anti-perda: Seu relevo local não possui células esculpidas para publicar.',
+        };
+      }
+
+      // Salva backup automático da versão anterior da nuvem no IndexedDB local
+      if (current && cloudChunks.length > 0) {
+        await this.storage.saveSnapshot({
+          meta: {
+            id: `backup-cloud-v${current.version}`,
+            name: `Backup Oficial v${current.version} (Pré-Publicação)`,
+            created_at: current.updated_at || new Date().toISOString(),
+            is_daily: false,
+            author: current.metadata?.author || 'Oficial',
+            chunk_count: cloudChunks.length,
+            pin_count: snapshot.pins.length,
+          },
+          chunks: cloudChunks,
+          pins: snapshot.pins,
+          visit: snapshot.visit,
+          lockedSheets: cloudLockedSheets,
+        });
+      }
+
+      // Mescla não-destrutiva: preserva chunks e células travadas/mapeadas da nuvem
+      const mergedChunks = this.storage.mergeChunksNonDestructive(cloudChunks, snapshot.chunks);
+      const mergedLockedSheets = Array.from(
+        new Set([...cloudLockedSheets, ...(snapshot.lockedSheets || [])])
+      );
+
+      const nextVersion = (current?.version || 0) + 1;
+      const heightmapJson = JSON.stringify({ chunks: mergedChunks });
+      const statemapJson = JSON.stringify({ lockedSheets: mergedLockedSheets });
+      const authorId = this.currentProfile?.id || null;
+      const nowIso = new Date().toISOString();
+
+      // 2. Atualizar ou inserir estado ativo (compatível com V1 e V2)
       const { error: stateError } = await this.client
         .from('relief_state')
         .upsert({
@@ -222,33 +326,57 @@ export class SupabaseSyncManager {
           version: nextVersion,
           resolution: 128,
           scale_meters: 4.0,
+          tile_scale_m: 4.0,
+          chunk_size: CONFIG.CHUNK_SIZE_CELLS,
           bounds: { minX: -2048, maxX: 2048, minY: -2048, maxY: 2048 },
           heightmap: heightmapJson,
           statemap: statemapJson,
+          chunks: mergedChunks,
+          sheets: mergedLockedSheets,
+          pins: snapshot.pins,
           stations: [visits.getCurrentVisit()],
           metadata: {
             author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
             commit_message: commitMessage,
-            lockedSheets: snapshot.lockedSheets,
+            lockedSheets: mergedLockedSheets,
           },
           updated_by: authorId,
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
         });
 
       if (stateError) throw stateError;
 
-      // 3. Salvar no histórico de commits
+      // 3. Salvar no histórico imutável de commits (append-only)
       await this.client.from('relief_commits').insert({
         version: nextVersion,
         message: commitMessage,
         heightmap: heightmapJson,
         statemap: statemapJson,
+        tile_scale_m: 4.0,
+        chunk_size: CONFIG.CHUNK_SIZE_CELLS,
+        chunks: mergedChunks,
+        sheets: mergedLockedSheets,
+        pins: snapshot.pins,
         stations: [visits.getCurrentVisit()],
         metadata: {
-          lockedSheets: snapshot.lockedSheets,
+          author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+          lockedSheets: mergedLockedSheets,
         },
         author: authorId,
       });
+
+      // Atualiza o estado local com o resultado mesclado e grava no autosave
+      this.storage.restoreSnapshot(
+        {
+          ...snapshot,
+          chunks: mergedChunks,
+          lockedSheets: mergedLockedSheets,
+        },
+        heightfield,
+        pins,
+        visits
+      );
+      await this.storage.saveAutosave(heightfield, pins, visits);
 
       return { success: true, version: nextVersion };
     } catch (err: any) {
@@ -313,13 +441,19 @@ export class SupabaseSyncManager {
    */
   public async savePinToCloud(pin: MapPin): Promise<{ success: boolean; message?: string }> {
     if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.isApprovedMember()) {
+      return {
+        success: false,
+        message: 'Apenas membros aprovados (Member, Officer ou Admin) podem enviar marcos para a nuvem.',
+      };
+    }
 
     try {
       const isOfficer = this.isOfficerOrAdmin();
       const kind = pin.type === 'tower' ? 'tower' : 'pillar';
+      const isNewPin = pin.id.startsWith('pin-');
 
-      const payload = {
-        id: pin.id.startsWith('pin-') ? undefined : pin.id,
+      const basePayload = {
         kind,
         name: pin.notes || `${pin.type.toUpperCase()} (${pin.x}, ${pin.y})`,
         x: pin.x,
@@ -335,16 +469,26 @@ export class SupabaseSyncManager {
         },
       };
 
-      const { data, error } = await this.client
-        .from('points')
-        .upsert(payload)
-        .select()
-        .single();
+      if (isNewPin) {
+        const { data, error } = await this.client
+          .from('points')
+          .insert(basePayload)
+          .select()
+          .single();
 
-      if (error) throw error;
-      if (data && data.id) {
-        pin.id = data.id;
+        if (error) throw error;
+        if (data && data.id) {
+          pin.id = data.id;
+        }
+      } else {
+        const { error } = await this.client
+          .from('points')
+          .update(basePayload)
+          .eq('id', pin.id);
+
+        if (error) throw error;
       }
+
       return { success: true };
     } catch (err: any) {
       console.warn('Erro ao salvar pino na nuvem:', err);
