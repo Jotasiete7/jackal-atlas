@@ -104,7 +104,7 @@ export function cellToChunkCoords(cellX: number, cellY: number): {
 }
 
 export interface CrystalBase {
-  id: 'north' | 'west' | 'south';
+  id: 'north' | 'west' | 'east';
   name: string;
   namePt: string;
   tileX: number;
@@ -114,35 +114,38 @@ export interface CrystalBase {
   icon: string;
 }
 
-export const CRYSTAL_BASES: Record<'north' | 'west' | 'south', CrystalBase> = {
+export const CRYSTAL_BASES: Record<'north' | 'west' | 'east', CrystalBase> = {
   north: {
     id: 'north',
-    name: 'North Crystal',
-    namePt: 'Cristal Norte',
+    name: 'Freedom Outpost North',
+    namePt: 'Freedom Outpost North',
     tileX: 0,
     tileY: 150,
     color: '#38bdf8',
     hexColor: 0x38bdf8,
-    icon: '💎',
+    icon: '🏰',
   },
   west: {
     id: 'west',
-    name: 'West Crystal',
-    namePt: 'Cristal Oeste',
+    name: 'Freedom Outpost West',
+    namePt: 'Freedom Outpost West',
     tileX: -320,
     tileY: -250,
     color: '#34d399',
     hexColor: 0x34d399,
-    icon: '💎',
+    icon: '🏰',
   },
-  south: {
-    id: 'south',
-    name: 'South Crystal',
-    namePt: 'Cristal Sul',
+  east: {
+    id: 'east',
+    name: 'Freedom Outpost East',
+    namePt: 'Freedom Outpost East',
     tileX: 60,
     tileY: -180,
     color: '#f87171',
     hexColor: 0xf87171,
-    icon: '💎',
+    icon: '🏰',
   },
 };
+
+// Alias de retrocompatibilidade para referências anteriores a 'south'
+(CRYSTAL_BASES as any).south = CRYSTAL_BASES.east;

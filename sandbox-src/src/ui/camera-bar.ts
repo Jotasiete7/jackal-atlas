@@ -118,14 +118,14 @@ export class CameraBarUI {
 
         <!-- Atalhos dos 3 Cristais Oficiais -->
         <div class="btn-group" style="margin-left: 2px;">
-          <button class="btn btn-jump-crystal" data-crystal="north" style="font-size: 11px; padding: 3px 7px; color: #38bdf8;" title="Base Norte (0, 150)">
-            💎 Norte
+          <button class="btn btn-jump-crystal" data-crystal="north" style="font-size: 11px; padding: 3px 7px; color: #38bdf8;" title="Freedom Outpost North (0, 150)">
+            🏰 Norte
           </button>
-          <button class="btn btn-jump-crystal" data-crystal="west" style="font-size: 11px; padding: 3px 7px; color: #34d399;" title="Base Oeste (-320, -250)">
-            💎 Oeste
+          <button class="btn btn-jump-crystal" data-crystal="west" style="font-size: 11px; padding: 3px 7px; color: #34d399;" title="Freedom Outpost West (-320, -250)">
+            🏰 Oeste
           </button>
-          <button class="btn btn-jump-crystal" data-crystal="south" style="font-size: 11px; padding: 3px 7px; color: #f87171;" title="Base Sul (60, -180)">
-            💎 Sul
+          <button class="btn btn-jump-crystal" data-crystal="east" style="font-size: 11px; padding: 3px 7px; color: #f87171;" title="Freedom Outpost East (60, -180)">
+            🏰 Leste
           </button>
         </div>
 

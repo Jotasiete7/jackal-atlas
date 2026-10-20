@@ -68,7 +68,7 @@ export class GridMeshManager {
       { x: 0, y: 0, radius: 400 },
       { x: CRYSTAL_BASES.north.tileX, y: CRYSTAL_BASES.north.tileY, radius: 400 },
       { x: CRYSTAL_BASES.west.tileX, y: CRYSTAL_BASES.west.tileY, radius: 400 },
-      { x: CRYSTAL_BASES.south.tileX, y: CRYSTAL_BASES.south.tileY, radius: 400 },
+      { x: CRYSTAL_BASES.east.tileX, y: CRYSTAL_BASES.east.tileY, radius: 400 },
     ];
 
     for (const anchor of anchorPoints) {

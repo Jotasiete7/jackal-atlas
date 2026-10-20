@@ -34,7 +34,7 @@ SET
       'station_y', 150,
       'heading_deg', 0,
       'station_method', 'marco_construido',
-      'author', 'Cristal Norte',
+      'author', 'Freedom Outpost North',
       'range_tiles', 100,
       'date', CURRENT_DATE::text
     ),
@@ -44,17 +44,17 @@ SET
       'station_y', -250,
       'heading_deg', 0,
       'station_method', 'marco_construido',
-      'author', 'Cristal Oeste',
+      'author', 'Freedom Outpost West',
       'range_tiles', 100,
       'date', CURRENT_DATE::text
     ),
     jsonb_build_object(
-      'id', 'crystal_south',
+      'id', 'crystal_east',
       'station_x', 60,
       'station_y', -180,
       'heading_deg', 0,
       'station_method', 'marco_construido',
-      'author', 'Cristal Sul',
+      'author', 'Freedom Outpost East',
       'range_tiles', 100,
       'date', CURRENT_DATE::text
     )
