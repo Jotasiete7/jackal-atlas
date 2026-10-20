@@ -28,6 +28,8 @@ import { ConfidenceLegendUI } from './ui/confidence-legend';
 import { InfoBarUI } from './ui/info-bar';
 import { PinModalUI } from './ui/pin-modal';
 import { RouteModalUI } from './ui/route-modal';
+import { PublishModalUI } from './ui/publish-modal';
+import { buildReliefCommitName } from './core/relief-naming';
 import { RouteHUDUI } from './ui/route-hud';
 
 import { RouteManager } from './core/routes';
@@ -70,6 +72,7 @@ class JackalSandboxApp {
   private pinModalUI!: PinModalUI;
   private routeModalUI!: RouteModalUI;
   private routeHUDUI!: RouteHUDUI;
+  private publishModalUI!: PublishModalUI;
 
   // 4. Controlador de Interação
   private interactionController!: InteractionController;
@@ -243,19 +246,24 @@ class JackalSandboxApp {
           }
         },
         onCloudPublish: async () => {
-          const msg = prompt(t('prompt_commit_msg'), 'Relevo oficial de campo Jackal Round 2');
-          if (msg === null) return;
-          const res = await this.supabaseSync.publishCloudRelief(
-            this.heightfield,
-            this.pinManager,
-            this.visitManager,
-            msg || undefined
-          );
-          if (res.success) {
-            alert(t('alert_cloud_published'));
-          } else {
-            alert(res.message || 'Falha ao publicar na nuvem.');
-          }
+          const currentVersion = await this.supabaseSync.getLatestReliefVersion();
+          const nextVersion = currentVersion + 1;
+          const profile = this.supabaseSync.getProfile();
+          const author = profile?.nick || profile?.discord_name || 'Oficial';
+          const S = CONFIG.CHUNK_SIZE_CELLS;
+          const chunkCount = Array.from(this.heightfield.getAllChunks()).filter((c: any) => {
+            for (let i = 0; i < S * S; i++) {
+              if (c.states[i] !== 0) return true;
+            }
+            return false;
+          }).length;
+
+          this.publishModalUI.open({
+            currentVersion,
+            nextVersion,
+            author,
+            chunkCount,
+          });
         },
         onSyncPins: async () => {
           const count = await this.supabaseSync.syncPointsFromCloud(this.pinManager);
@@ -363,6 +371,24 @@ class JackalSandboxApp {
         },
         this.infoBarUI.getRole() === 'cartographer'
       );
+    });
+
+    this.publishModalUI = new PublishModalUI(this.appContainer);
+    this.publishModalUI.setOnPublish(async (note) => {
+      const res = await this.supabaseSync.publishCloudRelief(
+        this.heightfield,
+        this.pinManager,
+        this.visitManager,
+        note
+      );
+      if (res.success) {
+        const commitName = buildReliefCommitName(res.version || 1, note);
+        alert(`${t('alert_cloud_published')}\n\n✓ ${commitName}`);
+        return true;
+      } else {
+        alert(res.message || 'Falha ao publicar na nuvem.');
+        return false;
+      }
     });
 
     this.routeModalUI = new RouteModalUI(this.appContainer);

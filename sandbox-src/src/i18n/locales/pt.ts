@@ -183,6 +183,18 @@ export const pt = {
   prompt_commit_msg: 'Descreva as alterações deste relevo oficial:',
   alert_cloud_published: 'Relevo oficial publicado com sucesso na nuvem!',
   alert_cloud_loaded: 'Relevo oficial carregado com sucesso da nuvem!',
+  publish_modal_title: 'PUBLICAR RELEVO OFICIAL NA NUVEM',
+  publish_next_version: 'Próxima Versão',
+  publish_current_cloud_version: 'Versão atual na nuvem',
+  publish_generated_name: 'Nome Oficial Gerado',
+  publish_note_label: 'Nota de Campo / Alterações (Opcional)',
+  publish_note_placeholder: 'Ex: Limpeza fora do círculo, elevação da crista norte...',
+  publish_author: 'Autor Responsável',
+  publish_chunks_count: 'Chunks Locais Esculpidos',
+  publish_backup_notice: 'Um backup local automático da versão anterior será salvo no seu navegador.',
+  publish_btn_cancel: 'Cancelar',
+  publish_btn_submit: '🚀 Publicar Oficial',
+  publish_btn_submitting: 'Publicando...',
 };
 
 export type TranslationKey = keyof typeof pt;

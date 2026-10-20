@@ -126,9 +126,9 @@ export class SnapshotsSectionUI {
       .map(
         (m) => `
         <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px;">
-          <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px;" title="${m.name}">
-            <strong style="color: #f1f5f9;">${m.name}</strong>
-            <div style="font-size: 9px; color: var(--text-dim);">${new Date(m.created_at).toLocaleTimeString()}</div>
+          <div style="flex: 1; min-width: 0; padding-right: 6px; overflow: hidden;" title="${m.name}">
+            <strong style="color: #f1f5f9; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.name}</strong>
+            <div style="font-size: 9px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.author ? `${m.author} · ` : ''}${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
           <div style="display: flex; gap: 3px; align-items: center;">
             <button class="btn btn-restore" data-id="${m.id}" data-name="${m.name}" style="padding: 2px 6px; font-size: 10px; background: rgba(59, 130, 246, 0.2); color: #93c5fd;" title="${t('restore')}">

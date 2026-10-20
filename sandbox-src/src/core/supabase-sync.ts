@@ -1,3 +1,4 @@
+import { buildReliefCommitName, formatReliefVersion } from './relief-naming';
 // ==============================================================================
 // JACKAL SANDBOX — SINCRONIZAÇÃO NUVEM & SUPABASE (ROUND 2)
 // Gerencia autenticação Discord, publicação oficial de relevo e pinos compartilhados
@@ -237,11 +238,29 @@ export class SupabaseSyncManager {
    * 3. Mescla de forma não-destrutiva chunks/células da nuvem que não foram editados localmente.
    * 4. Registra snapshot imutável na tabela append-only public.relief_commits.
    */
+  /**
+   * Consulta a versão mais recente do relevo na nuvem para pré-visualização no modal
+   */
+  public async getLatestReliefVersion(): Promise<number> {
+    if (!this.client) return 0;
+    try {
+      const { data, error } = await this.client
+        .from('relief_state')
+        .select('version')
+        .eq('id', 'jackal_r2_main')
+        .maybeSingle();
+      if (error || !data) return 0;
+      return Number(data.version) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
   public async publishCloudRelief(
     heightfield: HeightfieldManager,
     pins: PinManager,
     visits: VisitManager,
-    commitMessage: string = 'Atualização topográfica de campo'
+    note?: string
   ): Promise<{ success: boolean; version?: number; message?: string }> {
     if (!this.client) return { success: false, message: 'Supabase não conectado' };
     if (!this.isOfficerOrAdmin()) {
@@ -253,7 +272,7 @@ export class SupabaseSyncManager {
         heightfield,
         pins,
         visits,
-        commitMessage,
+        'Publicação Oficial',
         false
       );
 
@@ -293,7 +312,7 @@ export class SupabaseSyncManager {
         await this.storage.saveSnapshot({
           meta: {
             id: `backup-cloud-v${current.version}`,
-            name: `Backup Oficial v${current.version} (Pré-Publicação)`,
+            name: `Backup ${formatReliefVersion(current.version)} (pre-publish)`,
             created_at: current.updated_at || new Date().toISOString(),
             is_daily: false,
             author: current.metadata?.author || 'Oficial',
@@ -315,6 +334,7 @@ export class SupabaseSyncManager {
 
       const nextVersion = (current?.version || 0) + 1;
       this.lastPublishedVersion = nextVersion;
+      const commitMessage = buildReliefCommitName(nextVersion, note);
       const heightmapJson = JSON.stringify({ chunks: mergedChunks });
       const statemapJson = JSON.stringify({ lockedSheets: mergedLockedSheets });
       const authorId = this.currentProfile?.id || null;

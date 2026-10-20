@@ -185,5 +185,16 @@ export const en: Record<TranslationKey, string> = {
   prompt_commit_msg: 'Describe changes in this official relief:',
   alert_cloud_published: 'Official relief published successfully to the cloud!',
   alert_cloud_loaded: 'Official relief loaded successfully from the cloud!',
+  publish_modal_title: 'PUBLISH OFFICIAL CLOUD RELIEF',
+  publish_next_version: 'Next Version',
+  publish_current_cloud_version: 'Current cloud version',
+  publish_generated_name: 'Generated Official Name',
+  publish_note_label: 'Field Note / Changes (Optional)',
+  publish_note_placeholder: 'e.g., Cleaned outside ring, raised northern ridge...',
+  publish_author: 'Responsible Author',
+  publish_chunks_count: 'Local Sculpted Chunks',
+  publish_backup_notice: 'An automatic local backup of the previous version will be saved in your browser.',
+  publish_btn_cancel: 'Cancel',
+  publish_btn_submit: '🚀 Publish Official',
+  publish_btn_submitting: 'Publishing...',
 };
-
