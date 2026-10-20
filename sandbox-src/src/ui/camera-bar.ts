@@ -8,6 +8,7 @@ import { SupabaseSyncManager } from '../core/supabase-sync';
 import { ICONS } from './icons';
 import { i18n, t } from '../i18n';
 import { HelpModalUI } from './help-modal';
+import { CRYSTAL_BASES } from '../config';
 
 export class CameraBarUI {
   private container: HTMLElement;
@@ -115,6 +116,19 @@ export class CameraBarUI {
           ${ICONS.compass} ${t('cam_center_station')}
         </button>
 
+        <!-- Atalhos dos 3 Cristais Oficiais -->
+        <div class="btn-group" style="margin-left: 2px;">
+          <button class="btn btn-jump-crystal" data-crystal="north" style="font-size: 11px; padding: 3px 7px; color: #38bdf8;" title="Base Norte (0, 1000)">
+            💎 Norte
+          </button>
+          <button class="btn btn-jump-crystal" data-crystal="west" style="font-size: 11px; padding: 3px 7px; color: #34d399;" title="Base Oeste (-1732, 0)">
+            💎 Oeste
+          </button>
+          <button class="btn btn-jump-crystal" data-crystal="south" style="font-size: 11px; padding: 3px 7px; color: #f87171;" title="Base Sul (0, -1000)">
+            💎 Sul
+          </button>
+        </div>
+
         <!-- Exagero Vertical (1x a 5x) -->
         <div style="display: flex; align-items: center; gap: 8px; margin-left: 4px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
           <span style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">${t('cam_exaggeration')}</span>
@@ -205,6 +219,16 @@ export class CameraBarUI {
       if (this.onFocusStationCallback) {
         this.onFocusStationCallback();
       }
+    });
+
+    this.container.querySelectorAll('.btn-jump-crystal').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const crystalId = btn.getAttribute('data-crystal') as keyof typeof CRYSTAL_BASES;
+        const crystal = CRYSTAL_BASES[crystalId];
+        if (crystal) {
+          this.cameraController.jumpToTile(crystal.tileX, crystal.tileY);
+        }
+      });
     });
 
     const inputExag = this.container.querySelector('#input-exaggeration') as HTMLInputElement;

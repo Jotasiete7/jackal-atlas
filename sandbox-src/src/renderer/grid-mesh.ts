@@ -5,7 +5,7 @@
 // ==============================================================================
 
 import * as THREE from 'three';
-import { CONFIG, getTileSheetName } from '../config';
+import { CONFIG, getTileSheetName, CRYSTAL_BASES, CrystalBase } from '../config';
 import { FieldVisit } from '../core/types';
 
 export class GridMeshManager {
@@ -53,18 +53,37 @@ export class GridMeshManager {
     }
     this.labelSprites = [];
 
-    const extentTiles = 1400;
-    const tileMeters = CONFIG.TILE_METERS;
+    // Renderiza os 3 Cristais Oficiais com marcos de referência 3D
+    for (const baseKey of Object.keys(CRYSTAL_BASES) as Array<keyof typeof CRYSTAL_BASES>) {
+      const base = CRYSTAL_BASES[baseKey];
+      const marker = this.createCrystalMarker(base);
+      this.gridGroup.add(marker);
+    }
 
-    // Adiciona rótulos de folha discretos a cada 100 tiles no centro do setor (ex: N0-L0, N1-O2)
-    for (let tX = -extentTiles; tX <= extentTiles; tX += 100) {
-      for (let tY = -extentTiles; tY <= extentTiles; tY += 100) {
-        if (tX === 0 && tY === 0) continue; // Ponto central tem a cruz de spawn e torre
-        const sheetName = getTileSheetName(tX + 50, tY + 50);
-        const sprite = this.createSheetLabelSprite(sheetName);
-        sprite.position.set((tX + 50) * tileMeters, 0.8, -(tY + 50) * tileMeters); // Centro do setor 100x100
-        this.gridGroup.add(sprite);
-        this.labelSprites.push(sprite);
+    const tileMeters = CONFIG.TILE_METERS;
+    const addedSheets = new Set<string>();
+
+    // Gera rótulos de quadrículas focados ao redor do spawn e das 3 bases
+    const anchorPoints = [
+      { x: 0, y: 0, radius: 400 },
+      { x: CRYSTAL_BASES.north.tileX, y: CRYSTAL_BASES.north.tileY, radius: 400 },
+      { x: CRYSTAL_BASES.west.tileX, y: CRYSTAL_BASES.west.tileY, radius: 400 },
+      { x: CRYSTAL_BASES.south.tileX, y: CRYSTAL_BASES.south.tileY, radius: 400 },
+    ];
+
+    for (const anchor of anchorPoints) {
+      for (let tX = anchor.x - anchor.radius; tX <= anchor.x + anchor.radius; tX += 100) {
+        for (let tY = anchor.y - anchor.radius; tY <= anchor.y + anchor.radius; tY += 100) {
+          const sheetKey = Math.floor(tX / 100) + ',' + Math.floor(tY / 100);
+          if (addedSheets.has(sheetKey)) continue;
+          addedSheets.add(sheetKey);
+
+          const sheetName = getTileSheetName(tX + 50, tY + 50);
+          const sprite = this.createSheetLabelSprite(sheetName);
+          sprite.position.set((tX + 50) * tileMeters, 0.8, -(tY + 50) * tileMeters);
+          this.gridGroup.add(sprite);
+          this.labelSprites.push(sprite);
+        }
       }
     }
   }
@@ -159,5 +178,74 @@ export class GridMeshManager {
     });
     const crossLines = new THREE.LineSegments(crossGeom, crossMat);
     this.stationGroup.add(crossLines);
+  }
+
+  private createCrystalLabelSprite(text: string, color: string): THREE.Sprite {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = 'rgba(13, 17, 23, 0.90)';
+    ctx.roundRect(0, 0, 256, 64, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.font = 'bold 22px "JetBrains Mono", monospace';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    const spriteMat = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(64, 16, 1);
+    return sprite;
+  }
+
+  private createCrystalMarker(base: CrystalBase): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'Crystal_' + base.id;
+
+    const worldX = base.tileX * CONFIG.TILE_METERS;
+    const worldZ = -base.tileY * CONFIG.TILE_METERS;
+    group.position.set(worldX, 0, worldZ);
+
+    const crystalGeom = new THREE.OctahedronGeometry(6.0, 0);
+    const crystalMat = new THREE.MeshBasicMaterial({
+      color: base.hexColor,
+      wireframe: false,
+    });
+    const crystalMesh = new THREE.Mesh(crystalGeom, crystalMat);
+    crystalMesh.position.y = 8.0;
+    crystalMesh.scale.set(1.0, 2.2, 1.0);
+    group.add(crystalMesh);
+
+    const ringGeom = new THREE.RingGeometry(8.0, 11.0, 32);
+    ringGeom.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: base.hexColor,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.7,
+    });
+    const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+    ringMesh.position.y = 0.5;
+    group.add(ringMesh);
+
+    const sprite = this.createCrystalLabelSprite(base.icon + ' ' + base.namePt, base.color);
+    sprite.position.set(0, 24.0, 0);
+    group.add(sprite);
+
+    return group;
   }
 }

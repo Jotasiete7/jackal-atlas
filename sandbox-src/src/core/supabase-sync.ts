@@ -347,6 +347,20 @@ export class SupabaseSyncManager {
       const authorId = this.currentProfile?.id || null;
       const nowIso = new Date().toISOString();
 
+      // Verificação de concorrência: impede sobrescrita caso outro time tenha publicado nesse intervalo
+      const { data: latestCheck } = await this.client
+        .from('relief_state')
+        .select('version')
+        .eq('id', 'jackal_r2_main')
+        .maybeSingle();
+
+      if (latestCheck && latestCheck.version !== (current?.version || 0)) {
+        return {
+          success: false,
+          message: `Conflito de publicação concorrente: Outra equipe acabou de publicar a versão v${latestCheck.version}! Recarregue os dados da nuvem para mesclar antes de reenviar.`,
+        };
+      }
+
       // 2. Atualizar ou inserir estado ativo (compatível com V1 e V2)
       const { error: stateError } = await this.client
         .from('relief_state')

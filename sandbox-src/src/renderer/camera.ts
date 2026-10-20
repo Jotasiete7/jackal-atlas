@@ -163,6 +163,15 @@ export class CameraController {
     this.updateCameraTransform();
   }
 
+  /** Centraliza a câmera instantaneamente em uma coordenada de tile */
+  public jumpToTile(tileX: number, tileY: number, elevation = 0): void {
+    const worldX = tileX * CONFIG.TILE_METERS;
+    const worldZ = -tileY * CONFIG.TILE_METERS;
+    this.target.set(worldX, elevation, worldZ);
+    this.targetGoal.set(worldX, elevation, worldZ);
+    this.updateCameraTransform();
+  }
+
   public updateCameraTransform(): void {
     if (this.mode === 'free') {
       const x = this.distance * Math.sin(this.phi) * Math.sin(this.theta);

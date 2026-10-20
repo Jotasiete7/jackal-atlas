@@ -5,6 +5,7 @@
 import { VisitManager } from '../../core/visits';
 import { GridMeshManager } from '../../renderer/grid-mesh';
 import { t } from '../../i18n';
+import { CRYSTAL_BASES } from '../../config';
 
 export class VisitSectionUI {
   private container: HTMLElement;
@@ -60,6 +61,20 @@ export class VisitSectionUI {
         <button class="btn btn-gold" id="btn-new-visit" style="margin-top: 4px; justify-content: center; font-size: 11px;">
           ${t('btn_new_visit')}
         </button>
+        <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 6px;">
+          Ancorar Base no Cristal:
+        </div>
+        <div style="display: flex; gap: 4px; margin-top: 2px;">
+          <button class="btn btn-anchor-crystal" data-crystal="north" style="flex: 1; font-size: 10px; justify-content: center; color: #38bdf8; padding: 3px 4px;" title="Ancorar no Cristal Norte (0, 1000)">
+            💎 Norte
+          </button>
+          <button class="btn btn-anchor-crystal" data-crystal="west" style="flex: 1; font-size: 10px; justify-content: center; color: #34d399; padding: 3px 4px;" title="Ancorar no Cristal Oeste (-1732, 0)">
+            💎 Oeste
+          </button>
+          <button class="btn btn-anchor-crystal" data-crystal="south" style="flex: 1; font-size: 10px; justify-content: center; color: #f87171; padding: 3px 4px;" title="Ancorar no Cristal Sul (0, -1000)">
+            💎 Sul
+          </button>
+        </div>
       </div>
     `;
 
@@ -91,6 +106,18 @@ export class VisitSectionUI {
       const newAuthor = prompt(t('alert_new_visit_prompt'), current.author) || current.author;
       const newStation = this.visitManager.startNewVisit(newAuthor, current.station_x, current.station_y);
       this.gridMesh.updateStationRange(newStation);
+    });
+
+    this.container.querySelectorAll('.btn-anchor-crystal').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const crystalId = btn.getAttribute('data-crystal') as keyof typeof CRYSTAL_BASES;
+        const crystal = CRYSTAL_BASES[crystalId];
+        if (crystal) {
+          this.visitManager.updateStation(crystal.tileX, crystal.tileY);
+          const current = this.visitManager.getCurrentVisit();
+          this.gridMesh.updateStationRange(current);
+        }
+      });
     });
   }
 }

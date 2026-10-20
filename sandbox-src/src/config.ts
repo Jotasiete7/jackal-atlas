@@ -21,7 +21,7 @@ export interface SandboxConfig {
 }
 
 export const CONFIG: SandboxConfig = {
-  MAP_SIZE_TILES: 2048,
+  MAP_SIZE_TILES: 4096,
   CELL_SIZE_TILES: 2,
   CHUNK_SIZE_CELLS: 64,
   TILE_METERS: 4.0,
@@ -102,3 +102,47 @@ export function cellToChunkCoords(cellX: number, cellY: number): {
     chunkKey: `${chunkX},${chunkY}`,
   };
 }
+
+export interface CrystalBase {
+  id: 'north' | 'west' | 'south';
+  name: string;
+  namePt: string;
+  tileX: number;
+  tileY: number;
+  color: string;
+  hexColor: number;
+  icon: string;
+}
+
+export const CRYSTAL_BASES: Record<'north' | 'west' | 'south', CrystalBase> = {
+  north: {
+    id: 'north',
+    name: 'North Crystal',
+    namePt: 'Cristal Norte',
+    tileX: 0,
+    tileY: 1000,
+    color: '#38bdf8',
+    hexColor: 0x38bdf8,
+    icon: '💎',
+  },
+  west: {
+    id: 'west',
+    name: 'West Crystal',
+    namePt: 'Cristal Oeste',
+    tileX: -1732,
+    tileY: 0,
+    color: '#34d399',
+    hexColor: 0x34d399,
+    icon: '💎',
+  },
+  south: {
+    id: 'south',
+    name: 'South Crystal',
+    namePt: 'Cristal Sul',
+    tileX: 0,
+    tileY: -1000,
+    color: '#f87171',
+    hexColor: 0xf87171,
+    icon: '💎',
+  },
+};
