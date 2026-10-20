@@ -234,6 +234,13 @@ describe('Terrain Protection, Water Safety and Cartographer Locks', () => {
     expect(m0.states[1]).toBe(CellState.LAND);
     expect(m0.heights[2]).toBe(42);
     expect(m0.states[2]).toBe(CellState.LAND);
+
+    // Quando allowErase = true (publicação oficial), células apagadas para UNKNOWN devem ser deletadas na nuvem
+    const mergedWithErase = storage.mergeChunksNonDestructive([cloudChunk0, cloudChunkRemote], [localChunk0], true);
+    const mErase0 = mergedWithErase.find((c) => c.chunkX === 0 && c.chunkY === 0)!;
+    expect(mErase0.states[1]).toBe(CellState.UNKNOWN);
+    expect(mErase0.heights[1]).toBe(0);
+    expect(mErase0.heights[0]).toBe(35); // Travada continua protegida
   });
 
   it('should preserve external Supabase UUIDs on savePin and strip legacy pin-spawn-zero on loadPins', () => {

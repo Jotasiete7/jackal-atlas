@@ -26,6 +26,7 @@ export class SupabaseSyncManager {
   private currentProfile: UserProfile | null = null;
   private storage: StorageManager;
   private isConnected = false;
+  private lastPublishedVersion = 0;
   private listeners: Array<() => void> = [];
 
   constructor(storage: StorageManager) {
@@ -307,12 +308,13 @@ export class SupabaseSyncManager {
       }
 
       // Mescla não-destrutiva: preserva chunks e células travadas/mapeadas da nuvem
-      const mergedChunks = this.storage.mergeChunksNonDestructive(cloudChunks, snapshot.chunks);
+      const mergedChunks = this.storage.mergeChunksNonDestructive(cloudChunks, snapshot.chunks, true);
       const mergedLockedSheets = Array.from(
         new Set([...cloudLockedSheets, ...(snapshot.lockedSheets || [])])
       );
 
       const nextVersion = (current?.version || 0) + 1;
+      this.lastPublishedVersion = nextVersion;
       const heightmapJson = JSON.stringify({ chunks: mergedChunks });
       const statemapJson = JSON.stringify({ lockedSheets: mergedLockedSheets });
       const authorId = this.currentProfile?.id || null;
@@ -666,6 +668,7 @@ export class SupabaseSyncManager {
         { event: 'UPDATE', schema: 'public', table: 'relief_state', filter: 'id=eq.jackal_r2_main' },
         (payload) => {
           if (payload.new && payload.new.version) {
+            if (payload.new.version <= this.lastPublishedVersion) return;
             onUpdate(payload.new.version);
           }
         }

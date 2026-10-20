@@ -84,7 +84,7 @@ export class StorageManager {
         }
       }
 
-      if (hasData) {
+      if (hasData || chunk.isDirty) {
         chunksData.push({
           chunkX: chunk.chunkX,
           chunkY: chunk.chunkY,
@@ -171,7 +171,8 @@ export class StorageManager {
    */
   public mergeChunksNonDestructive(
     cloudChunks: SerializedSnapshot['chunks'],
-    localChunks: SerializedSnapshot['chunks']
+    localChunks: SerializedSnapshot['chunks'],
+    allowErase = false
   ): SerializedSnapshot['chunks'] {
     const S = CONFIG.CHUNK_SIZE_CELLS;
     const total = S * S;
@@ -208,7 +209,7 @@ export class StorageManager {
           const lLocked = l.locked ? (l.locked[i] || 0) : 0;
 
           // 1. Se a célula local está UNKNOWN (não esculpida localmente), preserva a célula da nuvem
-          if (lState === CellState.UNKNOWN && cState !== CellState.UNKNOWN) {
+          if (!allowErase && lState === CellState.UNKNOWN && cState !== CellState.UNKNOWN) {
             continue;
           }
 
@@ -227,6 +228,14 @@ export class StorageManager {
       }
     }
 
+    if (allowErase) {
+      return Array.from(mergedMap.values()).filter((c) => {
+        for (let i = 0; i < total; i++) {
+          if (c.states[i] !== CellState.UNKNOWN) return true;
+        }
+        return false;
+      });
+    }
     return Array.from(mergedMap.values());
   }
 
