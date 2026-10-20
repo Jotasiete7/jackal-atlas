@@ -426,6 +426,12 @@ export class InteractionController {
 
     // 3. MouseDown
     this.canvas.addEventListener('mousedown', (e) => {
+      // Devolve o foco do teclado para a janela 3D (reativa WASD sem precisar de clique destrutivo)
+      if (document.activeElement && document.activeElement !== this.canvas && document.activeElement !== document.body) {
+        (document.activeElement as HTMLElement).blur?.();
+      }
+      this.canvas.focus?.();
+
       // Guarda posição do botão direito para diferenciar arrasto de câmera de clique/duplo clique
       if (e.button === 2) {
         this.rightClickDownPos = { x: e.clientX, y: e.clientY };
@@ -563,6 +569,11 @@ export class InteractionController {
         return;
       }
 
+      if (this.activeTool === 'navigate') {
+        // Ferramenta neutra: apenas clica com segurança para focar ou inspecionar (não altera nada)
+        return;
+      }
+
       if (this.activeTool === 'station') {
         this.visitManager.updateStation(hit.tileX, hit.tileY);
         const stationElevation = hit.height * this.sceneManager.getVerticalExaggeration();
@@ -638,6 +649,10 @@ export class InteractionController {
     window.addEventListener('keydown', (e) => {
       const target = e.target as HTMLElement | null;
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        if (e.key === 'Escape' || (e.key === 'Enter' && target.tagName !== 'TEXTAREA')) {
+          target.blur();
+          this.canvas.focus?.();
+        }
         return;
       }
 
@@ -737,6 +752,8 @@ export class InteractionController {
 
       // Atalhos de seleção de ferramentas (sem chaves WASD para navegação livre)
       const toolShortcuts: Record<string, ModelingTool> = {
+        v: 'navigate',
+        n: 'navigate',
         r: 'raise',
         l: 'lower',
         m: 'smooth',
@@ -750,6 +767,15 @@ export class InteractionController {
       const keyLower = e.key.toLowerCase();
       if (!e.altKey && !e.ctrlKey && !e.metaKey && toolShortcuts[keyLower]) {
         this.toolbarUI.setTool(toolShortcuts[keyLower]);
+      }
+    });
+
+    // Desfoca sliders automaticamente ao soltar o mouse para devolver WASD
+    document.addEventListener('mouseup', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (target && target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'range') {
+        target.blur();
+        this.canvas.focus?.();
       }
     });
   }

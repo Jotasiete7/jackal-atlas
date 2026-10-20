@@ -24,6 +24,7 @@ export enum ConfidenceLevel {
 
 /** Ferramentas de modelagem interativa */
 export type ModelingTool =
+  | 'navigate' // Navegar e inspecionar neutro sem esculpir
   | 'raise'    // Pincel positivo (eleva terreno)
   | 'lower'    // Pincel negativo (rebaixa terreno, clamp 0)
   | 'smooth'   // Suavizar (média móvel laplaciana)

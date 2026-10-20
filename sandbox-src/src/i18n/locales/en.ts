@@ -23,6 +23,7 @@ export const en: Record<TranslationKey, string> = {
   west: 'W',
 
   // Tools
+  tool_navigate: 'Navigate / Inspect (Neutral, no sculpting) [V]',
   tool_raise: 'Raise Terrain (Brush Up)',
   tool_lower: 'Lower Terrain (Brush Down to 0m)',
   tool_smooth: 'Smooth Terrain (Alleviate Slopes)',

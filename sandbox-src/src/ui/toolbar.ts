@@ -91,6 +91,15 @@ export class ToolbarUI {
 
     this.container.innerHTML = `
       <div class="tool-btn-wrapper">
+        <button class="tool-btn ${this.currentTool === 'navigate' ? 'active' : ''}" data-tool="navigate" title="${t('tool_navigate')}">
+          ${ICONS.navigate}
+        </button>
+        <span class="jk-help-btn" data-help="navigate" title="${helpTip}">?</span>
+      </div>
+
+      <div class="tool-divider"></div>
+
+      <div class="tool-btn-wrapper">
         <button class="tool-btn ${this.currentTool === 'raise' ? 'active' : ''}" data-tool="raise" title="${t('tool_raise')} [R]">
           ${ICONS.arrowUp}
         </button>

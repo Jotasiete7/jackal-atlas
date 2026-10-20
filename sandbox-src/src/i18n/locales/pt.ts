@@ -21,6 +21,7 @@ export const pt = {
   west: 'O',
 
   // Ferramentas
+  tool_navigate: 'Navegar / Inspecionar neutro (sem esculpir) [V]',
   tool_raise: 'Pincel Positivo (Eleva relevo)',
   tool_lower: 'Pincel Negativo (Rebaixa relevo até 0m)',
   tool_smooth: 'Suavizar Relevo (Alisa encostas)',
