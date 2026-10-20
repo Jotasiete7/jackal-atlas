@@ -3520,7 +3520,7 @@
         let curLat = northLat;
 
         for (let py = 0; py < H; py++) {
-            const cellY = curLat / 4.0;
+            const cellY = (4096.0 - curLat) / 4.0;
             let curLng = westLng;
 
             for (let px = 0; px < W; px++) {
@@ -3702,8 +3702,8 @@
 
             const tMinCellX = Math.min(westLng, eastLng) / 4.0;
             const tMaxCellX = Math.max(westLng, eastLng) / 4.0;
-            const tMinCellY = Math.min(southLat, northLat) / 4.0;
-            const tMaxCellY = Math.max(southLat, northLat) / 4.0;
+            const tMinCellY = (4096.0 - Math.max(southLat, northLat)) / 4.0;
+            const tMaxCellY = (4096.0 - Math.min(southLat, northLat)) / 4.0;
 
             if (tMaxCellX < reliefBounds.minX - 2 || tMinCellX > reliefBounds.maxX + 2 ||
                 tMaxCellY < reliefBounds.minY - 2 || tMinCellY > reliefBounds.maxY + 2) {
