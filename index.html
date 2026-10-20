@@ -1598,6 +1598,8 @@
     // pergaminho abaixo de tudo, traços abaixo das sobreposições táticas, rótulos abaixo dos marcadores
     map.createPane('parchmentPane').style.zIndex = 150;
     map.getPane('parchmentPane').style.pointerEvents = 'none';
+    map.createPane('reliefPane').style.zIndex = 160;
+    map.getPane('reliefPane').style.pointerEvents = 'none';
     map.createPane('sketchPane').style.zIndex = 380;
     map.getPane('sketchPane').style.pointerEvents = 'none';
     map.createPane('sketchLabelPane').style.zIndex = 590;
@@ -3411,145 +3413,325 @@
         interactive: false
     });
 
-    let reliefCanvasLayer = null;
+    let reliefGridHeights = null; // Float32Array(1024 * 1024)
+    let reliefGridStates = null;  // Uint8Array(1024 * 1024)
+    let reliefBounds = { minX: 1024, maxX: -1, minY: 1024, maxY: -1 };
+    let reliefGridMode = 'topo';   // 'topo' | 'relief_shaded'
     let cacheReliefData = null;
 
     function isModoRound2() {
         return (baseAtual === 'parchment' || baseAtual === 'topo_3d' || baseAtual === 'relief_shaded');
     }
 
-    function renderizarCanvasRelevo3D(reliefData, modo = 'topo') {
-        const offCanvas = document.createElement('canvas');
-        const size = 1024;
-        offCanvas.width = size;
-        offCanvas.height = size;
-        const ctx = offCanvas.getContext('2d');
+    function descompactarChunksRelevo(chunks, chunkSize) {
+        if (!reliefGridHeights) {
+            reliefGridHeights = new Float32Array(1024 * 1024);
+            reliefGridStates = new Uint8Array(1024 * 1024);
+        } else {
+            reliefGridHeights.fill(0);
+            reliefGridStates.fill(0);
+        }
 
-        // Fundo padrão
-        ctx.fillStyle = (modo === 'relief_shaded') ? '#d8d4c9' : '#efe6cf';
-        ctx.fillRect(0, 0, size, size);
+        let minX = 1024, maxX = -1, minY = 1024, maxY = -1;
+        const chunkCells = Number(chunkSize) || 64;
+        const halfCells = 512;
 
-        // Moldura
-        ctx.strokeStyle = '#5b4a32';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(0, 0, size, size);
+        const decodeFloat32 = (b64) => {
+            try {
+                const bin = atob(b64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return new Float32Array(bytes.buffer);
+            } catch (e) { return []; }
+        };
+        const decodeUint8 = (b64) => {
+            try {
+                const bin = atob(b64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return bytes;
+            } catch (e) { return []; }
+        };
 
-        if (reliefData && reliefData.chunks && Array.isArray(reliefData.chunks)) {
-            const chunkCells = Number(reliefData.chunk_size || reliefData.chunkSize) || 64;
-            const totalCells = 1024;
-            const halfCells = totalCells / 2;
-            const scale = size / totalCells;
+        chunks.forEach(chunk => {
+            const startX = chunk.chunkX * chunkCells + halfCells;
+            const startY = chunk.chunkY * chunkCells + halfCells;
+            const heights = chunk.heightsBase64 ? decodeFloat32(chunk.heightsBase64) : (chunk.heights || []);
+            const states = chunk.statesBase64 ? decodeUint8(chunk.statesBase64) : (chunk.states || []);
 
-            // Para hillshade: vetor de luz do sol vindo de Noroeste (-1, -1, 1.2)
-            const lx = -0.7071;
-            const lySun = -0.7071;
-            const lz = 1.0;
+            for (let ly = 0; ly < chunkCells; ly++) {
+                const cy = startY + ly;
+                if (cy < 0 || cy >= 1024) continue;
+                const rowOffset = cy * 1024;
+                const chunkLyOffset = ly * chunkCells;
 
-            const decodeFloat32 = (b64) => {
-                try {
-                    const bin = atob(b64);
-                    const bytes = new Uint8Array(bin.length);
-                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-                    return new Float32Array(bytes.buffer);
-                } catch (e) { return []; }
-            };
-            const decodeUint8 = (b64) => {
-                try {
-                    const bin = atob(b64);
-                    const bytes = new Uint8Array(bin.length);
-                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-                    return bytes;
-                } catch (e) { return []; }
-            };
+                for (let lx = 0; lx < chunkCells; lx++) {
+                    const cx = startX + lx;
+                    if (cx < 0 || cx >= 1024) continue;
 
-            reliefData.chunks.forEach(chunk => {
-                const startCellX = chunk.chunkX * chunkCells + halfCells;
-                const startCellY = chunk.chunkY * chunkCells + halfCells;
-                const heights = chunk.heightsBase64 ? decodeFloat32(chunk.heightsBase64) : (chunk.heights || []);
-                const states = chunk.statesBase64 ? decodeUint8(chunk.statesBase64) : (chunk.states || []);
+                    const cIdx = chunkLyOffset + lx;
+                    const state = states[cIdx] || 0;
+                    const h = heights[cIdx] || 0;
 
-                for (let ly = 0; ly < chunkCells; ly++) {
-                    const cy = startCellY + ly;
-                    if (cy < 0 || cy >= totalCells) continue;
-                    const canvasY = Math.round((totalCells - 1 - cy) * scale);
+                    const gIdx = rowOffset + cx;
+                    reliefGridHeights[gIdx] = h;
+                    reliefGridStates[gIdx] = state;
 
-                    for (let lxCell = 0; lxCell < chunkCells; lxCell++) {
-                        const cx = startCellX + lxCell;
-                        if (cx < 0 || cx >= totalCells) continue;
-                        const canvasX = Math.round(cx * scale);
+                    if (state > 0) {
+                        if (cx < minX) minX = cx;
+                        if (cx > maxX) maxX = cx;
+                        if (cy < minY) minY = cy;
+                        if (cy > maxY) maxY = cy;
+                    }
+                }
+            }
+        });
 
-                        const idx = ly * chunkCells + lxCell;
-                        const state = states[idx];
-                        const h = heights[idx] || 0;
+        reliefBounds = { minX, maxX, minY, maxY };
+    }
 
-                        if (state === 1 || (state >= 2 && h < 0)) {
-                            ctx.fillStyle = (modo === 'relief_shaded') ? '#1e293b' : (h < -12 ? '#29577a' : '#42789e');
-                            ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
-                        } else if (state >= 2) {
-                            if (modo === 'relief_shaded') {
-                                // Hillshade: calcular inclinação com células vizinhas no mesmo chunk
-                                const hWest = (lxCell > 0) ? (heights[ly * chunkCells + (lxCell - 1)] || h) : h;
-                                const hEast = (lxCell < chunkCells - 1) ? (heights[ly * chunkCells + (lxCell + 1)] || h) : h;
-                                const hNorth = (ly < chunkCells - 1) ? (heights[(ly + 1) * chunkCells + lxCell] || h) : h;
-                                const hSouth = (ly > 0) ? (heights[(ly - 1) * chunkCells + lxCell] || h) : h;
+    function renderizarTileRelevo(canvas, westLng, eastLng, northLat, southLat, modo) {
+        const W = canvas.width;
+        const H = canvas.height;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(W, H);
+        const data = imgData.data;
 
-                                const dzdx = ((hEast - hWest) * 0.5);
-                                const dzdy = ((hNorth - hSouth) * 0.5);
+        const heights = reliefGridHeights;
+        const states = reliefGridStates;
 
-                                // Normal do terreno (nx, ny, nz)
-                                const normX = -dzdx;
-                                const normY = -dzdy;
-                                const normZ = 1.0;
-                                const len = Math.hypot(normX, normY, normZ);
-                                const dot = (normX * lx + normY * lySun + normZ * lz) / len;
-                                const intensity = Math.max(0.35, Math.min(1.4, (dot + 0.4)));
+        const dLng = (eastLng - westLng) / W;
+        const dLat = (southLat - northLat) / H;
 
-                                const baseVal = Math.max(80, Math.min(220, Math.round(155 * intensity)));
-                                ctx.fillStyle = `rgb(${baseVal + 10}, ${baseVal + 8}, ${baseVal - 5})`;
-                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
-                            } else {
-                                // Modo Topo Swisstopo/USGS (cores hipsométricas)
-                                let color = '#dfd4b8';
-                                if (h >= 1.5 && h < 12) color = '#6ba166';
-                                else if (h >= 12 && h < 28) color = '#9eb86b';
-                                else if (h >= 28 && h < 50) color = '#dec785';
-                                else if (h >= 50 && h < 85) color = '#c7996b';
-                                else if (h >= 85 && h < 130) color = '#a37d66';
-                                else if (h >= 130) color = '#ebe6e0';
+        // Vetor solar em direção ao Sol (Noroeste e zênite):
+        // lx = -0.65 (Oeste), ly = 0.65 (Norte), lz = 0.95 (Topo)
+        const sunX = -0.65;
+        const sunY = 0.65;
+        const sunZ = 0.95;
+        const sunLen = Math.hypot(sunX, sunY, sunZ);
+        const nSunX = sunX / sunLen;
+        const nSunY = sunY / sunLen;
+        const nSunZ = sunZ / sunLen;
 
-                                ctx.fillStyle = color;
-                                ctx.fillRect(canvasX, canvasY, Math.ceil(scale), Math.ceil(scale));
+        const cellMeters = 6.0; // 4 tiles * 1.5m = 6.0m por célula
+        const metersPerPixel = Math.abs(dLng) * 1.5;
 
-                                if (Math.round(h) % 5 === 0 && h > 0) {
-                                    ctx.fillStyle = (Math.round(h) % 25 === 0) ? 'rgba(56, 31, 13, 0.85)' : 'rgba(97, 61, 31, 0.5)';
-                                    ctx.fillRect(canvasX, canvasY, Math.ceil(scale), 1);
-                                }
-                            }
+        let pIdx = 0;
+        let curLat = northLat;
+
+        for (let py = 0; py < H; py++) {
+            const cellY = curLat / 4.0;
+            let curLng = westLng;
+
+            for (let px = 0; px < W; px++) {
+                const cellX = curLng / 4.0;
+
+                if (cellX < 0 || cellX >= 1023 || cellY < 0 || cellY >= 1023) {
+                    pIdx += 4;
+                    curLng += dLng;
+                    continue;
+                }
+
+                const x0 = cellX | 0;
+                const y0 = cellY | 0;
+                const tx = cellX - x0;
+                const ty = cellY - y0;
+                const x1 = x0 + 1;
+                const y1 = y0 + 1;
+
+                const i00 = y0 * 1024 + x0;
+                const i10 = y0 * 1024 + x1;
+                const i01 = y1 * 1024 + x0;
+                const i11 = y1 * 1024 + x1;
+
+                const s00 = states[i00];
+                const s10 = states[i10];
+                const s01 = states[i01];
+                const s11 = states[i11];
+
+                const k00 = s00 > 0 ? 1 : 0;
+                const k10 = s10 > 0 ? 1 : 0;
+                const k01 = s01 > 0 ? 1 : 0;
+                const k11 = s11 > 0 ? 1 : 0;
+                const known = (1 - tx) * (1 - ty) * k00 + tx * (1 - ty) * k10 + (1 - tx) * ty * k01 + tx * ty * k11;
+
+                if (known < 0.05) {
+                    pIdx += 4;
+                    curLng += dLng;
+                    continue;
+                }
+
+                const h00 = heights[i00];
+                const h10 = heights[i10];
+                const h01 = heights[i01];
+                const h11 = heights[i11];
+
+                const h = (1 - tx) * (1 - ty) * h00 + tx * (1 - ty) * h10 + (1 - tx) * ty * h01 + tx * ty * h11;
+
+                const w00 = (s00 === 1 || (s00 >= 2 && h00 < 0)) ? 1 : 0;
+                const w10 = (s10 === 1 || (s10 >= 2 && h10 < 0)) ? 1 : 0;
+                const w01 = (s01 === 1 || (s01 >= 2 && h01 < 0)) ? 1 : 0;
+                const w11 = (s11 === 1 || (s11 >= 2 && h11 < 0)) ? 1 : 0;
+                const isWater = (1 - tx) * (1 - ty) * w00 + tx * (1 - ty) * w10 + (1 - tx) * ty * w01 + tx * ty * w11;
+
+                const dzdx = ((h10 - h00) * (1 - ty) + (h11 - h01) * ty) / cellMeters;
+                const dzdy = ((h01 - h00) * (1 - tx) + (h11 - h10) * tx) / cellMeters;
+
+                const normX = -dzdx;
+                const normY = -dzdy;
+                const normZ = 1.0;
+                const normLen = Math.hypot(normX, normY, normZ);
+                const dot = (normX * nSunX + normY * nSunY + normZ * nSunZ) / normLen;
+                const lighting = 0.45 + 0.55 * Math.max(0, dot);
+
+                let r = 0, g = 0, b = 0;
+
+                if (isWater > 0.5) {
+                    const depthT = Math.min(1.0, Math.max(0, -h / 25.0));
+                    r = (66 * (1 - depthT) + 31 * depthT) * (0.85 + 0.15 * lighting);
+                    g = (120 * (1 - depthT) + 61 * depthT) * (0.85 + 0.15 * lighting);
+                    b = (158 * (1 - depthT) + 97 * depthT) * (0.85 + 0.15 * lighting);
+                } else {
+                    if (modo === 'relief_shaded') {
+                        const baseVal = Math.max(65, Math.min(235, Math.round(155 * lighting)));
+                        r = baseVal + 8;
+                        g = baseVal + 6;
+                        b = baseVal - 4;
+                    } else {
+                        const alt = Math.max(0, h);
+                        let tr = 0, tg = 0, tb = 0;
+
+                        if (alt < 15.0) {
+                            const t = alt / 15.0;
+                            tr = 46 * (1 - t) + 82 * t;
+                            tg = 122 * (1 - t) + 148 * t;
+                            tb = 64 * (1 - t) + 71 * t;
+                        } else if (alt < 35.0) {
+                            const t = (alt - 15.0) / 20.0;
+                            tr = 82 * (1 - t) + 148 * t;
+                            tg = 148 * (1 - t) + 158 * t;
+                            tb = 71 * (1 - t) + 82 * t;
+                        } else if (alt < 65.0) {
+                            const t = (alt - 35.0) / 30.0;
+                            tr = 148 * (1 - t) + 184 * t;
+                            tg = 158 * (1 - t) + 138 * t;
+                            tb = 82 * (1 - t) + 77 * t;
+                        } else if (alt < 100.0) {
+                            const t = (alt - 65.0) / 35.0;
+                            tr = 184 * (1 - t) + 143 * t;
+                            tg = 138 * (1 - t) + 122 * t;
+                            tb = 77 * (1 - t) + 112 * t;
+                        } else {
+                            const t = Math.min(1.0, (alt - 100.0) / 40.0);
+                            tr = 143 * (1 - t) + 224 * t;
+                            tg = 122 * (1 - t) + 219 * t;
+                            tb = 112 * (1 - t) + 212 * t;
+                        }
+
+                        r = tr * lighting;
+                        g = tg * lighting;
+                        b = tb * lighting;
+                    }
+
+                    if (h > 0.5) {
+                        const slopeMag = Math.hypot(dzdx, dzdy);
+                        const dh = Math.max(slopeMag * metersPerPixel, 0.08);
+
+                        // Curva mestra a cada 25m
+                        const norm25 = (h / 25.0) - 0.5;
+                        const f25 = ((norm25 % 1.0) + 1.0) % 1.0;
+                        const cDist25 = Math.abs(f25 - 0.5) * 25.0;
+                        const cPixels25 = cDist25 / dh;
+
+                        // Curva simples a cada 5m
+                        const norm5 = (h / 5.0) - 0.5;
+                        const f5 = ((norm5 % 1.0) + 1.0) % 1.0;
+                        const cDist5 = Math.abs(f5 - 0.5) * 5.0;
+                        const cPixels5 = cDist5 / dh;
+
+                        if (cPixels25 < 1.6) {
+                            const mLine = Math.max(0, 1.0 - cPixels25 / 1.6);
+                            r = r * (1 - mLine * 0.90) + 32 * (mLine * 0.90);
+                            g = g * (1 - mLine * 0.90) + 16 * (mLine * 0.90);
+                            b = b * (1 - mLine * 0.90) + 8 * (mLine * 0.90);
+                        } else if (cPixels5 < 1.0) {
+                            const cLine = Math.max(0, 1.0 - cPixels5 / 1.0);
+                            r = r * (1 - cLine * 0.65) + 68 * (cLine * 0.65);
+                            g = g * (1 - cLine * 0.65) + 42 * (cLine * 0.65);
+                            b = b * (1 - cLine * 0.65) + 24 * (cLine * 0.65);
                         }
                     }
                 }
-            });
+
+                const alpha = Math.min(1.0, known * 1.5);
+                data[pIdx] = Math.round(r);
+                data[pIdx + 1] = Math.round(g);
+                data[pIdx + 2] = Math.round(b);
+                data[pIdx + 3] = Math.round(alpha * 255);
+
+                pIdx += 4;
+                curLng += dLng;
+            }
+            curLat += dLat;
         }
 
-        const dataUrl = offCanvas.toDataURL();
-        if (!reliefCanvasLayer) {
-            reliefCanvasLayer = L.imageOverlay(dataUrl, [[0, 0], [MAP_SIZE, MAP_SIZE]], {
-                pane: 'parchmentPane',
-                opacity: 1.0,
-                interactive: false
-            });
-        } else {
-            reliefCanvasLayer.setUrl(dataUrl);
-        }
-        if (!map.hasLayer(reliefCanvasLayer)) {
-            reliefCanvasLayer.addTo(map);
-        }
+        ctx.putImageData(imgData, 0, 0);
     }
 
+    const ReliefGridLayerClass = L.GridLayer.extend({
+        createTile: function(coords, done) {
+            const tile = document.createElement('canvas');
+            const tileSize = this.getTileSize();
+            tile.width = tileSize.x;
+            tile.height = tileSize.y;
+
+            if (!reliefGridHeights || reliefBounds.maxX < 0) {
+                setTimeout(() => done(null, tile), 0);
+                return tile;
+            }
+
+            const nwPoint = L.point(coords.x * tileSize.x, coords.y * tileSize.y);
+            const sePoint = L.point((coords.x + 1) * tileSize.x, (coords.y + 1) * tileSize.y);
+            const nw = this._map.unproject(nwPoint, coords.z);
+            const se = this._map.unproject(sePoint, coords.z);
+
+            const westLng = nw.lng;
+            const eastLng = se.lng;
+            const northLat = nw.lat;
+            const southLat = se.lat;
+
+            const tMinCellX = Math.min(westLng, eastLng) / 4.0;
+            const tMaxCellX = Math.max(westLng, eastLng) / 4.0;
+            const tMinCellY = Math.min(southLat, northLat) / 4.0;
+            const tMaxCellY = Math.max(southLat, northLat) / 4.0;
+
+            if (tMaxCellX < reliefBounds.minX - 2 || tMinCellX > reliefBounds.maxX + 2 ||
+                tMaxCellY < reliefBounds.minY - 2 || tMinCellY > reliefBounds.maxY + 2) {
+                setTimeout(() => done(null, tile), 0);
+                return tile;
+            }
+
+            renderizarTileRelevo(tile, westLng, eastLng, northLat, southLat, reliefGridMode);
+            setTimeout(() => done(null, tile), 0);
+            return tile;
+        }
+    });
+
+    const reliefGridLayer = new ReliefGridLayerClass({
+        pane: 'reliefPane',
+        tileSize: 256,
+        updateWhenZooming: false,
+        updateWhenIdle: true,
+        keepBuffer: 4,
+        bounds: [[0, 0], [MAP_SIZE, MAP_SIZE]]
+    });
+
     async function carregarERenderizarRelevo3DNoAtlas(modo = 'topo') {
-        if (cacheReliefData) {
-            renderizarCanvasRelevo3D(cacheReliefData, modo);
-            if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+        reliefGridMode = modo;
+        if (cacheReliefData && cacheReliefData.chunks && cacheReliefData.chunks.length > 0) {
+            descompactarChunksRelevo(cacheReliefData.chunks, cacheReliefData.chunk_size || cacheReliefData.chunkSize || 64);
+            if (!map.hasLayer(reliefGridLayer)) reliefGridLayer.addTo(map);
+            reliefGridLayer.redraw();
         }
         if (supabaseClient) {
             try {
@@ -3578,8 +3760,9 @@
                         } catch(e) {}
                     }
                     if (cacheReliefData && cacheReliefData.chunks && cacheReliefData.chunks.length > 0) {
-                        renderizarCanvasRelevo3D(cacheReliefData, modo);
-                        if (map.hasLayer(parchmentLayer)) map.removeLayer(parchmentLayer);
+                        descompactarChunksRelevo(cacheReliefData.chunks, cacheReliefData.chunk_size || cacheReliefData.chunkSize || 64);
+                        if (!map.hasLayer(reliefGridLayer)) reliefGridLayer.addTo(map);
+                        reliefGridLayer.redraw();
                         mostrarToastCartografico(txt(`⛰️ Relevo Topográfico 3D v${data.version || 1} carregado!`, `⛰️ 3D Topographic Relief v${data.version || 1} loaded!`));
                     } else {
                         mostrarToastCartografico(txt('ℹ️ Nenhum relevo 3D publicado ainda na nuvem.', 'ℹ️ No 3D relief published to the cloud yet.'));
@@ -3597,17 +3780,17 @@
         if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
 
         if (tipo === 'parchment') {
-            if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
+            if (reliefGridLayer && map.hasLayer(reliefGridLayer)) map.removeLayer(reliefGridLayer);
             if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
         } else if (tipo === 'topo_3d') {
-            if (!map.hasLayer(parchmentLayer) && !cacheReliefData) parchmentLayer.addTo(map);
+            if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
             carregarERenderizarRelevo3DNoAtlas('topo');
         } else if (tipo === 'relief_shaded') {
-            if (!map.hasLayer(parchmentLayer) && !cacheReliefData) parchmentLayer.addTo(map);
+            if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
             carregarERenderizarRelevo3DNoAtlas('relief_shaded');
         } else {
             tipo = 'parchment';
-            if (reliefCanvasLayer && map.hasLayer(reliefCanvasLayer)) map.removeLayer(reliefCanvasLayer);
+            if (reliefGridLayer && map.hasLayer(reliefGridLayer)) map.removeLayer(reliefGridLayer);
             if (!map.hasLayer(parchmentLayer)) parchmentLayer.addTo(map);
         }
 
@@ -3631,7 +3814,7 @@
         localStorage.setItem('jackal_base_map', tipo);
     }
 
-    // ==============================================================
+// ==============================================================
     // MODO PRINT TÁTICO — GOLDFISH® IN-APP CAPTURE & ANNOTATION
     // ==============================================================
     let printCanvas = null;
@@ -8559,6 +8742,11 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'point_events' }, () => { carregarPontosDoBanco(); carregarEventosDoBanco(); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => carregarObjetivosDoBanco(filtroObjetivosAtual))
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => carregarRotasDoBanco())
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'relief_state' }, () => {
+                    if (baseAtual === 'topo_3d' || baseAtual === 'relief_shaded') {
+                        carregarERenderizarRelevo3DNoAtlas(baseAtual === 'topo_3d' ? 'topo' : 'relief_shaded');
+                    }
+                })
                 .subscribe((status, err) => {
                     if (status === 'SUBSCRIBED') {
                         carregarPontosDoBanco();
