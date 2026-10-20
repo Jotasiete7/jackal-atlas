@@ -17,6 +17,8 @@ export class PublishModalUI {
   private backdrop: HTMLElement;
   private onPublishCallback?: (note?: string) => Promise<boolean>;
   private isSubmitting = false;
+  private currentOpts: PublishModalOptions | null = null;
+  private currentNoteValue = '';
 
   constructor(parent: HTMLElement) {
     this.backdrop = document.createElement('div');
@@ -32,16 +34,31 @@ export class PublishModalUI {
       if (this.backdrop.style.display === 'flex') {
         if (e.key === 'Escape' && !this.isSubmitting) {
           this.close();
-        } else if (e.key === 'Enter' && !this.isSubmitting && (e.ctrlKey || e.metaKey || document.activeElement?.id === 'input-publish-note')) {
+        } else if (
+          e.key === 'Enter' &&
+          !this.isSubmitting &&
+          (e.ctrlKey || e.metaKey || document.activeElement?.id === 'input-publish-note')
+        ) {
           e.preventDefault();
           this.handlePublish();
         }
       }
     });
+
+    // Reatividade a troca de idioma
+    i18n.subscribe(() => {
+      if (this.backdrop.style.display === 'flex' && this.currentOpts) {
+        const input = this.backdrop.querySelector('#input-publish-note') as HTMLInputElement | null;
+        if (input) this.currentNoteValue = input.value;
+        this.render(this.currentOpts);
+      }
+    });
   }
 
   public open(opts: PublishModalOptions): void {
+    this.currentOpts = opts;
     this.isSubmitting = false;
+    this.currentNoteValue = '';
     this.render(opts);
     this.backdrop.style.display = 'flex';
 
@@ -54,6 +71,7 @@ export class PublishModalUI {
 
   public close(): void {
     this.backdrop.style.display = 'none';
+    this.currentOpts = null;
   }
 
   public setOnPublish(cb: (note?: string) => Promise<boolean>): void {
@@ -64,17 +82,18 @@ export class PublishModalUI {
     const isPt = i18n.getLang() === 'pt';
     const nextVerTag = formatReliefVersion(opts.nextVersion);
     const currVerTag = formatReliefVersion(opts.currentVersion);
-    const defaultName = buildReliefCommitName(opts.nextVersion);
+    const initialNote = this.currentNoteValue || '';
+    const initialName = buildReliefCommitName(opts.nextVersion, initialNote || undefined);
 
     this.backdrop.innerHTML = `
-      <div class="glass-panel modal-content" style="max-width: 480px; width: 92%;">
+      <div class="glass-panel modal-content" style="max-width: 480px; width: 92%; box-shadow: 0 16px 36px rgba(0,0,0,0.7);">
         <!-- Header -->
         <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:8px; margin-bottom:14px;">
           <strong style="color:var(--accent-gold); font-size:13px; display:flex; align-items:center; gap:8px;">
             <span style="font-size:16px;">🚀</span>
             <span>${t('publish_modal_title')}</span>
           </strong>
-          <button id="btn-publish-modal-close" class="btn" style="padding:2px 8px; font-size:14px; color:var(--text-dim); background:transparent;" title="Fechar">✕</button>
+          <button id="btn-publish-modal-close" class="btn" style="padding:2px 8px; font-size:14px; color:var(--text-dim); background:transparent; border:none; cursor:pointer;" title="${isPt ? 'Fechar' : 'Close'}">✕</button>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:12px; font-size:12px;">
@@ -104,7 +123,7 @@ export class PublishModalUI {
               ${t('publish_generated_name')}:
             </label>
             <div id="preview-generated-name" style="background:rgba(0,0,0,0.45); border:1px solid var(--border-color); border-radius:4px; padding:7px 10px; font-family:var(--font-mono); font-size:11.5px; color:#38bdf8; word-break:break-all;">
-              ${defaultName}
+              ${initialName}
             </div>
           </div>
 
@@ -124,6 +143,7 @@ export class PublishModalUI {
               class="form-control"
               placeholder="${t('publish_note_placeholder')}"
               maxlength="100"
+              value="${initialNote}"
               style="width:100%; box-sizing:border-box; padding:7px 10px; font-size:12px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; color:#f1f5f9;"
             />
           </div>
@@ -163,7 +183,7 @@ export class PublishModalUI {
   }
 
   private bindEvents(nextVersion: number): void {
-    const btnClose = this.backdrop.querySelector('#btn-modal-close');
+    const btnClose = this.backdrop.querySelector('#btn-publish-modal-close');
     const btnCancel = this.backdrop.querySelector('#btn-publish-cancel');
     const btnSubmit = this.backdrop.querySelector('#btn-publish-submit') as HTMLButtonElement | null;
     const inputNote = this.backdrop.querySelector('#input-publish-note') as HTMLInputElement | null;
@@ -178,6 +198,7 @@ export class PublishModalUI {
 
     if (inputNote && previewName) {
       inputNote.addEventListener('input', () => {
+        this.currentNoteValue = inputNote.value;
         const liveName = buildReliefCommitName(nextVersion, inputNote.value);
         previewName.textContent = liveName;
       });

@@ -25,6 +25,9 @@ export class HeightfieldManager {
   /** Chunks carregados na memória: chave "chunkX,chunkY" */
   private chunks: Map<string, ChunkData> = new Map();
 
+  /** Registro de chaves de chunks conhecidos/tocados durante a sessão ativa */
+  private sessionChunks: Set<string> = new Set();
+
   /** Folhas de 100x100 tiles trancadas pelo Cartógrafo (ex: 'N0-L0') */
   private lockedSheets: Set<string> = new Set();
 
@@ -174,6 +177,7 @@ export class HeightfieldManager {
       };
       this.chunks.set(key, chunk);
     }
+    this.sessionChunks.add(key);
     return chunk;
   }
 
@@ -268,6 +272,7 @@ export class HeightfieldManager {
   /** Limpa completamente os dados carregados na memória */
   public clear(): void {
     this.chunks.clear();
+    this.sessionChunks.clear();
     this.lockedSheets.clear();
     this.pinAnchorMap.clear();
     this.cellVisitsMap.clear();
@@ -333,6 +338,14 @@ export class HeightfieldManager {
 
   public getAllChunks(): IterableIterator<ChunkData> {
     return this.chunks.values();
+  }
+
+  public getSessionChunks(): Set<string> {
+    return this.sessionChunks;
+  }
+
+  public markChunkTouched(chunkX: number, chunkY: number): void {
+    this.sessionChunks.add(`${chunkX},${chunkY}`);
   }
 
   public getKnownBounds(): { minCellX: number; maxCellX: number; minCellY: number; maxCellY: number } | null {

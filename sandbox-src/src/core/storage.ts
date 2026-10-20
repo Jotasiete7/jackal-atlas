@@ -84,7 +84,8 @@ export class StorageManager {
         }
       }
 
-      if (hasData || chunk.isDirty) {
+      const isSessionChunk = heightfield.getSessionChunks().has(`${chunk.chunkX},${chunk.chunkY}`);
+      if (hasData || chunk.isDirty || isSessionChunk) {
         chunksData.push({
           chunkX: chunk.chunkX,
           chunkY: chunk.chunkY,

@@ -10,6 +10,7 @@ import { VisitManager } from './core/visits';
 import { StorageManager } from './core/storage';
 import { SupabaseSyncManager } from './core/supabase-sync';
 import { t } from './i18n';
+import { toast } from './ui/toast';
 
 import { SceneManager } from './renderer/scene';
 import { CameraController } from './renderer/camera';
@@ -240,9 +241,9 @@ class JackalSandboxApp {
             this.contourRenderer.requestUpdate();
             this.pinMesh.rebuildPins();
             this.routeMesh.refreshHeights();
-            alert(t('alert_cloud_loaded'));
+            toast.success(t('alert_cloud_loaded'));
           } else {
-            alert(res.message || 'Falha ao carregar relevo da nuvem.');
+            toast.error(res.message || 'Falha ao carregar relevo da nuvem.');
           }
         },
         onCloudPublish: async () => {
@@ -269,12 +270,12 @@ class JackalSandboxApp {
           const count = await this.supabaseSync.syncPointsFromCloud(this.pinManager);
           this.heightfield.updatePinAnchors(this.pinManager.getAll());
           this.pinMesh.rebuildPins();
-          alert(`Sincronizados ${count} pinos com sucesso!`);
+          toast.success(t('layer_pins') + ': ' + count);
         },
         onSyncRoutes: async () => {
           const count = await this.supabaseSync.syncRoutesFromCloud(this.routeManager);
           this.routeMesh.rebuildAllRoutes();
-          alert(`Sincronizadas ${count} rotas/obras com sucesso!`);
+          toast.success(t('layer_routes') + ': ' + count);
         },
       }
     );
@@ -383,10 +384,10 @@ class JackalSandboxApp {
       );
       if (res.success) {
         const commitName = buildReliefCommitName(res.version || 1, note);
-        alert(`${t('alert_cloud_published')}\n\n✓ ${commitName}`);
+        toast.success(`${t('alert_cloud_published')}<br><strong style="color:var(--accent-gold); font-family:var(--font-mono);">✓ ${commitName}</strong>`, 6000);
         return true;
       } else {
-        alert(res.message || 'Falha ao publicar na nuvem.');
+        toast.error(res.message || 'Falha ao publicar na nuvem.');
         return false;
       }
     });
