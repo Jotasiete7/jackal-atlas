@@ -741,7 +741,7 @@
                         <button id="btnReliefShaded" class="sw-base-btn" onclick="trocarBase('relief_shaded', this)" title="Relevo sombreado 3D (Hillshade) • 3D Shaded Relief" data-i18n="baseRelevo3D">🏔️ Relevo 3D</button>
                     </div>
                     <label class="sw-filter-row" title="Linhas a cada 512 → 16 tiles conforme o zoom, com números de X e Y nas bordas • Lines every 512 → 16 tiles depending on zoom, with X and Y numbers on the edges">
-                        <input type="checkbox" id="chkGradeCoord" checked onchange="toggleGridCoord(this.checked)">
+                        <input type="checkbox" id="chkGradeCoord" onchange="toggleGridCoord(this.checked)">
                         <span data-i18n="gradeCoord">🔢 Grade de Coordenadas (tiles)</span>
                     </label>
                     <label class="sw-filter-row" style="color:var(--jk-accent);">
@@ -759,6 +759,17 @@
                         <div style="display:flex; align-items:center; gap:6px;">
                             <input type="range" id="sliderSketchOpacity" min="15" max="100" value="100" step="5" oninput="ajustarOpacidadeSketch(this.value)" style="width:70px; height:4px; accent-color:#60a5fa; cursor:pointer;">
                             <span id="labelSketchOpacity" style="font-family:'JetBrains Mono'; font-size:9px; color:#60a5fa; font-weight:700; min-width:24px; text-align:right;">100%</span>
+                        </div>
+                    </div>
+                    <label class="sw-filter-row" style="color:#ef4444;" title="Névoa de Corrupção / Zona Vermelha oficial de Jackal (16km x 16km)">
+                        <input type="checkbox" id="chkRedFog" checked onchange="toggleRedFog(this.checked)">
+                        <span data-i18n="nevoaSangue">🩸 Névoa de Sangue (Oficial)</span>
+                    </label>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin:2px 0 4px 20px; padding:2px 2px 4px 6px; font-size:9.5px; color:var(--sw-text-muted); background:rgba(255,255,255,0.03); border-radius:4px; border:1px solid var(--sw-border-subtle);">
+                        <span data-i18n="opacidade">Opacidade:</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <input type="range" id="sliderRedFogOpacity" min="10" max="100" value="85" step="5" oninput="ajustarOpacidadeRedFog(this.value)" style="width:70px; height:4px; accent-color:#ef4444; cursor:pointer;">
+                            <span id="labelRedFogOpacity" style="font-family:'JetBrains Mono'; font-size:9px; color:#ef4444; font-weight:700; min-width:24px; text-align:right;">85%</span>
                         </div>
                     </div>
                 </div>
@@ -1797,6 +1808,40 @@
         posicionarMiraTarget(0, 0, true, 5.0);
     });
 
+    // Marcadores Oficiais dos 3 Cristais / Entradas (Round 2)
+    const crystalsLayer = L.layerGroup().addTo(map);
+    const CRYSTALS_2D = [
+        { id: 'north', name: 'Cristal Norte', x: 0, y: 150, color: '#38bdf8', icon: '💎' },
+        { id: 'west', name: 'Cristal Oeste', x: -320, y: -250, color: '#34d399', icon: '💎' },
+        { id: 'south', name: 'Cristal Sul', x: 60, y: -180, color: '#f87171', icon: '💎' }
+    ];
+
+    CRYSTALS_2D.forEach(c => {
+        const lat = 2048 - c.y;
+        const lng = 2048 + c.x;
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'crystal-marker-pin',
+                html: `
+                    <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${c.name} (X: ${c.x}, Y: ${c.y})">
+                        <div style="width:26px; height:26px; border-radius:50%; background:${c.color}33; border:2px solid ${c.color}; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px ${c.color}aa;">
+                            <span style="font-size:14px;">${c.icon}</span>
+                        </div>
+                        <span style="background:rgba(12,15,22,0.92); color:${c.color}; border:1px solid ${c.color}66; font-size:9.5px; font-weight:800; font-family:'JetBrains Mono'; padding:1px 5px; border-radius:3px; margin-top:2px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.6);">${c.name}</span>
+                    </div>
+                `,
+                iconSize: [90, 42],
+                iconAnchor: [45, 13]
+            }),
+            zIndexOffset: 2400
+        }).addTo(crystalsLayer);
+
+        marker.on('click', () => {
+            posicionarMiraTarget(c.x, c.y, true, 4.0);
+        });
+    });
+
+
     window.addEventListener('hashchange', verificarHashUrl);
 
     // ==============================================================
@@ -1971,6 +2016,34 @@
             const rotuloTexto = isModoRound2() ? (y - 2048) : y;
             if (ehForte || passo >= 256) rotulo(rotuloTexto, [MAP_SIZE - y, lngDir], 'right:6px; transform:translateY(-50%);'); // right edge, clear of the sidebar
         }
+    }
+
+    
+    // ==============================================================
+    // NÉVOA DE SANGUE / CORRUPÇÃO (PRÉVIA OFICIAL JACKAL 16km x 16km)
+    // ==============================================================
+    const redFogLayer = L.imageOverlay('maps/jackal_red_fog.png', [[0, 0], [MAP_SIZE, MAP_SIZE]], {
+        opacity: 0.85,
+        interactive: false,
+        zIndex: 180
+    });
+    // Adiciona por padrão ao mapa
+    redFogLayer.addTo(map);
+
+    function toggleRedFog(ativo, salvar = true) {
+        if (ativo) {
+            if (!map.hasLayer(redFogLayer)) map.addLayer(redFogLayer);
+        } else if (map.hasLayer(redFogLayer)) {
+            map.removeLayer(redFogLayer);
+        }
+        if (salvar) salvarEstadoCamadas();
+    }
+
+    function ajustarOpacidadeRedFog(val) {
+        const op = parseInt(val, 10) / 100;
+        redFogLayer.setOpacity(op);
+        const lbl = document.getElementById('labelRedFogOpacity');
+        if (lbl) lbl.textContent = `${val}%`;
     }
 
     function toggleGridCoord(ativo, salvar = true) {
@@ -2149,6 +2222,8 @@
             if (chkGrade) estado['grid_yaga'] = chkGrade.checked;
             const chkGradeCoord = document.getElementById('chkGradeCoord');
             if (chkGradeCoord) estado['grid_coord'] = chkGradeCoord.checked;
+            const chkRedFog = document.getElementById('chkRedFog');
+            if (chkRedFog) estado['red_fog'] = chkRedFog.checked;
             localStorage.setItem('jackal_layer_prefs', JSON.stringify(estado));
         } catch(e) {}
     }
@@ -2165,6 +2240,12 @@
                     if (chk) {
                         chk.checked = val;
                         toggleGridTiles(val, false);
+                    }
+                } else if (nome === 'red_fog') {
+                    const chk = document.getElementById('chkRedFog');
+                    if (chk) {
+                        chk.checked = val;
+                        toggleRedFog(val, false);
                     }
                 } else if (nome === 'grid_coord') {
                     const chk = document.getElementById('chkGradeCoord');

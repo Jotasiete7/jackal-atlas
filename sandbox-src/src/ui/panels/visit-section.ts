@@ -65,13 +65,13 @@ export class VisitSectionUI {
           Ancorar Base no Cristal:
         </div>
         <div style="display: flex; gap: 4px; margin-top: 2px;">
-          <button class="btn btn-anchor-crystal" data-crystal="north" style="flex: 1; font-size: 10px; justify-content: center; color: #38bdf8; padding: 3px 4px;" title="Ancorar no Cristal Norte (0, 1000)">
+          <button class="btn btn-anchor-crystal" data-crystal="north" style="flex: 1; font-size: 10px; justify-content: center; color: #38bdf8; padding: 3px 4px;" title="Ancorar no Cristal Norte (0, 150)">
             💎 Norte
           </button>
-          <button class="btn btn-anchor-crystal" data-crystal="west" style="flex: 1; font-size: 10px; justify-content: center; color: #34d399; padding: 3px 4px;" title="Ancorar no Cristal Oeste (-1732, 0)">
+          <button class="btn btn-anchor-crystal" data-crystal="west" style="flex: 1; font-size: 10px; justify-content: center; color: #34d399; padding: 3px 4px;" title="Ancorar no Cristal Oeste (-320, -250)">
             💎 Oeste
           </button>
-          <button class="btn btn-anchor-crystal" data-crystal="south" style="flex: 1; font-size: 10px; justify-content: center; color: #f87171; padding: 3px 4px;" title="Ancorar no Cristal Sul (0, -1000)">
+          <button class="btn btn-anchor-crystal" data-crystal="south" style="flex: 1; font-size: 10px; justify-content: center; color: #f87171; padding: 3px 4px;" title="Ancorar no Cristal Sul (60, -180)">
             💎 Sul
           </button>
         </div>
