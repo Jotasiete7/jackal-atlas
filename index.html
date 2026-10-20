@@ -1668,12 +1668,12 @@
                 dispX = Math.round(inX);
                 dispY = Math.round(inY);
                 rawX = Math.max(0, Math.min(MAP_SIZE, dispX + 2048));
-                rawY = Math.max(0, Math.min(MAP_SIZE, 2048 - dispY));
+                rawY = Math.max(0, Math.min(MAP_SIZE, dispY + 2048));
             } else {
                 rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(inX)));
                 rawY = Math.max(0, Math.min(MAP_SIZE, Math.round(inY)));
                 dispX = rawX - 2048;
-                dispY = 2048 - rawY;
+                dispY = rawY - 2048;
             }
         } else {
             rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(inX)));
@@ -1755,7 +1755,7 @@
         const center = map.getCenter();
         let targetLat, targetLng;
         if (isModoRound2()) {
-            targetLat = 2048 + hashCoords.y;
+            targetLat = 2048 - hashCoords.y;
             targetLng = 2048 + hashCoords.x;
         } else {
             targetLat = MAP_SIZE - hashCoords.y;
@@ -1768,7 +1768,7 @@
     // Inicialização Instantânea da Câmera (URL #X,Y ou Centro do Mapa)
     const hashInicial = obterCoordsHashUrl();
     if (hashInicial) {
-        let initLat = isModoRound2() ? (2048 + hashInicial.y) : (MAP_SIZE - hashInicial.y);
+        let initLat = isModoRound2() ? (2048 - hashInicial.y) : (MAP_SIZE - hashInicial.y);
         let initLng = isModoRound2() ? (2048 + hashInicial.x) : hashInicial.x;
         map.setView([initLat, initLng], hashInicial.z || 5.0);
     } else {
@@ -1886,7 +1886,7 @@
                 const centerLng = centerX + x + (sectorSize / 2);
                 if (centerLat < 0 || centerLat > MAP_SIZE || centerLng < 0 || centerLng > MAP_SIZE) continue;
 
-                const sectorY = Math.floor((y + sectorSize / 2) / 100);
+                const sectorY = Math.floor((-y - sectorSize / 2) / 100);
                 const sectorX = Math.floor((x + sectorSize / 2) / 100);
                 const dirY = sectorY >= 0 ? 'N' : 'S';
                 const dirX = sectorX >= 0 ? 'L' : 'O';
@@ -1968,7 +1968,7 @@
         for (let y = yMin; y <= yMax; y += passo) {
             const ehForte = y % forte === 0;
             L.polyline([[MAP_SIZE - y, xMin], [MAP_SIZE - y, xMax]], opts(ehForte)).addTo(gridCoordLayer);
-            const rotuloTexto = isModoRound2() ? (2048 - y) : y;
+            const rotuloTexto = isModoRound2() ? (y - 2048) : y;
             if (ehForte || passo >= 256) rotulo(rotuloTexto, [MAP_SIZE - y, lngDir], 'right:6px; transform:translateY(-50%);'); // right edge, clear of the sidebar
         }
     }
@@ -2082,7 +2082,7 @@
         const rawX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
         const rawY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
         const dispX = isModoRound2() ? (rawX - 2048) : rawX;
-        const dispY = isModoRound2() ? (2048 - rawY) : rawY;
+        const dispY = isModoRound2() ? (rawY - 2048) : rawY;
         document.getElementById('coordBox').textContent = `X: ${dispX} • Y: ${dispY}`;
         const quad = isModoRound2()
             ? `${dispY >= 0 ? 'N' : 'S'}${Math.floor(Math.abs(dispY)/100)}-${dispX >= 0 ? 'L' : 'O'}${Math.floor(Math.abs(dispX)/100)}`
@@ -2198,7 +2198,7 @@
         let rawBy = Number(beacon.y);
         if (isModoRound2() || (Math.abs(rawBx) <= 2048 && Math.abs(rawBy) <= 2048 && (rawBx < 0 || rawBy < 0 || (rawBx <= 1000 && rawBy <= 1000)))) {
             rawBx = rawBx + 2048;
-            rawBy = 2048 - rawBy;
+            rawBy = rawBy + 2048;
         }
         const lat = mapSize - rawBy;
         const lng = rawBx;
@@ -2369,7 +2369,7 @@
             let cx, cy;
             if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
                 cx = 2048 + x;
-                cy = 2048 + y;
+                cy = 2048 - y;
             } else {
                 cx = x;
                 cy = mapSize - y;
@@ -2420,7 +2420,7 @@
             const y = Number(p.y);
             let latlng;
             if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
-                latlng = [2048 + y, 2048 + x];
+                latlng = [2048 - y, 2048 + x];
             } else {
                 latlng = [mapSize - y, x];
             }
@@ -2787,7 +2787,7 @@
                     const ll = layer.getLatLng();
                     let match = false;
                     if (isModoRound2() || (Math.abs(x) <= 2048 && Math.abs(y) <= 2048 && (x < 0 || y < 0 || (x <= 1000 && y <= 1000)))) {
-                        match = (Math.round(ll.lng - 2048) === Math.round(x) && Math.round(ll.lat - 2048) === Math.round(y));
+                        match = (Math.round(ll.lng - 2048) === Math.round(x) && Math.round(2048 - ll.lat) === Math.round(y));
                     } else {
                         match = (Math.round(ll.lng) === Math.round(x) && Math.round(mapSize - ll.lat) === Math.round(y));
                     }
@@ -2853,7 +2853,7 @@
                 item.onclick = () => {
                     if (pathPoint) {
                         const r2 = isModoRound2() || (Math.abs(pathPoint[0]) <= 2048 && Math.abs(pathPoint[1]) <= 2048 && (pathPoint[0] < 0 || pathPoint[1] < 0 || (pathPoint[0] <= 1000 && pathPoint[1] <= 1000)));
-                        const targetLat = r2 ? (2048 + pathPoint[1]) : (mapSize - pathPoint[1]);
+                        const targetLat = r2 ? (2048 - pathPoint[1]) : (mapSize - pathPoint[1]);
                         const targetLng = r2 ? (2048 + pathPoint[0]) : pathPoint[0];
                         map.flyTo([targetLat, targetLng], 4, { duration: 1 });
                     }
@@ -3164,7 +3164,7 @@
         const distAcumulada = calcularDistanciaRota(pontosTracado);
         const distTotal = Math.round(distAcumulada + snap.dist);
         const endRelX = snap.x2 - 2048;
-        const endRelY = 2048 - snap.y2;
+        const endRelY = snap.y2 - 2048;
         const distEl = document.getElementById('hudLiveDistancia');
         if (distEl) {
             distEl.textContent = `${distTotal} tiles (${snap.angle}° • ${snap.dist}t) ➔ Ponto: (${endRelX}, ${endRelY})`;
@@ -3513,18 +3513,18 @@
         const nSunY = sunY / sunLen;
         const nSunZ = sunZ / sunLen;
 
-        const cellMeters = 6.0; // 4 tiles * 1.5m = 6.0m por célula
-        const metersPerPixel = Math.abs(dLng) * 1.5;
+        const cellMeters = 8.0; // 2 tiles * 4.0m = 8.0m por célula (paridade com Sandbox 3D)
+        const metersPerPixel = Math.abs(dLng) * 4.0;
 
         let pIdx = 0;
         let curLat = northLat;
 
         for (let py = 0; py < H; py++) {
-            const cellY = (4096.0 - curLat) / 4.0;
+            const cellY = 512.0 + (2048.0 - curLat) / 2.0;
             let curLng = westLng;
 
             for (let px = 0; px < W; px++) {
-                const cellX = curLng / 4.0;
+                const cellX = 512.0 + (curLng - 2048.0) / 2.0;
 
                 if (cellX < 0 || cellX >= 1023 || cellY < 0 || cellY >= 1023) {
                     pIdx += 4;
@@ -3700,10 +3700,10 @@
             const northLat = nw.lat;
             const southLat = se.lat;
 
-            const tMinCellX = Math.min(westLng, eastLng) / 4.0;
-            const tMaxCellX = Math.max(westLng, eastLng) / 4.0;
-            const tMinCellY = (4096.0 - Math.max(southLat, northLat)) / 4.0;
-            const tMaxCellY = (4096.0 - Math.min(southLat, northLat)) / 4.0;
+            const tMinCellX = 512.0 + (Math.min(westLng, eastLng) - 2048.0) / 2.0;
+            const tMaxCellX = 512.0 + (Math.max(westLng, eastLng) - 2048.0) / 2.0;
+            const tMinCellY = 512.0 + (2048.0 - Math.max(southLat, northLat)) / 2.0;
+            const tMaxCellY = 512.0 + (2048.0 - Math.min(southLat, northLat)) / 2.0;
 
             if (tMaxCellX < reliefBounds.minX - 2 || tMinCellX > reliefBounds.maxX + 2 ||
                 tMaxCellY < reliefBounds.minY - 2 || tMinCellY > reliefBounds.maxY + 2) {
@@ -4836,7 +4836,7 @@
         }
 
         const relCenterX = Math.round(centroLng - 2048);
-        const relCenterY = Math.round(2048 - (y1 + y2) / 2);
+        const relCenterY = Math.round((y1 + y2) / 2 - 2048);
         const sectorX = relCenterX >= 0 ? `L${Math.floor(relCenterX / 100)}` : `O${Math.floor(Math.abs(relCenterX) / 100)}`;
         const sectorY = relCenterY >= 0 ? `N${Math.floor(relCenterY / 100)}` : `S${Math.floor(Math.abs(relCenterY) / 100)}`;
         const quadTxt = `${sectorY}-${sectorX} • (${relCenterX}, ${relCenterY})`;
@@ -6926,7 +6926,7 @@
         let clickX, clickY;
         if (isModoRound2()) {
             clickX = Math.round(e.latlng.lng - 2048);
-            clickY = Math.round(e.latlng.lat - 2048);
+            clickY = Math.round(2048 - e.latlng.lat);
         } else {
             clickX = Math.max(0, Math.min(MAP_SIZE, Math.round(e.latlng.lng)));
             clickY = Math.max(0, Math.min(MAP_SIZE, Math.round(MAP_SIZE - e.latlng.lat)));
@@ -7033,7 +7033,7 @@
             }
 
             if (tempClickMarker) {
-                const latlng = r2 ? [2048 + y, 2048 + x] : [MAP_SIZE - y, x];
+                const latlng = r2 ? [2048 - y, 2048 + x] : [MAP_SIZE - y, x];
                 tempClickMarker.setLatLng(latlng);
             }
         }
