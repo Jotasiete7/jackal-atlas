@@ -111,6 +111,13 @@ export class StorageManager {
       pin_count: currentPins.length,
     };
 
+    const erasedRecords: Array<{ chunkKey: string; indices: number[] }> = [];
+    for (const [cKey, idxSet] of heightfield.getErasedCells().entries()) {
+      if (idxSet.size > 0) {
+        erasedRecords.push({ chunkKey: cKey, indices: Array.from(idxSet) });
+      }
+    }
+
     return {
       meta,
       chunks: chunksData,
@@ -118,6 +125,8 @@ export class StorageManager {
       routes: currentRoutes,
       visit: currentVisit,
       lockedSheets: heightfield.getLockedSheets(),
+      baseCloudVersion: heightfield.getBaseCloudVersion() ?? undefined,
+      erased: erasedRecords.length > 0 ? erasedRecords : undefined,
     };
   }
 
@@ -162,6 +171,14 @@ export class StorageManager {
     if (snapshot.visit) {
       visits.updateVisitDetails(snapshot.visit);
     }
+
+    if (snapshot.baseCloudVersion !== undefined) {
+      heightfield.setBaseCloudVersion(snapshot.baseCloudVersion);
+    }
+
+    if (snapshot.erased) {
+      heightfield.loadErasedCells(snapshot.erased);
+    }
   }
 
   /**
@@ -173,7 +190,8 @@ export class StorageManager {
   public mergeChunksNonDestructive(
     cloudChunks: SerializedSnapshot['chunks'],
     localChunks: SerializedSnapshot['chunks'],
-    allowErase = false
+    allowErase = false,
+    erasedCells?: Map<string, Set<number>>
   ): SerializedSnapshot['chunks'] {
     const S = CONFIG.CHUNK_SIZE_CELLS;
     const total = S * S;
@@ -203,11 +221,22 @@ export class StorageManager {
           locked: l.locked ? [...l.locked] : new Array(total).fill(0),
         });
       } else {
+        const chunkErasedSet = erasedCells ? erasedCells.get(key) : undefined;
         for (let i = 0; i < total; i++) {
           const cState = existing.states[i] ?? CellState.UNKNOWN;
           const cLocked = existing.locked ? (existing.locked[i] || 0) : 0;
           const lState = l.states[i] ?? CellState.UNKNOWN;
           const lLocked = l.locked ? (l.locked[i] || 0) : 0;
+          const isExplicitlyErased = chunkErasedSet ? chunkErasedSet.has(i) : false;
+
+          // 0. Se a célula foi explicitamente apagada com a borracha (tombstone), o apagamento sempre vence!
+          if (isExplicitlyErased) {
+            existing.heights[i] = 0.0;
+            existing.states[i] = CellState.UNKNOWN;
+            existing.confidence[i] = ConfidenceLevel.SPECULATIVE;
+            if (existing.locked) existing.locked[i] = 0;
+            continue;
+          }
 
           // 1. Se a célula local está UNKNOWN (não esculpida localmente), preserva a célula da nuvem
           if (!allowErase && lState === CellState.UNKNOWN && cState !== CellState.UNKNOWN) {
@@ -229,15 +258,13 @@ export class StorageManager {
       }
     }
 
-    if (allowErase) {
-      return Array.from(mergedMap.values()).filter((c) => {
-        for (let i = 0; i < total; i++) {
-          if (c.states[i] !== CellState.UNKNOWN) return true;
-        }
-        return false;
-      });
-    }
-    return Array.from(mergedMap.values());
+    // Remove do mapa final qualquer chunk que tenha ficado 100% UNKNOWN (purgado por completo)
+    return Array.from(mergedMap.values()).filter((c) => {
+      for (let i = 0; i < total; i++) {
+        if (c.states[i] !== CellState.UNKNOWN) return true;
+      }
+      return false;
+    });
   }
 
   /** Grava o estado atual como autosave contínuo no IndexedDB */

@@ -28,6 +28,12 @@ export class HeightfieldManager {
   /** Registro de chaves de chunks conhecidos/tocados durante a sessão ativa */
   private sessionChunks: Set<string> = new Set();
 
+  /** Células explicitamente apagadas com a borracha na sessão atual: chunkKey -> Set<index> */
+  private erasedCells: Map<string, Set<number>> = new Map();
+
+  /** Versão da nuvem em que a sessão atual se baseou */
+  private baseCloudVersion: number | null = null;
+
   /** Folhas de 100x100 tiles trancadas pelo Cartógrafo (ex: 'N0-L0') */
   private lockedSheets: Set<string> = new Set();
 
@@ -273,6 +279,7 @@ export class HeightfieldManager {
   public clear(): void {
     this.chunks.clear();
     this.sessionChunks.clear();
+    this.erasedCells.clear();
     this.lockedSheets.clear();
     this.pinAnchorMap.clear();
     this.cellVisitsMap.clear();
@@ -307,6 +314,11 @@ export class HeightfieldManager {
         if (d.oldLocked !== undefined) {
           chunk.locked[d.index] = d.oldLocked ? 1 : 0;
         }
+        if (d.oldState === CellState.UNKNOWN) {
+          this.markErased(d.chunkKey, d.index);
+        } else {
+          this.unmarkErased(d.chunkKey, d.index);
+        }
         chunk.isDirty = true;
         dirtyKeys.add(d.chunkKey);
       }
@@ -329,6 +341,11 @@ export class HeightfieldManager {
         if (d.newLocked !== undefined) {
           chunk.locked[d.index] = d.newLocked ? 1 : 0;
         }
+        if (d.newState === CellState.UNKNOWN) {
+          this.markErased(d.chunkKey, d.index);
+        } else {
+          this.unmarkErased(d.chunkKey, d.index);
+        }
         chunk.isDirty = true;
         dirtyKeys.add(d.chunkKey);
       }
@@ -338,6 +355,51 @@ export class HeightfieldManager {
 
   public getAllChunks(): IterableIterator<ChunkData> {
     return this.chunks.values();
+  }
+
+  public getBaseCloudVersion(): number | null {
+    return this.baseCloudVersion;
+  }
+
+  public setBaseCloudVersion(version: number | null): void {
+    this.baseCloudVersion = version;
+  }
+
+  public markErased(chunkKey: string, index: number): void {
+    let set = this.erasedCells.get(chunkKey);
+    if (!set) {
+      set = new Set<number>();
+      this.erasedCells.set(chunkKey, set);
+    }
+    set.add(index);
+  }
+
+  public unmarkErased(chunkKey: string, index: number): void {
+    const set = this.erasedCells.get(chunkKey);
+    if (set) {
+      set.delete(index);
+      if (set.size === 0) {
+        this.erasedCells.delete(chunkKey);
+      }
+    }
+  }
+
+  public clearErased(): void {
+    this.erasedCells.clear();
+  }
+
+  public getErasedCells(): Map<string, Set<number>> {
+    return this.erasedCells;
+  }
+
+  public loadErasedCells(records?: Array<{ chunkKey: string; indices: number[] }>): void {
+    this.erasedCells.clear();
+    if (!records) return;
+    for (const rec of records) {
+      if (rec && rec.chunkKey && Array.isArray(rec.indices)) {
+        this.erasedCells.set(rec.chunkKey, new Set(rec.indices));
+      }
+    }
   }
 
   public getSessionChunks(): Set<string> {

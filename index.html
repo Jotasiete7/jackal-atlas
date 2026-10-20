@@ -623,8 +623,8 @@
             <span>✏️</span> <span data-i18n="modoSketch">Rascunho</span>
             <span class="jk-help-btn" onclick="event.stopPropagation(); abrirAjudaFerramenta2D('sketch', this)" title="Ajuda">?</span>
         </button>
-        <button id="btnTutorialAtlas" class="sw-mode-btn" onclick="abrirGuiaCompletoAtlas()" style="border-left: 1px solid var(--sw-border); color: var(--jk-accent);" title="Tutorial e Guia Tático 2D / 3D">
-            <span>🎓</span> <span data-i18n="modoTutorial">Tutorial</span>
+        <button id="btnTutorialAtlas" class="sw-mode-btn" onclick="abrirGuiaCompletoAtlas()" style="border-left: 1px solid var(--sw-border); color: var(--jk-accent);" title="Ajuda, FAQ e Guia Tático 2D / 3D">
+            <span>🎓</span> <span data-i18n="modoTutorial">Ajuda / FAQ</span>
         </button>
     </div>
 
@@ -709,7 +709,7 @@
         <div style="padding: 6px 12px; background: rgba(245, 166, 35, 0.08); border-bottom: 1px solid var(--sw-border-subtle); display: flex; align-items: center; justify-content: space-between;">
             <div style="font-size: 11px; font-weight: 700; color: var(--jk-accent); display: flex; align-items: center; gap: 6px;">
                 <span>🎓</span>
-                <span data-i18n="labelGuiaTutorial">Tutorial & Guia 2D/3D</span>
+                <span data-i18n="labelGuiaTutorial">Guia & FAQ 2D/3D</span>
             </div>
             <button class="sw-base-btn" onclick="abrirGuiaCompletoAtlas()" style="padding: 3px 8px; font-size: 10px; background: var(--jk-accent); color: #000; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Abrir Tutorial Completo e Atalhos">
                 <span data-i18n="btnAbrirGuia">Abrir</span> 📖
@@ -7409,8 +7409,8 @@
             modoPonte: 'Traçar Ponte',
             modoArea: 'Medir Área',
             modoSketch: 'Rascunho',
-            modoTutorial: 'Tutorial',
-            labelGuiaTutorial: 'Tutorial & Guia 2D/3D',
+            modoTutorial: 'Ajuda / FAQ',
+            labelGuiaTutorial: 'Guia & FAQ 2D/3D',
             btnAbrirGuia: 'Abrir',
             baseWhite: '📜 White',
             baseTopo: '⛰️ Topo',
@@ -7672,8 +7672,8 @@
             modoPonte: 'Trace Bridge',
             modoArea: 'Measure Area',
             modoSketch: 'Sketch',
-            modoTutorial: 'Tutorial',
-            labelGuiaTutorial: 'Tutorial & 2D/3D Guide',
+            modoTutorial: 'Help / FAQ',
+            labelGuiaTutorial: '2D/3D Guide & FAQ',
             btnAbrirGuia: 'Open',
             baseWhite: '📜 White',
             baseTopo: '⛰️ Topo',
@@ -8550,11 +8550,7 @@
         }
     }
 
-    function iniciarTourAtlas(forcar = false) {
-        fecharModalGuiaAtlas();
-        tour2DStep = 0;
-        renderTour2DStep();
-    }
+    function iniciarTourAtlas() { /* Tour descontinuado em favor do Guia/FAQ */ }
 
     // ==============================================================
     // MODAL DE GUIA TÁTICO COMPLETO COM ABAS (2D ATLAS & 3D)
@@ -8790,9 +8786,7 @@
 
             <!-- Rodapé do Modal -->
             <div style="margin-top:14px; border-top:1px solid var(--sw-border); padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
-                <button onclick="iniciarTourAtlas(true)" class="sw-btn-action" style="background:rgba(245,166,35,0.15); color:var(--jk-accent); border:1px solid var(--jk-accent-border); font-size:11px; font-weight:800; cursor:pointer;">
-                    🚀 Iniciar Tour Interativo 2D
-                </button>
+                <!-- Tour spotlight descontinuado em favor do Guia/FAQ -->
                 <div style="display:flex; gap:6px;">
                     <a href="sandbox/" class="sw-base-btn" style="background:#2563eb; color:#fff; font-size:11px; font-weight:700; text-decoration:none; padding:4px 10px; border-radius:4px;">
                         🏔️ Abrir Sandbox 3D ↗

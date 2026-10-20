@@ -297,6 +297,12 @@ export class BrushEngine {
           chunk.isDirty = true;
           affectedChunks.add(chunkKey);
 
+          if (newState === CellState.UNKNOWN) {
+            this.heightfield.markErased(chunkKey, idx);
+          } else {
+            this.heightfield.unmarkErased(chunkKey, idx);
+          }
+
           // Se há um pino móvel (sem trava rígida) nesta célula, sincroniza a cota dele
           if (anchorPin && anchorPin.lockAltitude !== true) {
             anchorPin.z = newHeight;

@@ -193,8 +193,9 @@ export class SupabaseSyncManager {
         await this.storage.saveSnapshot(localSnap);
       }
 
+      const erasedMap = heightfield.getErasedCells();
       const finalChunks = mergeWithLocal
-        ? this.storage.mergeChunksNonDestructive(cloudChunks, localSnap.chunks)
+        ? this.storage.mergeChunksNonDestructive(cloudChunks, localSnap.chunks, false, erasedMap)
         : cloudChunks;
 
       const cloudLockedSheets: string[] = data.metadata?.lockedSheets || [];
@@ -217,11 +218,16 @@ export class SupabaseSyncManager {
           pins: pins.getAll(),
           visit: visits.getCurrentVisit(),
           lockedSheets: finalLockedSheets,
+          baseCloudVersion: data.version,
+          erased: mergeWithLocal ? localSnap.erased : undefined,
         },
         heightfield,
         pins,
         visits
       );
+      if (!mergeWithLocal) {
+        heightfield.clearErased();
+      }
       return { success: true, version: data.version };
     } catch (err: any) {
       console.error('Erro ao buscar relevo da nuvem:', err);
@@ -326,8 +332,9 @@ export class SupabaseSyncManager {
         });
       }
 
-      // Mescla não-destrutiva: preserva chunks e células travadas/mapeadas da nuvem
-      const mergedChunks = this.storage.mergeChunksNonDestructive(cloudChunks, snapshot.chunks, true);
+      // Mescla não-destrutiva com tombstones aplicados
+      const erasedMap = heightfield.getErasedCells();
+      const mergedChunks = this.storage.mergeChunksNonDestructive(cloudChunks, snapshot.chunks, true, erasedMap);
       const mergedLockedSheets = Array.from(
         new Set([...cloudLockedSheets, ...(snapshot.lockedSheets || [])])
       );
@@ -387,12 +394,17 @@ export class SupabaseSyncManager {
         author: authorId,
       });
 
-      // Atualiza o estado local com o resultado mesclado e grava no autosave
+      // Atualiza o estado local com o resultado oficial, limpa tombstones e crava a nova versão-base
+      heightfield.clearErased();
+      heightfield.setBaseCloudVersion(nextVersion);
+
       this.storage.restoreSnapshot(
         {
           ...snapshot,
           chunks: mergedChunks,
           lockedSheets: mergedLockedSheets,
+          baseCloudVersion: nextVersion,
+          erased: undefined,
         },
         heightfield,
         pins,

@@ -166,6 +166,11 @@ export interface SnapshotMeta {
   pin_count: number;
 }
 
+export interface SerializedErasedRecord {
+  chunkKey: string;
+  indices: number[];
+}
+
 export interface SerializedSnapshot {
   meta: SnapshotMeta;
   chunks: Array<{
@@ -181,5 +186,8 @@ export interface SerializedSnapshot {
   routes?: MapRoute[];
   visit: FieldVisit;
   lockedSheets?: string[];
+  /** Versão oficial da nuvem que serviu de base para esta sessão de edição */
+  baseCloudVersion?: number;
+  /** Células explicitamente apagadas com a borracha nesta sessão (tombstones) */
+  erased?: SerializedErasedRecord[];
 }
-

@@ -162,8 +162,16 @@ class JackalSandboxApp {
       const autosave = await this.storageManager.loadAutosave();
       if (autosave && autosave.chunks && autosave.chunks.length > 0) {
         this.storageManager.restoreSnapshot(autosave, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
-        // Mescla de forma não-destrutiva qualquer relevo oficial da nuvem que não esteja no autosave local
-        await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
+        
+        // Verifica se a versão oficial da nuvem mudou em relação à versão base do autosave
+        const latestCloudVer = await this.supabaseSync.getLatestReliefVersion();
+        const localBaseVer = autosave.baseCloudVersion ?? 0;
+
+        // Se a nuvem tem uma versão mais nova lançada por outro oficial, mescla respeitando tombstones
+        if (latestCloudVer > localBaseVer) {
+          await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
+        }
+
         this.terrainMesh.updateDirtyChunks();
         this.contourRenderer.requestUpdate();
         this.pinMesh.rebuildPins();
