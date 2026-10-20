@@ -198,4 +198,9 @@ export const en: Record<TranslationKey, string> = {
   publish_btn_cancel: 'Cancel',
   publish_btn_submit: '🚀 Publish Official',
   publish_btn_submitting: 'Publishing...',
+  cloud_history_title: 'CLOUD HISTORY (COMMITS)',
+  cloud_history_rollback: 'Restore Version',
+  cloud_history_loading: 'Loading official history...',
+  cloud_history_empty: 'No relief commits found.',
+  cloud_history_confirm: 'Do you want to restore official relief version {version}? Your current local work will be backed up automatically before restoring.',
 };

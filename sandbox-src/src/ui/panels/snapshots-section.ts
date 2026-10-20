@@ -1,5 +1,5 @@
 // ==============================================================================
-// JACKAL SANDBOX — SEÇÃO DE SNAPSHOTS DE RELEVO E BACKUP JSON
+// JACKAL SANDBOX — SEÇÃO DE SNAPSHOTS DE RELEVO E HISTÓRICO DA NUVEM
 // ==============================================================================
 
 import { StorageManager } from '../../core/storage';
@@ -13,8 +13,10 @@ import { PinMeshManager } from '../../renderer/pin-mesh';
 import { GridMeshManager } from '../../renderer/grid-mesh';
 import { ScaleReferenceManager } from '../../renderer/scale-reference';
 import { RouteMeshManager } from '../../renderer/route-mesh';
+import { SupabaseSyncManager } from '../../core/supabase-sync';
 import { ICONS } from '../icons';
 import { t } from '../../i18n';
+import { toast } from '../toast';
 
 export class SnapshotsSectionUI {
   private container: HTMLElement;
@@ -29,6 +31,7 @@ export class SnapshotsSectionUI {
   private scaleReference: ScaleReferenceManager;
   private routeManager?: RouteManager;
   private routeMesh?: RouteMeshManager;
+  private supabaseSync?: SupabaseSyncManager;
 
   constructor(
     parent: HTMLElement,
@@ -44,6 +47,7 @@ export class SnapshotsSectionUI {
       scaleReference: ScaleReferenceManager;
       routeManager?: RouteManager;
       routeMesh?: RouteMeshManager;
+      supabaseSync?: SupabaseSyncManager;
     }
   ) {
     this.storageManager = deps.storageManager;
@@ -57,12 +61,14 @@ export class SnapshotsSectionUI {
     this.scaleReference = deps.scaleReference;
     this.routeManager = deps.routeManager;
     this.routeMesh = deps.routeMesh;
+    this.supabaseSync = deps.supabaseSync;
 
     this.container = document.createElement('div');
     parent.appendChild(this.container);
 
     this.render();
     this.loadSnapshotList();
+    this.loadCloudHistory();
   }
 
   public render(): void {
@@ -93,12 +99,23 @@ export class SnapshotsSectionUI {
         <input type="file" id="file-import-input" accept=".json" style="display: none;" />
       </div>
 
-      <!-- Lista de Snapshots Salvos -->
+      <!-- Lista de Snapshots Salvos Localmente -->
       <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 8px;">
-        ${t('badge_history')}:
+        ${t('badge_history')} (Local):
       </div>
-      <div id="snapshot-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; margin-top: 4px;">
+      <div id="snapshot-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; margin-top: 4px;">
         <div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 6px;">${t('no_snapshots')}</div>
+      </div>
+
+      <!-- Histórico Oficial na Nuvem (Rollback de Commits) -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <span style="font-size: 10px; color: var(--accent-gold); text-transform: uppercase; font-weight: 700;">
+          ☁️ ${t('cloud_history_title')}:
+        </span>
+        <button id="btn-refresh-cloud-history" class="btn" style="padding: 1px 6px; font-size: 9px;" title="Atualizar histórico">🔄</button>
+      </div>
+      <div id="cloud-history-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; margin-top: 4px;">
+        <div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 6px;">${t('cloud_history_loading')}</div>
       </div>
 
       <!-- Zona de Perigo Isolada -->
@@ -152,12 +169,11 @@ export class SnapshotsSectionUI {
         const snap = await this.storageManager.loadSnapshotById(id);
         if (snap) {
           if (confirm(t('alert_snapshot_restore_confirm'))) {
-            // Salva backup automático do relevo atual antes de substituir
             await this.createAutoSafetyBackup();
             this.terrainMesh.clear();
             this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
             this.syncSceneAfterRestore();
-            alert(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
+            toast.success(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
           }
         }
       });
@@ -168,7 +184,8 @@ export class SnapshotsSectionUI {
         const id = btn.getAttribute('data-id')!;
         const snap = await this.storageManager.loadSnapshotById(id);
         if (snap) {
-          this.storageManager.exportSnapshotAsJSON(snap);
+          const safeName = `${snap.meta.name.replace(/[/\\?%*:|"<>]/g, '-')}.json`;
+          this.storageManager.exportSnapshotAsJSON(snap, safeName);
         }
       });
     });
@@ -176,7 +193,7 @@ export class SnapshotsSectionUI {
     listEl.querySelectorAll('.btn-del-snap').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id')!;
-        const name = btn.getAttribute('data-name') || '';
+        const name = btn.getAttribute('data-name')!;
         if (confirm(`${t('alert_delete_snapshot_confirm')} "${name}"?`)) {
           await this.storageManager.deleteSnapshot(id);
           this.loadSnapshotList();
@@ -185,7 +202,59 @@ export class SnapshotsSectionUI {
     });
   }
 
-  /** Cria snapshot de segurança automático para evitar perda de dados por engano */
+  public async loadCloudHistory(): Promise<void> {
+    const cloudListEl = this.container.querySelector('#cloud-history-list');
+    if (!cloudListEl || !this.supabaseSync) return;
+
+    cloudListEl.innerHTML = `<div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 6px;">${t('cloud_history_loading')}</div>`;
+
+    const commits = await this.supabaseSync.fetchReliefCommits(8);
+    if (commits.length === 0) {
+      cloudListEl.innerHTML = `<div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 6px;">${t('cloud_history_empty')}</div>`;
+      return;
+    }
+
+    cloudListEl.innerHTML = commits
+      .map(
+        (c) => `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(245, 158, 11, 0.05); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); font-size: 11px;">
+          <div style="flex: 1; min-width: 0; padding-right: 6px; overflow: hidden;" title="${c.message}">
+            <strong style="color: var(--accent-gold); font-family: var(--font-mono); font-size: 11.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              v${c.version} · ${c.message}
+            </strong>
+            <div style="font-size: 9px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${c.author} · ${c.created_at ? new Date(c.created_at).toLocaleDateString() : ''} (${c.chunk_count} chunks)
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-rollback" data-ver="${c.version}" style="padding: 2px 7px; font-size: 10px; font-weight: 700; background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); border-color: rgba(245, 158, 11, 0.4);" title="${t('cloud_history_rollback')}">
+              ↩ ${t('cloud_history_rollback')}
+            </button>
+          </div>
+        </div>
+      `
+      )
+      .join('');
+
+    cloudListEl.querySelectorAll('.btn-rollback').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const ver = Number(btn.getAttribute('data-ver'));
+        const confirmMsg = t('cloud_history_confirm', { version: ver });
+        if (confirm(confirmMsg)) {
+          const res = await this.supabaseSync!.rollbackToCommit(ver, this.heightfield, this.pinManager, this.visitManager);
+          if (res.success) {
+            this.syncSceneAfterRestore();
+            toast.success(`Versão v${ver} restaurada com sucesso na nuvem como v${res.newVersion}!`, 6000);
+            this.loadCloudHistory();
+            this.loadSnapshotList();
+          } else {
+            toast.error(res.message || 'Falha ao restaurar versão.');
+          }
+        }
+      });
+    });
+  }
+
   private async createAutoSafetyBackup(): Promise<void> {
     if (this.heightfield.hasAnyData() || this.pinManager.getAll().length > 0 || (this.routeManager && this.routeManager.getAll().length > 0)) {
       const snapName = `⚡ Auto-Backup (${new Date().toLocaleTimeString()})`;
@@ -235,10 +304,14 @@ export class SnapshotsSectionUI {
       await this.storageManager.saveSnapshot(snap);
       inputSnap.value = '';
       this.loadSnapshotList();
-      alert(`${t('alert_snapshot_saved')} (${name})`);
+      toast.success(`${t('alert_snapshot_saved')} (${name})`);
     });
 
-    this.container.querySelector('#btn-export-backup')?.addEventListener('click', () => {
+    this.container.querySelector('#btn-refresh-cloud-history')?.addEventListener('click', () => {
+      this.loadCloudHistory();
+    });
+
+    this.container.querySelector('#btn-export-backup')?.addEventListener('click', async () => {
       const snap = this.storageManager.serializeCurrentState(
         this.heightfield,
         this.pinManager,
@@ -247,7 +320,7 @@ export class SnapshotsSectionUI {
         false,
         this.routeManager
       );
-      this.storageManager.exportSnapshotAsJSON(snap);
+      await this.storageManager.exportSnapshotAsJSON(snap);
     });
 
     const fileInput = this.container.querySelector('#file-import-input') as HTMLInputElement;
@@ -255,33 +328,34 @@ export class SnapshotsSectionUI {
       fileInput.click();
     });
 
-    fileInput.addEventListener('change', async () => {
-      if (fileInput.files && fileInput.files[0]) {
+    fileInput?.addEventListener('change', async (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
         try {
-          const snap = await this.storageManager.importSnapshotFromFile(fileInput.files[0]);
-          // Salva backup automático antes de importar
+          const snap = await this.storageManager.importSnapshotFromFile(target.files[0]);
           await this.createAutoSafetyBackup();
           this.terrainMesh.clear();
           this.storageManager.restoreSnapshot(snap, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
           this.syncSceneAfterRestore();
-          alert(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
-        } catch (e: any) {
-          alert(t('alert_import_error') + e.message);
+          toast.success(`${t('alert_snapshot_restored')} (${snap.meta.name})`);
+          target.value = '';
+        } catch (err: any) {
+          toast.error(t('alert_import_error') + err.message);
         }
       }
     });
 
     this.container.querySelector('#btn-clear-map')?.addEventListener('click', async () => {
       if (confirm(t('alert_clear_map_confirm'))) {
-        // Salva backup automático antes de zerar o mapa
         await this.createAutoSafetyBackup();
         this.terrainMesh.clear();
         this.heightfield.clear();
         this.pinManager.clear();
-        if (this.routeManager) {
-          this.routeManager.clear();
-        }
+        if (this.routeManager) this.routeManager.clear();
+        this.pinMesh.rebuildPins();
+        if (this.routeMesh) this.routeMesh.rebuildAllRoutes();
         this.syncSceneAfterRestore();
+        toast.info('Área de trabalho limpa.');
       }
     });
   }

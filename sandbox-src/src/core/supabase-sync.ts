@@ -690,6 +690,183 @@ export class SupabaseSyncManager {
   /**
    * Assina mudanças em tempo real no relevo oficial publicado
    */
+  /**
+   * Consulta os commits oficiais históricos gravados no banco de dados
+   */
+  public async fetchReliefCommits(limit = 10): Promise<Array<{
+    version: number;
+    message: string;
+    created_at: string;
+    author: string;
+    chunk_count: number;
+    pin_count: number;
+  }>> {
+    if (!this.client) return [];
+    try {
+      const { data, error } = await this.client
+        .from('relief_commits')
+        .select('version, message, created_at, metadata, chunks, pins')
+        .order('version', { ascending: false })
+        .limit(limit);
+
+      if (error || !data) return [];
+      return data.map((d: any) => ({
+        version: Number(d.version),
+        message: d.message || `Versão ${d.version}`,
+        created_at: d.created_at || '',
+        author: d.metadata?.author || 'Oficial',
+        chunk_count: Array.isArray(d.chunks) ? d.chunks.length : 0,
+        pin_count: Array.isArray(d.pins) ? d.pins.length : 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Restaura um commit histórico da nuvem como a nova versão oficial
+   */
+  public async rollbackToCommit(
+    version: number,
+    heightfield: HeightfieldManager,
+    pins: PinManager,
+    visits: VisitManager
+  ): Promise<{ success: boolean; newVersion?: number; message?: string }> {
+    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.isOfficerOrAdmin()) {
+      return { success: false, message: 'Permissão negada. Apenas Oficiais podem restaurar versões.' };
+    }
+
+    try {
+      // 1. Busca os dados daquele commit específico
+      const { data: targetCommit, error: fetchError } = await this.client
+        .from('relief_commits')
+        .select('*')
+        .eq('version', version)
+        .maybeSingle();
+
+      if (fetchError || !targetCommit) {
+        return { success: false, message: `Commit v${version} não encontrado.` };
+      }
+
+      // 2. Extrai os chunks do commit
+      let targetChunks: any[] = [];
+      if (Array.isArray(targetCommit.chunks) && targetCommit.chunks.length > 0) {
+        targetChunks = targetCommit.chunks;
+      } else if (targetCommit.heightmap) {
+        try {
+          const parsed = JSON.parse(targetCommit.heightmap);
+          if (parsed && Array.isArray(parsed.chunks)) {
+            targetChunks = parsed.chunks;
+          }
+        } catch {}
+      }
+
+      const targetSheets: string[] = targetCommit.sheets || targetCommit.metadata?.lockedSheets || [];
+
+      // 3. Salva backup de segurança da versão atual no IndexedDB antes do rollback
+      const currentSnap = this.storage.serializeCurrentState(
+        heightfield,
+        pins,
+        visits,
+        `Backup Pré-Rollback (para v${version})`,
+        false
+      );
+      await this.storage.saveSnapshot(currentSnap);
+
+      // 4. Cria a nova versão de publicação baseada no commit antigo restaurado
+      const latestVer = await this.getLatestReliefVersion();
+      const nextVersion = latestVer + 1;
+      const rollbackMsg = `Rollback oficial para v${version} · (Publicado como v${nextVersion})`;
+      const heightmapJson = JSON.stringify({ chunks: targetChunks });
+      const statemapJson = JSON.stringify({ lockedSheets: targetSheets });
+      const authorId = this.currentProfile?.id || null;
+      const nowIso = new Date().toISOString();
+
+      // Atualiza relief_state
+      const { error: stateError } = await this.client
+        .from('relief_state')
+        .upsert({
+          id: 'jackal_r2_main',
+          version: nextVersion,
+          resolution: 128,
+          scale_meters: 4.0,
+          tile_scale_m: 4.0,
+          chunk_size: CONFIG.CHUNK_SIZE_CELLS,
+          bounds: { minX: -2048, maxX: 2048, minY: -2048, maxY: 2048 },
+          heightmap: heightmapJson,
+          statemap: statemapJson,
+          chunks: targetChunks,
+          sheets: targetSheets,
+          pins: targetCommit.pins || [],
+          stations: targetCommit.stations || [visits.getCurrentVisit()],
+          metadata: {
+            author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+            commit_message: rollbackMsg,
+            lockedSheets: targetSheets,
+            restored_from: version,
+          },
+          updated_by: authorId,
+          updated_at: nowIso,
+        });
+
+      if (stateError) throw stateError;
+
+      // Registra no histórico imutável relief_commits
+      await this.client.from('relief_commits').insert({
+        version: nextVersion,
+        message: rollbackMsg,
+        heightmap: heightmapJson,
+        statemap: statemapJson,
+        tile_scale_m: 4.0,
+        chunk_size: CONFIG.CHUNK_SIZE_CELLS,
+        chunks: targetChunks,
+        sheets: targetSheets,
+        pins: targetCommit.pins || [],
+        stations: targetCommit.stations || [visits.getCurrentVisit()],
+        metadata: {
+          author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+          lockedSheets: targetSheets,
+          restored_from: version,
+        },
+        author: authorId,
+      });
+
+      this.lastPublishedVersion = nextVersion;
+
+      // Restaura na memória local
+      heightfield.clearErased();
+      heightfield.setBaseCloudVersion(nextVersion);
+      this.storage.restoreSnapshot(
+        {
+          meta: {
+            id: `cloud-${nextVersion}`,
+            name: rollbackMsg,
+            created_at: nowIso,
+            is_daily: false,
+            author: 'Oficial',
+            chunk_count: targetChunks.length,
+            pin_count: (targetCommit.pins || []).length,
+          },
+          chunks: targetChunks,
+          pins: targetCommit.pins || [],
+          visit: visits.getCurrentVisit(),
+          lockedSheets: targetSheets,
+          baseCloudVersion: nextVersion,
+        },
+        heightfield,
+        pins,
+        visits
+      );
+      await this.storage.saveAutosave(heightfield, pins, visits);
+
+      return { success: true, newVersion: nextVersion };
+    } catch (err: any) {
+      console.error('Erro no rollback:', err);
+      return { success: false, message: err.message || 'Falha ao restaurar versão' };
+    }
+  }
+
   public listenToCloudRelief(onUpdate: (version: number) => void): () => void {
     if (!this.client) return () => {};
 

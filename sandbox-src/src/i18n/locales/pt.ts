@@ -196,6 +196,11 @@ export const pt = {
   publish_btn_cancel: 'Cancelar',
   publish_btn_submit: '🚀 Publicar Oficial',
   publish_btn_submitting: 'Publicando...',
+  cloud_history_title: 'HISTÓRICO NA NUVEM (COMMITS)',
+  cloud_history_rollback: 'Restaurar Versão',
+  cloud_history_loading: 'Carregando histórico oficial...',
+  cloud_history_empty: 'Nenhum commit de relevo encontrado.',
+  cloud_history_confirm: 'Deseja restaurar a versão oficial {version} do relevo? Seu trabalho local atual será salvo em backup automático antes da restauração.',
 };
 
 export type TranslationKey = keyof typeof pt;

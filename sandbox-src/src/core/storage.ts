@@ -362,15 +362,43 @@ export class StorageManager {
     });
   }
 
-  /** Exporta snapshot atual em formato JSON para download */
-  public exportSnapshotAsJSON(snapshot: SerializedSnapshot): void {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(snapshot, null, 2));
+  /** Exporta snapshot atual em formato JSON para download com nome amigável e suporte a Save File Picker */
+  public async exportSnapshotAsJSON(snapshot: SerializedSnapshot, customFilename?: string): Promise<void> {
+    const defaultFilename = customFilename || `${snapshot.meta.name.replace(/[/\\?%*:|"<>]/g, '-')}.json`;
+    const jsonStr = JSON.stringify(snapshot, null, 2);
+
+    // Se o navegador suporta showSaveFilePicker (Chrome/Edge/Opera), permite ao usuário escolher pasta e nome exatos
+    if (typeof (window as any).showSaveFilePicker === 'function') {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: defaultFilename,
+          types: [
+            {
+              description: 'Jackal Sandbox Relief JSON',
+              accept: { 'application/json': ['.json'] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(jsonStr);
+        await writable.close();
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return; // Usuário cancelou diálogo
+        console.warn('showSaveFilePicker falhou, utilizando download via anchor:', err);
+      }
+    }
+
+    // Fallback nativo: dispara download clássico do navegador
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `jackal-sandbox-${snapshot.meta.id}.json`);
+    downloadAnchor.setAttribute('href', url);
+    downloadAnchor.setAttribute('download', defaultFilename);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   /** Importa snapshot de arquivo JSON */

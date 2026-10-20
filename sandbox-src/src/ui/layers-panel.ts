@@ -9,6 +9,7 @@ import { StorageManager } from '../core/storage';
 import { HeightfieldManager } from '../core/heightfield';
 import { PinManager } from '../core/pins';
 import { RouteManager } from '../core/routes';
+import { SupabaseSyncManager } from '../core/supabase-sync';
 import { RouteMeshManager } from '../renderer/route-mesh';
 
 import { MapLayersSectionUI } from './panels/map-layers-section';
@@ -39,6 +40,7 @@ export class LayersPanelUI {
       rendererCanvas: HTMLCanvasElement;
       routeMesh?: RouteMeshManager;
       routeManager?: RouteManager;
+      supabaseSync?: SupabaseSyncManager;
     }
   ) {
     this.container = document.createElement('div');
@@ -70,6 +72,7 @@ export class LayersPanelUI {
       scaleReference: deps.scaleReference,
       routeManager: deps.routeManager,
       routeMesh: deps.routeMesh,
+      supabaseSync: deps.supabaseSync,
     });
 
     i18n.subscribe(() => {

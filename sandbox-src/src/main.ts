@@ -325,6 +325,7 @@ class JackalSandboxApp {
       rendererCanvas: this.canvas,
       routeMesh: this.routeMesh,
       routeManager: this.routeManager,
+      supabaseSync: this.supabaseSync,
     });
 
     this.confidenceLegendUI = new ConfidenceLegendUI(this.appContainer);
@@ -393,6 +394,23 @@ class JackalSandboxApp {
       if (res.success) {
         const commitName = buildReliefCommitName(res.version || 1, note);
         toast.success(`${t('alert_cloud_published')}<br><strong style="color:var(--accent-gold); font-family:var(--font-mono);">✓ ${commitName}</strong>`, 6000);
+
+        // Salva cópia local em arquivo JSON físico no computador com o nome oficial da versão
+        try {
+          const publishedSnap = this.storageManager.serializeCurrentState(
+            this.heightfield,
+            this.pinManager,
+            this.visitManager,
+            commitName,
+            false,
+            this.routeManager
+          );
+          const safeFilename = `${commitName.replace(/[/\\?%*:|"<>]/g, '-')}.json`;
+          await this.storageManager.exportSnapshotAsJSON(publishedSnap, safeFilename);
+        } catch (dlErr) {
+          console.warn('Download local automático ignorado:', dlErr);
+        }
+
         return true;
       } else {
         toast.error(res.message || 'Falha ao publicar na nuvem.');
