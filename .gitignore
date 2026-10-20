@@ -29,3 +29,5 @@ wurm_bundle.js
 # Wurm models/textures extracted from the local client (Game Chest / Code Club AB property: do not publish)
 sandbox-src/public/wurm/
 sandbox/wurm/
+
+archive/
