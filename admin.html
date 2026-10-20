@@ -216,6 +216,7 @@
                 <button class="tab-btn" onclick="trocarSecao('filaGuerra', this)" data-i18n="adAbaFila">⚔️ Fila de Pontos & Eventos</button>
                 <button class="tab-btn" onclick="trocarSecao('objetivos', this)" data-i18n="adAbaObjetivos">🎯 Objetivos P1/P2/P3</button>
                 <button class="tab-btn" onclick="trocarSecao('guildas', this)" data-i18n="adAbaGuildas">🏰 Guildas</button>
+                <button class="tab-btn" onclick="trocarSecao('faxina', this)" data-i18n="adAbaFaxina" style="color:#ff6b6b; border-color:rgba(255,107,107,0.3);">🧹 Reset Round 2</button>
                 <button class="tab-btn" onclick="window.location.href = 'index.html'" data-i18n="adAbrirAtlas">🗺️ Abrir Atlas</button>
                 <span style="display:inline-flex; gap:4px; margin-left:8px;">
                     <button id="btnLangPT" class="tab-btn" style="padding:6px 8px;" onclick="trocarIdiomaAdmin('pt')" title="Português">🇧🇷 PT</button>
@@ -324,6 +325,45 @@
             </table>
         </div>
 
+        <!-- SEÇÃO 5: RESET OFICIAL E FAXINA (ROUND 2) -->
+        <div id="secao-faxina" class="admin-card" style="display:none;">
+            <div class="card-header">
+                <div>
+                    <div class="card-title" style="color:#ff6b6b;" data-i18n="adFaxinaTitulo">🧹 Faxina e Reset Oficial do Relevo (Round 2)</div>
+                    <div style="font-size:11px; color:var(--sw-text-muted);" data-i18n="adFaxinaSubtitulo">Remove mapas/ilhas de teste e rascunhos antigos da nuvem, deixando o Atlas e o 3D 100% limpos para o início oficial do Round 2.</div>
+                </div>
+            </div>
+
+            <div style="background:#161922; border:1px solid #333; border-radius:6px; padding:16px; margin-bottom:16px;">
+                <h4 style="margin:0 0 10px 0; font-size:13px; color:var(--sw-text-main);" data-i18n="adFaxinaOQueFaz">📋 O que esta ação faz:</h4>
+                <ul style="font-size:12px; color:var(--sw-text-muted); line-height:1.6; margin:0 0 16px 20px; padding:0;">
+                    <li><strong>Relevo 3D na Nuvem:</strong> Redefine para 0 células/chunks (deixa o mapa 100% plano e limpo em pergaminho).</li>
+                    <li><strong>Versão do Relevo:</strong> Reinicia para <code>v1 Oficial</code>.</li>
+                    <li><strong>Rascunhos de Esboço (Sketches):</strong> Exclui os traços de teste da nuvem.</li>
+                    <li><strong>Rotas de Teste:</strong> Exclui as rotas antigas de teste.</li>
+                    <li><strong>3 Freedom Outposts Oficiais:</strong> Configura <em>Freedom Outpost North</em> (0, 150), <em>Freedom Outpost West</em> (-320, -250) e <em>Freedom Outpost East</em> (60, -180).</li>
+                </ul>
+
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button id="btnExecutarFaxinaAdmin" class="btn-table-action danger" style="padding:10px 16px; font-size:12px;" onclick="executarResetOficialRound2Admin()" data-i18n="btnExecutarFaxina">
+                        🧹 Executar Reset Oficial do Relevo e Rascunhos (1-Clique)
+                    </button>
+                    <span id="faxinaStatusAdmin" style="font-size:12px; color:var(--sw-text-muted);"></span>
+                </div>
+            </div>
+
+            <div style="background:#161922; border:1px solid #333; border-radius:6px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <h4 style="margin:0; font-size:13px; color:var(--sw-text-main);" data-i18n="adFaxinaSqlTitulo">💾 Script SQL de Limpeza Profunda (Supabase Dashboard)</h4>
+                    <button class="btn-table-action" onclick="copiarSqlFaxina()" data-i18n="btnCopiarSql">📋 Copiar SQL</button>
+                </div>
+                <div style="font-size:11px; color:var(--sw-text-muted); margin-bottom:8px;" data-i18n="adFaxinaSqlDica">
+                    Para limpar também o histórico imutável de commits antigos no Postgres (tabelas relief_commits e sketch_commits), execute este script no SQL Editor do painel do Supabase.
+                </div>
+                <textarea id="txtSqlFaxina" readonly style="width:100%; height:140px; background:#0f1117; color:#38bdf8; font-family:'JetBrains Mono', monospace; font-size:11px; border:1px solid #222; border-radius:4px; padding:8px; resize:vertical;"></textarea>
+            </div>
+        </div>
+
         <!-- SEÇÃO 3: OBJETIVOS ESTRATÉGICOS P1/P2/P3 -->
         <div id="secao-objetivos" class="admin-card" style="display:none;">
             <div class="card-header">
@@ -386,7 +426,15 @@
                 adGuildasTitulo: '🏰 Guildas do Atlas', adGuildasDica: 'Cada membro pertence a uma guilda. A tag aparece ao lado do nome no mapa.',
                 adPhNome: 'Nome da guilda', adPhTag: 'TAG', adCriarGuilda: '➕ Criar Guilda',
                 adColTag: 'Tag', adColNomeGuilda: 'Nome', adColCor: 'Cor', adColMembros: 'Membros',
-                adSemGuildas: 'Nenhuma guilda cadastrada ainda.'
+                adSemGuildas: 'Nenhuma guilda cadastrada ainda.',
+                adAbaFaxina: '🧹 Reset Round 2',
+                adFaxinaTitulo: '🧹 Faxina e Reset Oficial do Relevo (Round 2)',
+                adFaxinaSubtitulo: 'Remove mapas/ilhas de teste e rascunhos antigos da nuvem, deixando o Atlas e o 3D 100% limpos para o início oficial do Round 2.',
+                adFaxinaOQueFaz: '📋 O que esta ação faz:',
+                btnExecutarFaxina: '🧹 Executar Reset Oficial do Relevo e Rascunhos (1-Clique)',
+                adFaxinaSqlTitulo: '💾 Script SQL de Limpeza Profunda (Supabase Dashboard)',
+                btnCopiarSql: '📋 Copiar SQL',
+                adFaxinaSqlDica: 'Para limpar também o histórico imutável de commits antigos no Postgres (tabelas relief_commits e sketch_commits), execute este script no SQL Editor do painel do Supabase.'
             },
             en: {
                 adTitulo: 'ADMIN PANEL', adAbaMembros: '👥 Members & Roles', adAbaFila: '⚔️ Points & Events Queue',
@@ -404,7 +452,15 @@
                 adGuildasTitulo: '🏰 Atlas Guilds', adGuildasDica: 'Each member belongs to one guild. The tag shows next to their name on the map.',
                 adPhNome: 'Guild name', adPhTag: 'TAG', adCriarGuilda: '➕ Create Guild',
                 adColTag: 'Tag', adColNomeGuilda: 'Name', adColCor: 'Colour', adColMembros: 'Members',
-                adSemGuildas: 'No guilds created yet.'
+                adSemGuildas: 'No guilds created yet.',
+                adAbaFaxina: '🧹 Reset Round 2',
+                adFaxinaTitulo: '🧹 Official Round 2 Relief & Sketch Reset',
+                adFaxinaSubtitulo: 'Removes old test maps/islands and draft sketches from cloud, leaving the Atlas and 3D 100% clean for official launch.',
+                adFaxinaOQueFaz: '📋 What this action does:',
+                btnExecutarFaxina: '🧹 Execute Official Relief & Sketches Reset (1-Click)',
+                adFaxinaSqlTitulo: '💾 Deep Cleanup SQL Script (Supabase Dashboard)',
+                btnCopiarSql: '📋 Copy SQL',
+                adFaxinaSqlDica: 'To also clear immutable commit history in Postgres (relief_commits and sketch_commits tables), run this script in Supabase SQL Editor.'
             }
         };
 
@@ -444,6 +500,7 @@
             document.getElementById('secao-filaGuerra').style.display = (secao === 'filaGuerra') ? 'block' : 'none';
             document.getElementById('secao-objetivos').style.display = (secao === 'objetivos') ? 'block' : 'none';
             document.getElementById('secao-guildas').style.display = (secao === 'guildas') ? 'block' : 'none';
+            document.getElementById('secao-faxina').style.display = (secao === 'faxina') ? 'block' : 'none';
 
             document.querySelectorAll('.admin-nav-tabs > .tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -831,6 +888,92 @@
                 } catch (err) {
                     alert(txt('Erro: ', 'Error: ') + err.message);
                 }
+            }
+        }
+
+        
+        const SQL_FAXINA_ROUND2 = '-- ==============================================================================\n-- JACKAL ATLAS — MIGRAÇÃO 024: LIMPEZA TOTAL E RESET OFICIAL (ROUND 2)\n-- 1. Limpa traços de esboço (sketch), rotas de teste e pinos de teste\n-- 2. Limpa todos os 14 commits de teste do relevo\n-- 3. Reseta o relevo para VAZIO (pristino) com os 3 Cristais Oficiais calibrados\n-- ==============================================================================\n\n-- 1. Limpeza de rotas de teste e rascunhos de esboço\nTRUNCATE TABLE public.sketch_strokes, public.sketch_commits CASCADE;\nTRUNCATE TABLE public.routes CASCADE;\nDELETE FROM public.points WHERE kind <> \'landmark\';\nDELETE FROM public.point_events;\n\n-- 2. Limpeza de histórico de commits de teste do relevo\nTRUNCATE TABLE public.relief_commits CASCADE;\n\n-- 3. Reset do estado de relevo para Versão 1 Oficial (Zero ilhas de teste)\nUPDATE public.relief_state\nSET \n  version = 1,\n  chunks = \'[]\'::jsonb,\n  heightmap = \'{"chunks": []}\',\n  statemap = \'{"lockedSheets": []}\',\n  sheets = \'[]\'::jsonb,\n  pins = \'[]\'::jsonb,\n  metadata = jsonb_build_object(\n    \'author\', \'Oficial\',\n    \'commit_message\', \'Relevo Oficial v1 (Lançamento Round 2 - Mapa Limpo)\'\n  ),\n  stations = jsonb_build_array(\n    jsonb_build_object(\n      \'id\', \'crystal_north\',\n      \'station_x\', 0,\n      \'station_y\', 150,\n      \'heading_deg\', 0,\n      \'station_method\', \'marco_construido\',\n      \'author\', \'Freedom Outpost North\',\n      \'range_tiles\', 100,\n      \'date\', CURRENT_DATE::text\n    ),\n    jsonb_build_object(\n      \'id\', \'crystal_west\',\n      \'station_x\', -320,\n      \'station_y\', -250,\n      \'heading_deg\', 0,\n      \'station_method\', \'marco_construido\',\n      \'author\', \'Freedom Outpost West\',\n      \'range_tiles\', 100,\n      \'date\', CURRENT_DATE::text\n    ),\n    jsonb_build_object(\n      \'id\', \'crystal_east\',\n      \'station_x\', 60,\n      \'station_y\', -180,\n      \'heading_deg\', 0,\n      \'station_method\', \'marco_construido\',\n      \'author\', \'Freedom Outpost East\',\n      \'range_tiles\', 100,\n      \'date\', CURRENT_DATE::text\n    )\n  ),\n  updated_at = now()\nWHERE id = \'jackal_r2_main\';\n\n-- 4. Grava o commit inicial v1 oficial no histórico imutável\nINSERT INTO public.relief_commits (\n  version,\n  message,\n  heightmap,\n  statemap,\n  tile_scale_m,\n  chunk_size,\n  chunks,\n  sheets,\n  pins,\n  stations,\n  metadata\n)\nSELECT \n  1,\n  \'Relevo Oficial v1 (Lançamento Round 2 - Mapa Limpo)\',\n  heightmap,\n  statemap,\n  tile_scale_m,\n  chunk_size,\n  chunks,\n  sheets,\n  pins,\n  stations,\n  metadata\nFROM public.relief_state\nWHERE id = \'jackal_r2_main\';\n';
+
+        async function executarResetOficialRound2Admin() {
+            if (!supabaseClient) return;
+            const confirmacao = confirm(txt(
+                '⚠️ ATENÇÃO: Deseja realmente executar a FAXINA E RESET OFICIAL DO RELEVO (ROUND 2)?\n\nIsso irá:\n1. Resetar o relevo 3D para VAZIO (0 chunks) na nuvem.\n2. Excluir todos os traços de rascunho de teste.\n3. Excluir rotas de teste.\n4. Cadastrar oficialmente os 3 Freedom Outposts (North, West, East).\n\nEssa ação é irreversível!',
+                '⚠️ WARNING: Do you really want to execute the OFFICIAL ROUND 2 CLEANUP & RESET?\n\nThis will:\n1. Reset 3D relief to EMPTY (0 chunks) in the cloud.\n2. Delete all test sketch strokes.\n3. Delete test routes.\n4. Officially register the 3 Freedom Outposts (North, West, East).\n\nThis action cannot be undone!'
+            ));
+            if (!confirmacao) return;
+
+            const btn = document.getElementById('btnExecutarFaxinaAdmin');
+            const statusEl = document.getElementById('faxinaStatusAdmin');
+            if (btn) { btn.disabled = true; btn.textContent = txt('⏳ Executando faxina...', '⏳ Executing cleanup...'); }
+            if (statusEl) statusEl.textContent = txt('⏳ Atualizando banco Supabase...', '⏳ Updating Supabase database...');
+
+            try {
+                // 1. Reset relief_state na nuvem
+                const { error: errRelief } = await supabaseClient
+                    .from('relief_state')
+                    .update({
+                        version: 1,
+                        chunks: [],
+                        heightmap: { chunks: [] },
+                        statemap: { lockedSheets: [] },
+                        sheets: [],
+                        pins: [],
+                        metadata: {
+                            author: meuPerfil ? (meuPerfil.wurm_name || meuPerfil.discord_username || 'Admin') : 'Admin',
+                            commit_message: 'Relevo Oficial v1 (Lançamento Round 2 - Mapa Limpo)'
+                        },
+                        stations: [
+                            { id: 'crystal_north', station_x: 0, station_y: 150, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost North', range_tiles: 100, date: new Date().toISOString().split('T')[0] },
+                            { id: 'crystal_west', station_x: -320, station_y: -250, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost West', range_tiles: 100, date: new Date().toISOString().split('T')[0] },
+                            { id: 'crystal_east', station_x: 60, station_y: -180, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost East', range_tiles: 100, date: new Date().toISOString().split('T')[0] }
+                        ],
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', 'jackal_r2_main');
+
+                if (errRelief) {
+                    console.error('Erro ao resetar relief_state:', errRelief);
+                    alert(txt('Erro ao resetar relevo: ' + errRelief.message, 'Error resetting relief: ' + errRelief.message));
+                }
+
+                // 2. Limpar sketch_strokes de teste
+                const { error: errSketch } = await supabaseClient
+                    .from('sketch_strokes')
+                    .delete()
+                    .neq('id', '00000000-0000-0000-0000-000000000000');
+                if (errSketch) console.warn('Aviso sketch_strokes:', errSketch);
+
+                // 3. Limpar rotas de teste
+                const { error: errRoutes } = await supabaseClient
+                    .from('routes')
+                    .delete()
+                    .neq('id', '00000000-0000-0000-0000-000000000000');
+                if (errRoutes) console.warn('Aviso routes:', errRoutes);
+
+                if (statusEl) statusEl.textContent = txt('✅ Sucesso! Relevo e rascunhos resetados.', '✅ Success! Relief and sketches reset.');
+                alert(txt(
+                    '✅ Faxina e Reset concluídos com sucesso!\nO relevo na nuvem está 100% limpo com os 3 Freedom Outposts cadastrados.\nAbra o Atlas 2D ou recarregue a página para ver o resultado.',
+                    '✅ Cleanup and Reset completed successfully!\nCloud relief is 100% clean with the 3 Freedom Outposts registered.\nOpen the 2D Atlas or reload the page to see the result.'
+                ));
+            } catch (e) {
+                console.error('Erro na faxina:', e);
+                alert('Erro: ' + (e.message || e));
+                if (statusEl) statusEl.textContent = txt('❌ Erro na faxina.', '❌ Error in cleanup.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = txt('🧹 Executar Reset Oficial do Relevo e Rascunhos (1-Clique)', '🧹 Execute Official Relief & Sketches Reset (1-Click)'); }
+            }
+        }
+
+        function copiarSqlFaxina() {
+            const txt = document.getElementById('txtSqlFaxina');
+            if (txt) {
+                txt.select();
+                navigator.clipboard.writeText(txt.value).then(() => {
+                    alert('📋 SQL copiado para a área de transferência! Cole no SQL Editor do Supabase.');
+                }).catch(() => {
+                    document.execCommand('copy');
+                    alert('📋 SQL copiado!');
+                });
             }
         }
 

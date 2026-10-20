@@ -687,9 +687,14 @@
                 </div>
                 <!-- Link rápido admin -->
                 <div id="adminLinkBox" style="display:none; margin-top:8px;">
-                    <button class="sw-btn-action" style="font-size:10px; border-color:var(--jk-accent-border); color:var(--jk-accent);" onclick="window.location.href='admin.html'">
-                        👑 <span data-i18n="painelAdmin">Painel Admin / Fila</span> (<span id="adminPendingCount">0</span>)
-                    </button>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <button class="sw-btn-action" style="font-size:10px; border-color:var(--jk-accent-border); color:var(--jk-accent);" onclick="window.location.href='admin.html'">
+                            👑 <span data-i18n="painelAdmin">Painel Admin / Fila</span> (<span id="adminPendingCount">0</span>)
+                        </button>
+                        <button class="sw-btn-action" style="font-size:10px; border-color:rgba(255,107,107,0.4); color:#ff6b6b; background:rgba(255,107,107,0.08);" onclick="executarResetOficialRound2NoAtlas()" title="Limpa o relevo e os rascunhos de teste da nuvem, deixando o mapa 100% limpo">
+                            🧹 <span data-i18n="btnResetOficialAtlas">Reset Relevo / Faxina</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1649,7 +1654,7 @@
         updateWhenZooming: false,
         updateWhenIdle: true,
         keepBuffer: 6
-    }).addTo(map);
+    }); // Nao adiciona ao mapa por padrao; o modo padrao Round 2 e parchment (pergaminho)
 
     function obterCoordsHashUrl() {
         const hash = window.location.hash.replace(/^#/, '').trim();
@@ -3863,6 +3868,80 @@
             }
         }
     }
+
+
+    async function executarResetOficialRound2NoAtlas() {
+        if (!supabaseClient) {
+            alert(txt('Supabase não conectado.', 'Supabase not connected.'));
+            return;
+        }
+        const confirmou = confirm(txt(
+            '⚠️ FAXINA OFICIAL ROUND 2 (ADMIN)\n\nDeseja realmente resetar o relevo e apagar os rascunhos de teste da nuvem?\n\n• Relevo 3D na nuvem: 0 chunks (100% plano / limpo)\n• Versão do relevo: v1 Oficial\n• Rascunhos de teste (sketch): apagados\n• 3 Freedom Outposts: cadastrados oficialmente\n\nEssa ação é irreversível.',
+            '⚠️ OFFICIAL ROUND 2 CLEANUP (ADMIN)\n\nDo you really want to reset terrain and delete test sketches from the cloud?\n\n• Cloud 3D relief: 0 chunks (100% clean / flat)\n• Relief version: v1 Official\n• Test sketches: deleted\n• 3 Freedom Outposts: officially registered\n\nThis action cannot be undone.'
+        ));
+        if (!confirmou) return;
+
+        try {
+            mostrarToastCartografico(txt('⏳ Executando faxina e reset no Supabase...', '⏳ Executing cleanup and reset in Supabase...'));
+
+            const { error: errRelief } = await supabaseClient
+                .from('relief_state')
+                .update({
+                    version: 1,
+                    chunks: [],
+                    heightmap: { chunks: [] },
+                    statemap: { lockedSheets: [] },
+                    sheets: [],
+                    pins: [],
+                    metadata: {
+                        author: (typeof meuPerfil !== 'undefined' && meuPerfil) ? (meuPerfil.wurm_name || meuPerfil.discord_username || 'Admin') : 'Admin',
+                        commit_message: 'Relevo Oficial v1 (Lançamento Round 2 - Mapa Limpo)'
+                    },
+                    stations: [
+                        { id: 'crystal_north', station_x: 0, station_y: 150, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost North', range_tiles: 100, date: new Date().toISOString().split('T')[0] },
+                        { id: 'crystal_west', station_x: -320, station_y: -250, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost West', range_tiles: 100, date: new Date().toISOString().split('T')[0] },
+                        { id: 'crystal_east', station_x: 60, station_y: -180, heading_deg: 0, station_method: 'marco_construido', author: 'Freedom Outpost East', range_tiles: 100, date: new Date().toISOString().split('T')[0] }
+                    ],
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', 'jackal_r2_main');
+
+            if (errRelief) {
+                console.error('Erro ao resetar relief_state:', errRelief);
+                alert(txt('Erro ao atualizar relevo no Supabase: ' + errRelief.message, 'Error updating relief in Supabase: ' + errRelief.message));
+            }
+
+            try {
+                await supabaseClient.from('sketch_strokes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            } catch(e) {
+                console.warn('Aviso sketch_strokes:', e);
+            }
+
+            try {
+                await supabaseClient.from('routes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            } catch(e) {
+                console.warn('Aviso routes:', e);
+            }
+
+            cacheReliefData = null;
+            reliefGridHeights = null;
+            reliefGridStates = null;
+            reliefBounds = { minX: 1024, maxX: -1, minY: 1024, maxY: -1 };
+            if (reliefGridLayer && map.hasLayer(reliefGridLayer)) {
+                map.removeLayer(reliefGridLayer);
+            }
+            if (typeof sketchStrokes !== 'undefined' && Array.isArray(sketchStrokes)) {
+                sketchStrokes = [];
+                if (typeof renderizarSketch === 'function') renderizarSketch();
+            }
+
+            mostrarToastCartografico(txt('✨ Faxina concluída! Relevo e rascunhos resetados para o Round 2 Oficial.', '✨ Cleanup complete! Relief and sketches reset for Official Round 2.'));
+        } catch(err) {
+            console.error('Erro na faxina Round 2:', err);
+            alert(txt('Erro na faxina: ' + (err.message || err), 'Error during cleanup: ' + (err.message || err)));
+        }
+    }
+    window.executarResetOficialRound2NoAtlas = executarResetOficialRound2NoAtlas;
 
     function trocarBase(tipo, btn = null) {
         if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
@@ -7604,6 +7683,7 @@
             ttDesconectar: 'Desconectar',
             definirNick: 'Definir Nick Wurm',
             painelAdmin: 'Painel Admin / Fila',
+            btnResetOficialAtlas: 'Reset Relevo / Faxina',
             linkSandbox: 'Caixa de Areia 3D (Relevo)',
             btnAbrirSandbox: 'Abrir 3D',
             ttAbrirSandbox: 'Abrir Modelagem de Relevo 3D',
@@ -7867,6 +7947,7 @@
             ttDesconectar: 'Sign out',
             definirNick: 'Set Wurm Nick',
             painelAdmin: 'Admin Panel / Queue',
+            btnResetOficialAtlas: 'Reset Relief / Cleanup',
             linkSandbox: '3D Relief Sandbox',
             btnAbrirSandbox: 'Open 3D',
             ttAbrirSandbox: 'Open the 3D relief modelling sandbox',
