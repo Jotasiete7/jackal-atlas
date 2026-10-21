@@ -202,6 +202,32 @@ export class SupabaseSyncManager {
       }
 
       if (cloudChunks.length === 0) {
+        if (!mergeWithLocal) {
+          this.storage.restoreSnapshot(
+            {
+              meta: {
+                id: `cloud-${data.version || 1}`,
+                name: `Relevo Oficial v${data.version || 1}`,
+                created_at: data.updated_at || new Date().toISOString(),
+                is_daily: false,
+                author: data.metadata?.author || 'Oficial',
+                chunk_count: 0,
+                pin_count: pins.getAll().length,
+              },
+              chunks: [],
+              pins: pins.getAll(),
+              visit: visits.getCurrentVisit(),
+              lockedSheets: [],
+              baseCloudVersion: data.version || 1,
+            },
+            heightfield,
+            pins,
+            visits
+          );
+          heightfield.clearErased();
+          await this.storage.clearAutosave();
+          return { success: true, version: data.version || 1 };
+        }
         return { success: false, message: 'Estado de relevo vazio' };
       }
 

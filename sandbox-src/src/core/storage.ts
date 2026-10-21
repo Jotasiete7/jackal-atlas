@@ -305,6 +305,19 @@ export class StorageManager {
     });
   }
 
+  /** Limpa o autosave do IndexedDB */
+  public async clearAutosave(): Promise<void> {
+    const db = await this.ensureDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_AUTOSAVE, 'readwrite');
+      const store = tx.objectStore(STORE_AUTOSAVE);
+      const req = store.delete('current_autosave');
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+    });
+  }
+
   /** Salva snapshot no IndexedDB */
   public async saveSnapshot(snapshot: SerializedSnapshot): Promise<void> {
     const db = await this.ensureDB();

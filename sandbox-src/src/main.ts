@@ -182,13 +182,16 @@ class JackalSandboxApp {
   private async restoreAutosaveIfExists(): Promise<void> {
     try {
       const autosave = await this.storageManager.loadAutosave();
-      if (autosave && autosave.chunks && autosave.chunks.length > 0) {
+      const latestCloudVer = await this.supabaseSync.getLatestReliefVersion();
+      const localBaseVer = autosave?.baseCloudVersion ?? 0;
+
+      // Se a nuvem foi reiniciada para uma nova rodada (ex: v1) e o autosave local pertencia a uma rodada de testes anterior (localBaseVer > latestCloudVer),
+      // descarta o rascunho obsoleto e puxa o relevo limpo oficial da nuvem.
+      const isStaleRound = (latestCloudVer === 1 && localBaseVer > 1) || (localBaseVer > latestCloudVer);
+
+      if (autosave && autosave.chunks && autosave.chunks.length > 0 && !isStaleRound) {
         this.storageManager.restoreSnapshot(autosave, this.heightfield, this.pinManager, this.visitManager, this.routeManager);
         
-        // Verifica se a versão oficial da nuvem mudou em relação à versão base do autosave
-        const latestCloudVer = await this.supabaseSync.getLatestReliefVersion();
-        const localBaseVer = autosave.baseCloudVersion ?? 0;
-
         // Se a nuvem tem uma versão mais nova lançada por outro oficial, mescla respeitando tombstones
         if (latestCloudVer > localBaseVer) {
           await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
@@ -203,9 +206,17 @@ class JackalSandboxApp {
         const groundY = this.heightfield.getInterpolatedHeightAtTile(pos.tileX, pos.tileY);
         this.scaleReference.setExactY(groundY);
       } else {
+        if (isStaleRound) {
+          await this.storageManager.clearAutosave();
+          this.terrainMesh.clear();
+        }
         const cloudRes = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, false);
         if (cloudRes.success) {
-          this.terrainMesh.updateDirtyChunks();
+          if (Array.from(this.heightfield.getAllChunks()).length === 0) {
+            this.terrainMesh.clear();
+          } else {
+            this.terrainMesh.updateDirtyChunks();
+          }
           this.contourRenderer.requestUpdate();
           this.pinMesh.rebuildPins();
           const pos = this.scaleReference.getPosition();
@@ -267,7 +278,11 @@ class JackalSandboxApp {
         onCloudPull: async () => {
           const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager);
           if (res.success) {
-            this.terrainMesh.updateDirtyChunks();
+            if (Array.from(this.heightfield.getAllChunks()).length === 0) {
+              this.terrainMesh.clear();
+            } else {
+              this.terrainMesh.updateDirtyChunks();
+            }
             this.contourRenderer.requestUpdate();
             this.pinMesh.rebuildPins();
             this.routeMesh.refreshHeights();
