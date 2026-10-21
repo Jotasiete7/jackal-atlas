@@ -57,6 +57,9 @@ export class SupabaseSyncManager {
           },
         });
         this.isConnected = true;
+        this.client.auth.onAuthStateChange(() => {
+          this.loadProfile();
+        });
         this.loadProfile();
       } catch (err) {
         console.warn('Erro ao inicializar cliente Supabase no Sandbox:', err);
@@ -85,23 +88,33 @@ export class SupabaseSyncManager {
         return null;
       }
 
-      const { data: profile, error } = await this.client
+      let { data: profile, error } = await this.client
         .from('profiles')
-        .select('*, guilds(*)')
+        .select('*, guild:guilds!profiles_guild_id_fkey(*)')
         .eq('id', session.user.id)
-        .maybeSingle(); // no row is a normal case, not an error
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Aviso ao carregar perfil:', error.message);
+      if (error) {
+        console.warn('Aviso ao carregar perfil com guilda fkey, tentando direto:', error.message);
+        const retry = await this.client
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        profile = retry.data;
       }
 
       if (profile) {
+        const guildData = (profile as any).guild || (profile as any).guilds || undefined;
         this.currentProfile = {
           ...profile,
-          guild: (profile as any).guilds || undefined,
+          nick: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Membro',
+          discord_name: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Membro',
+          discord_avatar: (profile as any).avatar_url || session.user.user_metadata?.avatar_url || '',
+          guild: Array.isArray(guildData) ? guildData[0] : guildData,
         } as UserProfile;
       } else {
-        // Fallback do usuário autenticado
+        // Fallback do usuário autenticado caso não exista registro em public.profiles
         this.currentProfile = {
           id: session.user.id,
           role: 'pending',

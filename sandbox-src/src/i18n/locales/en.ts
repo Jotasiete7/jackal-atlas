@@ -79,9 +79,9 @@ export const en: Record<TranslationKey, string> = {
   export_svg: 'SVG',
   export_png: 'Cartographic PNG',
 
-  // Field Session / Visit
+  // Field Session / Station
   panel_session: 'FIELD SESSION',
-  badge_visit: 'VISIT',
+  badge_visit: 'STATION',
   visit_author: 'Author:',
   visit_station: 'Station:',
   visit_range: 'Range:',

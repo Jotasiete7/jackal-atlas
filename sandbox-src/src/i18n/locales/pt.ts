@@ -77,9 +77,9 @@ export const pt = {
   export_svg: 'SVG',
   export_png: 'PNG 2D',
 
-  // Sessão de Campo / Visita
+  // Sessão de Campo / Estação
   panel_session: 'SESSÃO DE CAMPO',
-  badge_visit: 'VISITA',
+  badge_visit: 'ESTAÇÃO',
   visit_author: 'Autor:',
   visit_station: 'Estação:',
   visit_range: 'Alcance:',

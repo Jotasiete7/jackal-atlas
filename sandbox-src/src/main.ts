@@ -124,6 +124,7 @@ class JackalSandboxApp {
 
     // Sincroniza com perfil do usuário quando carregar da nuvem
     this.supabaseSync.subscribe(() => {
+      this.cameraBarUI.render();
       const userOutpost = this.supabaseSync.getUserOutpost();
       const currentVisit = this.visitManager.getCurrentVisit();
       const base = CRYSTAL_BASES[userOutpost];
