@@ -231,6 +231,12 @@
             <span data-i18n="subtitulo">Mapa Comunitário da Guilda</span>
         </div>
 
+        <!-- Mensagem de Erro de Autenticação -->
+        <div id="auth-error-banner" style="display:none; margin-bottom:16px; padding:10px 12px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); border-radius:6px; font-size:11.5px; color:#fca5a5; line-height:1.4; text-align:left;">
+            ⚠️ <strong id="auth-error-title">Erro ao entrar com Discord:</strong>
+            <div id="auth-error-desc" style="font-size:10.5px; margin-top:4px; color:#fecaca;"></div>
+        </div>
+
         <!-- Bloco 1: Deslogado -->
         <div id="unauthenticated-block">
             <button class="discord-login-btn" onclick="signInWithDiscord()">
@@ -384,6 +390,21 @@
             : null;
 
         async function init() {
+            // Checar se a URL retornou com erro de OAuth (ex: email não verificado, acesso negado)
+            const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            const searchParams = new URLSearchParams(window.location.search);
+            const oauthError = hashParams.get('error_description') || searchParams.get('error_description') || hashParams.get('error') || searchParams.get('error');
+            if (oauthError) {
+                const banner = document.getElementById('auth-error-banner');
+                const title = document.getElementById('auth-error-title');
+                const desc = document.getElementById('auth-error-desc');
+                if (banner && desc) {
+                    title.innerText = txt('Aviso de Autenticação Discord:', 'Discord Authentication Notice:');
+                    desc.innerText = decodeURIComponent(oauthError.replace(/\\+/g, ' '));
+                    banner.style.display = 'block';
+                }
+            }
+
             if (!supabaseClient) {
                 console.log('Modo de visualização: Supabase não conectado.');
                 return;
