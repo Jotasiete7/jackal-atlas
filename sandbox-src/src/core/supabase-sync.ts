@@ -109,8 +109,8 @@ export class SupabaseSyncManager {
         const guildData = (profile as any).guild || (profile as any).guilds || undefined;
         this.currentProfile = {
           ...profile,
-          nick: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Membro',
-          discord_name: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Membro',
+          nick: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || tr('Membro', 'Member'),
+          discord_name: profile.nick || (profile as any).discord_username || session.user.user_metadata?.full_name || session.user.user_metadata?.name || tr('Membro', 'Member'),
           discord_avatar: (profile as any).avatar_url || session.user.user_metadata?.avatar_url || '',
           guild: Array.isArray(guildData) ? guildData[0] : guildData,
         } as UserProfile;
@@ -175,7 +175,7 @@ export class SupabaseSyncManager {
     visits: VisitManager,
     mergeWithLocal = false
   ): Promise<{ success: boolean; version?: number; message?: string }> {
-    if (!this.client) return { success: false, message: tr('Supabase não inicializado', 'Supabase is not initialised') };
+    if (!this.client) return { success: false, message: tr('Supabase não inicializado', 'Supabase is not initialized') };
 
     try {
       let { data, error } = await this.client
@@ -537,7 +537,7 @@ export class SupabaseSyncManager {
           uncertainty_tiles: p.confirmed ? 0 : 2,
           author: p.name || 'Atlas',
           validated: !!p.confirmed,
-          notes: `${p.name || p.kind} [${p.faction || 'neutro'}]`,
+          notes: `${p.name || p.kind} [${p.faction || tr('neutro', 'neutral')}]`,
           created_at: p.created_at || new Date().toISOString(),
         });
         syncedCount++;
@@ -643,7 +643,7 @@ export class SupabaseSyncManager {
         else if (kind.startsWith('tunnel') || color === '#a855f7' || color === '#c084fc') rType = 'tunnel';
 
         // Recupera medida aferida se presente na coluna distance ou no sufixo [NNt] do nome
-        let rawName = String(r.name || 'Rota');
+        let rawName = String(r.name || tr('Rota', 'Route'));
         let realLen: number | null = r.distance ? Math.round(Number(r.distance)) : null;
         const matchCalib = rawName.match(/\s*\[(\d+)t\]$/i);
         if (matchCalib) {
@@ -653,7 +653,7 @@ export class SupabaseSyncManager {
 
         routeManager.saveRoute({
           id: r.id,
-          name: rawName || 'Rota',
+          name: rawName || tr('Rota', 'Route'),
           type: rType,
           status: isBuilt ? 'built' : 'planned',
           path: convertedPath,
@@ -701,7 +701,7 @@ export class SupabaseSyncManager {
           ? '#00e676'
           : '#f5a623';
 
-      const cleanName = String(route.name || 'Rota').replace(/\s*\[(\d+)t\]$/i, '').trim();
+      const cleanName = String(route.name || tr('Rota', 'Route')).replace(/\s*\[(\d+)t\]$/i, '').trim();
       const dbName = route.realLengthTiles ? `${cleanName} [${route.realLengthTiles}t]` : cleanName;
 
       // Usa kind compatível com o enum route_kind do banco (tunnel usa road_* + color '#a855f7' caso o enum ainda não tenha tunnel_*)

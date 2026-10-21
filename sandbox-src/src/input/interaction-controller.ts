@@ -798,7 +798,7 @@ export class InteractionController {
       if (e.key === 'Escape' && this.rampStartPoint) {
         e.preventDefault();
         this.rampStartPoint = null;
-        toast.info(i18n.getLang() === 'en' ? 'Ramp drawing cancelled.' : 'Traçado de rampa cancelado.');
+        toast.info(i18n.getLang() === 'en' ? 'Ramp drawing canceled.' : 'Traçado de rampa cancelado.');
         return;
       }
 

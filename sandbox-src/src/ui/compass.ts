@@ -18,9 +18,8 @@ export class CompassUI {
 
     this.container = document.createElement('div');
     this.container.className = 'jk-mini-compass';
-    this.container.title = i18n.getLang() === 'en'
-      ? 'Cartographic North (0°) — Click to align to North'
-      : 'Norte Cartográfico (0°) — Clique para alinhar ao Norte';
+    this.updateTitle();
+    i18n.subscribe(() => this.updateTitle());
 
     this.render();
     parent.appendChild(this.container);
@@ -72,5 +71,11 @@ export class CompassUI {
 
   public setVisible(visible: boolean): void {
     this.container.style.display = visible ? 'flex' : 'none';
+  }
+
+  private updateTitle(): void {
+    this.container.title = i18n.getLang() === 'en'
+      ? 'Cartographic North (0°) — Click to align to North'
+      : 'Norte Cartográfico (0°) — Clique para alinhar ao Norte';
   }
 }

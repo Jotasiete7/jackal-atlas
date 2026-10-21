@@ -5,6 +5,7 @@
 
 import { CONFIG, CRYSTAL_BASES } from '../config';
 import { FieldVisit, StrokeEvent } from './types';
+import { tr } from '../i18n';
 
 export class VisitManager {
   private currentVisit: FieldVisit;
@@ -22,7 +23,7 @@ export class VisitManager {
       heading_deg: 0, // Olhando para o Norte
       station_method: 'marco_construido',
       station_uncertainty: 0,
-      author: base ? base.namePt : 'Explorador 1',
+      author: base ? base.namePt : tr('Explorador 1', 'Explorer 1'),
       date: new Date().toISOString().split('T')[0],
       range_tiles: CONFIG.DEFAULT_VISIT_RANGE_TILES,
     };
@@ -75,7 +76,7 @@ export class VisitManager {
       heading_deg: 0,
       station_method: 'contagem',
       station_uncertainty: 5,
-      author: author || 'Explorador',
+      author: author || tr('Explorador', 'Explorer'),
       date: new Date().toISOString().split('T')[0],
       range_tiles: CONFIG.DEFAULT_VISIT_RANGE_TILES,
     };

@@ -2,7 +2,7 @@
 // JACKAL SANDBOX — SISTEMA DE INTERROGAÇÃO (?) E AJUDA CONTEXTUAL TÁTICA
 // ==============================================================================
 
-import { i18n } from '../i18n';
+import { i18n, tr } from '../i18n';
 
 export interface ToolHelpItem {
   titlePt: string;
@@ -171,7 +171,7 @@ export const TOOL_HELP_DATA: Record<string, ToolHelpItem> = {
     whatPt: 'Traça estradas coladas ao relevo, pontes como réguas suspensas e túneis em raio-X. Permite cravar a medida real de tiles do jogo para aferir e corrigir o mapa.',
     whatEn: 'Traces roads draped on terrain, bridges as suspended rulers, and tunnels in X-ray. Enables setting true in-game tile counts to calibrate and correct the terrain.',
     howPt: 'Escolha Estrada, Ponte ou Túnel. Clique para nós (0°/45°/90°; Shift = livre). Arrastar com Direito move a câmera sem perder o risco. Backspace desfaz último ponto. 2x Direito ou Esc cancela. Enter conclui.',
-    howEn: 'Choose Road, Bridge or Tunnel. Click for nodes (0°/45°/90°; Shift = free). Right-drag moves camera without losing line. Backspace undos last node. 2x Right or Esc cancels. Enter finishes.',
+    howEn: 'Choose Road, Bridge or Tunnel. Click for nodes (0°/45°/90°; Shift = free). Right-drag moves camera without losing line. Backspace undoes the last node. 2x Right or Esc cancels. Enter finishes.',
     shortcut: 'B'
   },
   undo: {
@@ -394,7 +394,7 @@ export class Tour3DManager {
     const stepNumber = `${this.currentStep + 1} / ${TOUR_STEPS_3D.length}`;
 
     this.cardEl.innerHTML = `
-      <div class="jk-tour-step">TUTORIAL 3D • ${stepNumber}</div>
+      <div class="jk-tour-step">${tr('TUTORIAL 3D', '3D TUTORIAL')} • ${stepNumber}</div>
       <div class="jk-tour-title">${title}</div>
       <div class="jk-tour-desc">${desc}</div>
       <div class="jk-tour-nav">

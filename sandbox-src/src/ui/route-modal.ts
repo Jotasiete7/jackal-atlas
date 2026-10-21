@@ -192,7 +192,7 @@ export class RouteModalUI {
 
       const savedRoute: MapRoute = {
         id: this.currentRoute ? this.currentRoute.id : `route-${Date.now()}`,
-        name: nameInput?.value.trim() || 'Rota',
+        name: nameInput?.value.trim() || tr('Rota', 'Route'),
         type: (typeSelect?.value as RouteType) || 'road',
         status: (statusSelect?.value as RouteStatus) || 'planned',
         path: finalPath,

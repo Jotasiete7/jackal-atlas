@@ -30,7 +30,7 @@ class I18nManager {
   /** Page language and title follow the chosen language */
   private aplicarDocumento(): void {
     if (typeof document === 'undefined' || !document.documentElement) return;
-    document.documentElement.lang = this.currentLang === 'en' ? 'en' : 'pt-BR';
+    document.documentElement.lang = this.currentLang === 'en' ? 'en-US' : 'pt-BR';
     document.title = this.currentLang === 'en'
       ? 'Jackal Sandbox — Collaborative Relief Sandbox (Round 2)'
       : 'Jackal Sandbox — Caixa de Areia Colaborativa de Relevo (Round 2)';

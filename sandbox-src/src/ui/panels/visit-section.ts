@@ -99,7 +99,7 @@ export class VisitSectionUI {
 
     const authorInput = this.container.querySelector('#visit-author-input') as HTMLInputElement;
     authorInput?.addEventListener('change', () => {
-      this.visitManager.updateVisitDetails({ author: authorInput.value.trim() || 'Explorador' });
+      this.visitManager.updateVisitDetails({ author: authorInput.value.trim() || tr('Explorador', 'Explorer') });
     });
 
     this.container.querySelector('#btn-new-visit')?.addEventListener('click', () => {

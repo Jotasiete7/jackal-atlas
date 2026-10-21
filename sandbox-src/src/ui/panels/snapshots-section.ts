@@ -152,7 +152,7 @@ export class SnapshotsSectionUI {
             <button class="btn btn-restore" data-id="${m.id}" data-name="${m.name}" style="padding: 2px 6px; font-size: 10px; background: rgba(59, 130, 246, 0.2); color: #93c5fd;" title="${t('restore')}">
               ${t('restore')}
             </button>
-            <button class="btn btn-dl-snap" data-id="${m.id}" style="padding: 2px 5px; font-size: 10px; color: var(--accent-gold); background: rgba(245, 158, 11, 0.1);" title="Baixar como JSON">
+            <button class="btn btn-dl-snap" data-id="${m.id}" style="padding: 2px 5px; font-size: 10px; color: var(--accent-gold); background: rgba(245, 158, 11, 0.1);" title="${tr('Baixar como JSON', 'Download as JSON')}">
               ⬇️
             </button>
             <button class="btn btn-del-snap" data-id="${m.id}" data-name="${m.name}" style="padding: 2px 5px; font-size: 10px; color: #ef4444; background: rgba(239, 68, 68, 0.1);" title="${tr('Excluir', 'Delete')}">

@@ -139,7 +139,7 @@ export class PinManager {
     if (!pin) return false;
     pin.validated = !pin.validated;
     if (pin.validated) {
-      pin.notes = (pin.notes ? pin.notes + ' ' : '') + `[Validado por ${validatorName}]`;
+      pin.notes = (pin.notes ? pin.notes + ' ' : '') + tr(`[Validado por ${validatorName}]`, `[Validated by ${validatorName}]`);
     }
     this.notify();
     return true;

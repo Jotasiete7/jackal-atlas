@@ -149,7 +149,7 @@ export class InfoBarUI {
       <div class="info-group">
         <span class="info-label">${t('status_sheet')}</span>
         <span class="info-value" id="info-sheet">N0-L0</span>
-        <button id="btn-sheet-lock" class="btn" style="padding: 1px 5px; font-size: 11px; margin-left: 4px; display: ${this.currentRole === 'cartographer' ? 'inline-flex' : 'none'};" title="Trancar/Destrancar Folha">
+        <button id="btn-sheet-lock" class="btn" style="padding: 1px 5px; font-size: 11px; margin-left: 4px; display: ${this.currentRole === 'cartographer' ? 'inline-flex' : 'none'};" title="${tr('Trancar/Destrancar Folha', 'Lock/Unlock Sheet')}">
           🔓
         </button>
       </div>

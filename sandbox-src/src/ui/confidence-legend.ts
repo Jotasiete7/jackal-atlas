@@ -2,7 +2,7 @@
 // JACKAL SANDBOX — LEGENDA DE CONFIANÇA (PERMANENTE E INVIOLÁVEL)
 // ==============================================================================
 
-import { i18n, t } from '../i18n';
+import { i18n, t, tr } from '../i18n';
 
 export class ConfidenceLegendUI {
   private container: HTMLElement;
@@ -32,7 +32,7 @@ export class ConfidenceLegendUI {
       this.container.innerHTML = `
         <div class="legend-header" id="legend-header" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; gap:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:4px; margin-bottom:4px;">
           <span class="legend-title" style="margin:0;">${t('legend_title')}</span>
-          <span style="font-size:10px; color:var(--text-dim);" title="Minimizar">▼</span>
+          <span style="font-size:10px; color:var(--text-dim);" title="${tr('Minimizar', 'Minimize')}">▼</span>
         </div>
 
         <div class="legend-item" title="${t('conf_locked')}">

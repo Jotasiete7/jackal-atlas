@@ -8,6 +8,7 @@ import { CONFIG } from '../config';
 import { MapRoute } from '../core/types';
 import { RouteManager } from '../core/routes';
 import { HeightfieldManager } from '../core/heightfield';
+import { i18n, tr } from '../i18n';
 
 export class RouteMeshManager {
   private parentGroup: THREE.Group;
@@ -34,6 +35,10 @@ export class RouteMeshManager {
     this.parentGroup.add(this.previewGroup);
 
     this.routeManager.subscribe(() => {
+      this.rebuildAllRoutes();
+    });
+
+    i18n.subscribe(() => {
       this.rebuildAllRoutes();
     });
 
@@ -441,7 +446,7 @@ export class RouteMeshManager {
     const distRound = Math.round(dist);
 
     const labelText = route.realLengthTiles
-      ? `${icon} ${route.name} (${route.realLengthTiles}t real)`
+      ? `${icon} ${route.name} (${route.realLengthTiles}t ${tr('real', 'measured')})`
       : `${icon} ${route.name} (${distRound}t)`;
 
     const canvas = document.createElement('canvas');
