@@ -676,7 +676,11 @@
             const invalido = validarGuilda(nome, tag);
             if (invalido) return alert(invalido);
             const outpost = document.getElementById('novaGuildaOutpost') ? document.getElementById('novaGuildaOutpost').value : 'east';
-            const { error } = await supabaseClient.from('guilds').insert({ name: nome, tag, color: cor, outpost: outpost });
+            let { error } = await supabaseClient.from('guilds').insert({ name: nome, tag, color: cor, outpost: outpost });
+            if (error && error.message && error.message.includes("Could not find the 'outpost' column")) {
+                const fallback = await supabaseClient.from('guilds').insert({ name: nome, tag, color: cor });
+                error = fallback.error;
+            }
             if (error) return alert(txt('Erro ao criar guilda: ', 'Error creating guild: ') + erroGuilda(error));
             document.getElementById('novaGuildaNome').value = '';
             document.getElementById('novaGuildaTag').value = '';
@@ -702,9 +706,20 @@
         async function alterarOutpostGuilda(id, novoOutpost) {
             if (!supabaseClient) return;
             const { data, error } = await supabaseClient.from('guilds').update({ outpost: novoOutpost }).eq('id', id).select('id');
-            if (error) alert(txt('Erro ao alterar posto avançado: ', 'Error changing outpost: ') + error.message);
-            else if (!data || !data.length) alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
-            await recarregarGuildasEMembros();
+            if (error) {
+                if (error.message && error.message.includes("Could not find the 'outpost' column")) {
+                    alert(txt(
+                        '⚠️ A coluna "outpost" ainda não foi criada no banco Supabase!\n\nAbra o SQL Editor do Supabase e execute a migração 025 para criar a coluna e atualizar o cache.',
+                        '⚠️ The "outpost" column does not exist in Supabase yet!\n\nPlease run migration 025 in the Supabase SQL Editor.'
+                    ));
+                } else {
+                    alert(txt('Erro ao alterar posto avançado: ', 'Error changing outpost: ') + error.message);
+                }
+            } else if (!data || !data.length) {
+                alert(txt('Sem permissão (apenas administradores).', 'Not allowed (admins only).'));
+            } else {
+                await recarregarGuildasEMembros();
+            }
         }
 
         async function alterarCorGuilda(id, cor) {
