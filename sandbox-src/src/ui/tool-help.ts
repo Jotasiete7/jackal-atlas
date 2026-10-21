@@ -66,6 +66,30 @@ export const TOOL_HELP_DATA: Record<string, ToolHelpItem> = {
     howEn: 'Set "Target Elevation" in the panel and brush to create flat plateaus, leveled roads or foundations.',
     shortcut: 'F'
   },
+  ramp: {
+    titlePt: 'Rampa de Estrada',
+    titleEn: 'Road Ramp',
+    role: 'member',
+    roleLabelPt: 'Membro / Modelador+',
+    roleLabelEn: 'Member / Modeler+',
+    whatPt: 'Cria uma passagem em rampa contínua e linear entre dois pontos, ideal para estradas transitáveis por carroças.',
+    whatEn: 'Creates a continuous linear ramp corridor between two points, ideal for wagon-passable roads in Wurm.',
+    howPt: 'Clique no primeiro ponto (início da rampa) e em seguida clique no segundo ponto (destino).',
+    howEn: 'Click the start point of the ramp, then click the end point to interpolate elevations.',
+    shortcut: 'J'
+  },
+  noise: {
+    titlePt: 'Ruído / Textura Rocha',
+    titleEn: 'Rock Noise',
+    role: 'member',
+    roleLabelPt: 'Membro / Modelador+',
+    roleLabelEn: 'Member / Modeler+',
+    whatPt: 'Aplica variações rochosas micro-onduladas no relevo para eliminar o aspecto artificialmente liso das montanhas.',
+    whatEn: 'Applies natural rocky micro-variations to terrain to break artificial smoothness on hills and mountains.',
+    howPt: 'Passe o pincel sobre encostas e topos de montanhas para criar escarpamentos naturais.',
+    howEn: 'Brush over slopes and mountain peaks to generate realistic rugged cliff faces.',
+    shortcut: 'N'
+  },
   water: {
     titlePt: 'Carimbo de Água / Mar (0m)',
     titleEn: 'Water Stamp / Sea Level (0m)',

@@ -28,6 +28,8 @@ import { RouteManager, calcularSnapWurm, computeRouteDistance } from '../core/ro
 import { RouteMeshManager } from '../renderer/route-mesh';
 import { RouteModalUI } from '../ui/route-modal';
 import { RouteHUDUI } from '../ui/route-hud';
+import { toast } from '../ui/toast';
+import { i18n } from '../i18n';
 
 export class InteractionController {
   private canvas: HTMLCanvasElement;
@@ -65,8 +67,12 @@ export class InteractionController {
     sizeTiles: 20,
     intensity: 1.2,
     falloff: 'smooth',
+    shape: 'circle',
+    ellipseRatio: 2.0,
+    ellipseAngleDeg: 0,
     flattenTargetZ: 15.0,
   };
+  private rampStartPoint: { tileX: number; tileY: number; height: number } | null = null;
 
   private isMouseDown = false;
   private currentStrokePoints: Array<{ x: number; y: number }> = [];
@@ -184,6 +190,9 @@ export class InteractionController {
     if (this.activeTool === 'route' && tool !== 'route') {
       this.cancelRouteDrawing();
     }
+    if (this.activeTool === 'ramp' && tool !== 'ramp') {
+      this.rampStartPoint = null;
+    }
     this.activeTool = tool;
     if (tool === 'route') {
       this.routeHUDUI.setType(this.selectedRouteType);
@@ -200,7 +209,12 @@ export class InteractionController {
 
   public setBrushSettings(settings: BrushSettings): void {
     this.brushSettings = settings;
-    this.brushCursor.updateSize(settings.sizeTiles / 2);
+    this.brushCursor.updateSize(
+      settings.sizeTiles / 2,
+      settings.shape,
+      settings.ellipseRatio,
+      settings.ellipseAngleDeg
+    );
   }
 
   /**
@@ -583,6 +597,37 @@ export class InteractionController {
         return;
       }
 
+      if (this.activeTool === 'ramp') {
+        if (!this.rampStartPoint) {
+          this.rampStartPoint = { tileX: hit.tileX, tileY: hit.tileY, height: hit.height };
+          toast.info(i18n.getLang() === 'en' ? 'Ramp start point set. Click destination point.' : 'Início da rampa definido. Clique no ponto de destino.');
+        } else {
+          const start = this.rampStartPoint;
+          const end = { tileX: hit.tileX, tileY: hit.tileY, height: hit.height };
+          this.rampStartPoint = null;
+          const res = this.heightfield.applyRamp({
+            startTileX: start.tileX,
+            startTileY: start.tileY,
+            startHeight: start.height,
+            endTileX: end.tileX,
+            endTileY: end.tileY,
+            endHeight: end.height,
+            widthTiles: this.brushSettings.sizeTiles,
+            currentVisit: this.visitManager.getCurrentVisit(),
+            enforceVisitRange: this.visitManager.isEnforcingRangeLimit(),
+            protectWater: this.brushPanelUI.isProtectWaterEnabled(),
+            userRole: this.infoBarUI.getRole(),
+          });
+          if (res.touchedCount > 0) {
+            this.terrainMesh.updateDirtyChunks();
+            this.contourRenderer.requestUpdate();
+            this.triggerAutosave();
+            toast.success(i18n.getLang() === 'en' ? 'Road ramp created successfully!' : 'Rampa linear construída com sucesso!');
+          }
+        }
+        return;
+      }
+
       if (this.isModelingTool(this.activeTool)) {
         this.isMouseDown = true;
         this.lastTilePos = { tileX: hit.tileX, tileY: hit.tileY };
@@ -750,14 +795,22 @@ export class InteractionController {
         }
       }
 
+      if (e.key === 'Escape' && this.rampStartPoint) {
+        e.preventDefault();
+        this.rampStartPoint = null;
+        toast.info(i18n.getLang() === 'en' ? 'Ramp drawing cancelled.' : 'Traçado de rampa cancelado.');
+        return;
+      }
+
       // Atalhos de seleção de ferramentas (sem chaves WASD para navegação livre)
       const toolShortcuts: Record<string, ModelingTool> = {
         v: 'navigate',
-        n: 'navigate',
         r: 'raise',
         l: 'lower',
         m: 'smooth',
         f: 'flatten',
+        j: 'ramp',
+        n: 'noise',
         e: 'eraser',
         k: 'lock',
         p: 'pin',
@@ -781,7 +834,7 @@ export class InteractionController {
   }
 
   private isModelingTool(tool: ModelingTool): boolean {
-    return ['raise', 'lower', 'smooth', 'flatten', 'water', 'eraser', 'lock'].includes(tool);
+    return ['raise', 'lower', 'smooth', 'flatten', 'noise', 'water', 'eraser', 'lock'].includes(tool);
   }
 
   private applyStroke(tileX: number, tileY: number, lockAction: 'lock' | 'unlock' = 'lock'): void {
@@ -796,6 +849,9 @@ export class InteractionController {
       radiusTiles,
       intensity: this.brushSettings.intensity,
       falloff: this.brushSettings.falloff,
+      shape: this.brushSettings.shape,
+      ellipseRatio: this.brushSettings.ellipseRatio,
+      ellipseAngleDeg: this.brushSettings.ellipseAngleDeg,
       flattenTargetZ: this.brushSettings.flattenTargetZ,
       currentVisit,
       enforceVisitRange: enforceRange,

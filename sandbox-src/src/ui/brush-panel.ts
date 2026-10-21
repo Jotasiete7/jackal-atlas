@@ -3,13 +3,16 @@
 // ==============================================================================
 
 import { CONFIG } from '../config';
-import { BrushFalloff, ModelingTool } from '../core/types';
+import { BrushFalloff, BrushShape, ModelingTool } from '../core/types';
 import { i18n, t } from '../i18n';
 
 export interface BrushSettings {
   sizeTiles: number; // Diâmetro em tiles
   intensity: number; // Metros por passada
   falloff: BrushFalloff;
+  shape: BrushShape;
+  ellipseRatio: number; // 1.2 a 4.0
+  ellipseAngleDeg: number; // 0 a 180 graus
   flattenTargetZ: number;
 }
 
@@ -19,6 +22,9 @@ export class BrushPanelUI {
     sizeTiles: 20,
     intensity: 1.2,
     falloff: 'smooth',
+    shape: 'circle',
+    ellipseRatio: 2.0,
+    ellipseAngleDeg: 0,
     flattenTargetZ: 2.0,
   };
   private protectWater = true;
@@ -45,7 +51,7 @@ export class BrushPanelUI {
 
   public setToolMode(tool: ModelingTool): void {
     this.currentTool = tool;
-    const isSculptTool = ['raise', 'lower', 'smooth', 'flatten', 'water', 'eraser', 'lock'].includes(tool);
+    const isSculptTool = ['raise', 'lower', 'smooth', 'flatten', 'ramp', 'noise', 'water', 'eraser', 'lock'].includes(tool);
     this.container.style.display = isSculptTool ? 'flex' : 'none';
     const flattenRow = this.container.querySelector('#row-flatten') as HTMLElement;
     if (flattenRow) {
@@ -101,14 +107,50 @@ export class BrushPanelUI {
         <div class="control-label">
           <span>${t('brush_falloff')}</span>
         </div>
-        <div class="btn-group">
-          <button class="btn ${this.settings.falloff === 'smooth' ? 'active' : ''}" data-falloff="smooth">
-            ${t('falloff_smooth')}
+        <div class="btn-group" style="display: flex; flex-wrap: wrap; gap: 3px;">
+          <button class="btn ${this.settings.falloff === 'smooth' ? 'active' : ''}" data-falloff="smooth" title="${t('falloff_smooth_tip')}">
+            🔘 ${t('falloff_smooth')}
           </button>
-          <button class="btn ${this.settings.falloff === 'hard' ? 'active' : ''}" data-falloff="hard">
-            ${t('falloff_hard')}
+          <button class="btn ${this.settings.falloff === 'dome' ? 'active' : ''}" data-falloff="dome" title="${t('falloff_dome_tip')}">
+            🫧 ${t('falloff_dome')}
+          </button>
+          <button class="btn ${this.settings.falloff === 'bowl' ? 'active' : ''}" data-falloff="bowl" title="${t('falloff_bowl_tip')}">
+            🥣 ${t('falloff_bowl')}
+          </button>
+          <button class="btn ${this.settings.falloff === 'peak' ? 'active' : ''}" data-falloff="peak" title="${t('falloff_peak_tip')}">
+            ⛰️ ${t('falloff_peak')}
+          </button>
+          <button class="btn ${this.settings.falloff === 'hard' ? 'active' : ''}" data-falloff="hard" title="${t('falloff_hard_tip')}">
+            ⬛ ${t('falloff_hard')}
           </button>
         </div>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>${t('brush_geometry')}</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn ${this.settings.shape === 'circle' ? 'active' : ''}" data-shape="circle">
+            ⭕ ${t('shape_circle')}
+          </button>
+          <button class="btn ${this.settings.shape === 'ellipse' ? 'active' : ''}" data-shape="ellipse">
+            ⬭ ${t('shape_ellipse')}
+          </button>
+        </div>
+      </div>
+
+      <div class="control-row" id="row-ellipse" style="display: ${this.settings.shape === 'ellipse' ? 'flex' : 'none'}; flex-direction: column; gap: 4px; background: rgba(0,0,0,0.25); padding: 6px; border-radius: 6px; border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-muted);">
+          <span>${t('ellipse_ratio')}</span>
+          <span id="ellipse-ratio-display" style="color: var(--accent-gold); font-weight: 700;">${this.settings.ellipseRatio.toFixed(1)}×</span>
+        </div>
+        <input type="range" id="input-ellipse-ratio" min="1.2" max="4.0" step="0.2" value="${this.settings.ellipseRatio}" />
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
+          <span>${t('ellipse_angle')}</span>
+          <span id="ellipse-angle-display" style="color: var(--accent-gold); font-weight: 700;">${this.settings.ellipseAngleDeg}°</span>
+        </div>
+        <input type="range" id="input-ellipse-angle" min="0" max="180" step="5" value="${this.settings.ellipseAngleDeg}" />
       </div>
 
       <div class="control-row" id="row-flatten" style="display: ${this.currentTool === 'flatten' ? 'flex' : 'none'};">
@@ -180,6 +222,36 @@ export class BrushPanelUI {
         btn.classList.add('active');
         this.onChangeCallback(this.settings);
       });
+    });
+
+    const rowEllipse = this.container.querySelector('#row-ellipse') as HTMLElement;
+    this.container.querySelectorAll('button[data-shape]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const shape = btn.getAttribute('data-shape') as BrushShape;
+        this.settings.shape = shape;
+        this.container.querySelectorAll('button[data-shape]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (rowEllipse) {
+          rowEllipse.style.display = shape === 'ellipse' ? 'flex' : 'none';
+        }
+        this.onChangeCallback(this.settings);
+      });
+    });
+
+    const inputRatio = this.container.querySelector('#input-ellipse-ratio') as HTMLInputElement;
+    const elRatioDisplay = this.container.querySelector('#ellipse-ratio-display');
+    inputRatio?.addEventListener('input', () => {
+      this.settings.ellipseRatio = parseFloat(inputRatio.value);
+      if (elRatioDisplay) elRatioDisplay.textContent = `${this.settings.ellipseRatio.toFixed(1)}×`;
+      this.onChangeCallback(this.settings);
+    });
+
+    const inputAngle = this.container.querySelector('#input-ellipse-angle') as HTMLInputElement;
+    const elAngleDisplay = this.container.querySelector('#ellipse-angle-display');
+    inputAngle?.addEventListener('input', () => {
+      this.settings.ellipseAngleDeg = parseInt(inputAngle.value, 10);
+      if (elAngleDisplay) elAngleDisplay.textContent = `${this.settings.ellipseAngleDeg}°`;
+      this.onChangeCallback(this.settings);
     });
 
     const inputFlatten = this.container.querySelector('#input-flatten-target') as HTMLInputElement;

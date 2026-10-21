@@ -1,6 +1,7 @@
 import { CONFIG, cellToChunkCoords, tileToCell, getTileSheetName } from '../config';
 import {
   BrushFalloff,
+  BrushShape,
   CellDelta,
   CellState,
   ConfidenceLevel,
@@ -18,11 +19,28 @@ export interface ApplyStrokeOptions {
   radiusTiles: number;
   intensity: number;
   falloff: BrushFalloff;
+  shape?: BrushShape;
+  ellipseRatio?: number;
+  ellipseAngleDeg?: number;
   flattenTargetZ?: number;
   currentVisit: FieldVisit | null;
   enforceVisitRange?: boolean;
   protectWater?: boolean;
   lockAction?: 'lock' | 'unlock';
+  userRole?: UserRole;
+}
+
+export interface ApplyRampOptions {
+  startTileX: number;
+  startTileY: number;
+  startHeight: number;
+  endTileX: number;
+  endTileY: number;
+  endHeight: number;
+  widthTiles: number;
+  currentVisit: FieldVisit | null;
+  enforceVisitRange?: boolean;
+  protectWater?: boolean;
   userRole?: UserRole;
 }
 
@@ -82,6 +100,9 @@ export class BrushEngine {
       radiusTiles,
       intensity,
       falloff,
+      shape = 'circle',
+      ellipseRatio = 1.0,
+      ellipseAngleDeg = 0,
       flattenTargetZ = 10,
       currentVisit,
       enforceVisitRange = true,
@@ -112,16 +133,45 @@ export class BrushEngine {
         const cellTileX = cx * cellSize;
         const cellTileY = cy * cellSize;
 
-        const distTiles = Math.hypot(cellTileX - centerTileX, cellTileY - centerTileY);
+        const dx = cellTileX - centerTileX;
+        const dy = cellTileY - centerTileY;
+
+        let distTiles = Math.hypot(dx, dy);
+        if (shape === 'ellipse' && ellipseRatio && ellipseRatio > 1.0) {
+          const rad = ((ellipseAngleDeg || 0) * Math.PI) / 180;
+          const cos = Math.cos(rad);
+          const sin = Math.sin(rad);
+          const rx = dx * cos + dy * sin;
+          const ry = (-dx * sin + dy * cos) * ellipseRatio;
+          distTiles = Math.hypot(rx, ry);
+        }
+
         if (distTiles > searchRadiusTiles) continue;
 
         let brushWeight = 1.0;
         if (distTiles <= effectiveRadius) {
-          if (falloff === 'smooth') {
-            const t = Math.min(1.0, distTiles / effectiveRadius);
-            // Polinômio quártico de Wyvill (curva em sino com topo arredondado e borda suave):
-            // Derivada em t=0 é 0 (topo esférico, nunca pontiagudo) e em t=1 é 0
-            brushWeight = (1.0 - t * t) * (1.0 - t * t);
+          const t = Math.min(1.0, distTiles / effectiveRadius);
+          switch (falloff) {
+            case 'dome':
+              // Curva semiesférica / bolha convexa (Cúpula)
+              brushWeight = Math.sqrt(Math.max(0, 1.0 - t * t));
+              break;
+            case 'bowl':
+              // Curva côncava de bacia (fundo largo plano, elevação suave nas bordas)
+              brushWeight = Math.pow(Math.max(0, 1.0 - Math.sqrt(t)), 2);
+              break;
+            case 'peak':
+              // Cone linear pontiagudo
+              brushWeight = Math.max(0, 1.0 - t);
+              break;
+            case 'hard':
+              brushWeight = 1.0;
+              break;
+            case 'smooth':
+            default:
+              // Polinômio quártico de Wyvill (curva em sino com topo arredondado e borda suave)
+              brushWeight = (1.0 - t * t) * (1.0 - t * t);
+              break;
           }
         } else {
           // Zona da saia de transição (além do raio do pincel): peso de elevação zero
@@ -248,6 +298,24 @@ export class BrushEngine {
             break;
           }
 
+          case 'noise': {
+            if (oldState === CellState.WATER) break;
+            // Ruído determinístico multi-frequência suave para texturizar superfícies rochosas
+            const nx = cellTileX * 0.18;
+            const ny = cellTileY * 0.18;
+            const nVal = Math.sin(nx) * Math.cos(ny) + 0.5 * Math.sin(nx * 2.3 + ny * 1.7) + 0.25 * Math.cos(nx * 4.1 - ny * 3.2);
+            const delta = (nVal / 1.75) * (intensity * 0.8) * totalWeight;
+
+            if (oldState === CellState.UNKNOWN) {
+              newState = CellState.LAND;
+              newHeight = Math.max(0.0, 2.0 + delta);
+              newConfidence = ConfidenceLevel.SPECULATIVE;
+            } else if (oldState === CellState.LAND) {
+              newHeight = Math.max(0.0, oldHeight + delta);
+            }
+            break;
+          }
+
           case 'water': {
             // Se proteção de água/costa estiver ativa, não afoga terra já modelada por acidente
             if (protectWater && oldState === CellState.LAND && oldHeight > 0.0) {
@@ -304,6 +372,152 @@ export class BrushEngine {
           }
 
           // Se há um pino móvel (sem trava rígida) nesta célula, sincroniza a cota dele
+          if (anchorPin && anchorPin.lockAltitude !== true) {
+            anchorPin.z = newHeight;
+          }
+
+          deltas.push({
+            chunkKey,
+            index: idx,
+            oldHeight,
+            newHeight,
+            oldState,
+            newState,
+            oldConfidence,
+            newConfidence,
+            oldLocked,
+            newLocked,
+          });
+        }
+      }
+    }
+
+    return {
+      deltas,
+      affectedChunks: Array.from(affectedChunks),
+      touchedCount: deltas.length,
+    };
+  }
+
+  /**
+   * Aplica uma rampa linear contínua entre dois pontos no relevo
+   */
+  public applyRamp(options: ApplyRampOptions): StrokeResult {
+    const {
+      startTileX,
+      startTileY,
+      startHeight,
+      endTileX,
+      endTileY,
+      endHeight,
+      widthTiles,
+      currentVisit,
+      enforceVisitRange = true,
+      protectWater = true,
+      userRole = 'explorer',
+    } = options;
+
+    if (userRole === 'scout') {
+      return { deltas: [], affectedChunks: [], touchedCount: 0 };
+    }
+
+    const dx = endTileX - startTileX;
+    const dy = endTileY - startTileY;
+    const length = Math.hypot(dx, dy);
+    if (length < 1.0) {
+      return { deltas: [], affectedChunks: [], touchedCount: 0 };
+    }
+
+    const ux = dx / length;
+    const uy = dy / length;
+    const nx = -uy;
+    const ny = ux;
+
+    const deltas: CellDelta[] = [];
+    const affectedChunks = new Set<string>();
+    const cellSize = CONFIG.CELL_SIZE_TILES;
+    const halfWidth = Math.max(1, widthTiles / 2);
+    const searchMargin = halfWidth + cellSize * 2;
+
+    const minX = Math.min(startTileX, endTileX) - searchMargin;
+    const maxX = Math.max(startTileX, endTileX) + searchMargin;
+    const minY = Math.min(startTileY, endTileY) - searchMargin;
+    const maxY = Math.max(startTileY, endTileY) + searchMargin;
+
+    const startCell = tileToCell(minX, minY);
+    const endCell = tileToCell(maxX, maxY);
+
+    for (let cy = startCell.cellY; cy <= endCell.cellY; cy++) {
+      for (let cx = startCell.cellX; cx <= endCell.cellX; cx++) {
+        const cellTileX = cx * cellSize;
+        const cellTileY = cy * cellSize;
+
+        const vx = cellTileX - startTileX;
+        const vy = cellTileY - startTileY;
+
+        // Projeção longitudinal ao longo da rampa [0, length]
+        const projLong = vx * ux + vy * uy;
+        if (projLong < -cellSize || projLong > length + cellSize) continue;
+
+        // Distância lateral da linha central da rampa
+        const distLat = Math.abs(vx * nx + vy * ny);
+        if (distLat > halfWidth + cellSize) continue;
+
+        // Peso de atenuação nas bordas laterais para transição suave
+        let rampWeight = 1.0;
+        if (distLat > halfWidth * 0.7) {
+          const latT = (distLat - halfWidth * 0.7) / (halfWidth * 0.3 + cellSize);
+          rampWeight = Math.max(0, 1.0 - latT);
+        }
+
+        const stationWeight = this.calculateStationWeight(cellTileX, cellTileY, currentVisit, enforceVisitRange);
+        if (stationWeight <= 0.0001) continue;
+
+        const totalWeight = rampWeight * stationWeight;
+        if (totalWeight <= 0.001) continue;
+
+        const anchorPin = this.heightfield.getPinAnchor(cx, cy);
+        if (anchorPin && anchorPin.z !== null && anchorPin.validated && anchorPin.lockAltitude === true) {
+          continue;
+        }
+
+        const { chunkX, chunkY, localCellX, localCellY, chunkKey } = cellToChunkCoords(cx, cy);
+        const chunk = this.heightfield.getOrCreateChunk(chunkX, chunkY);
+        const idx = localCellY * CONFIG.CHUNK_SIZE_CELLS + localCellX;
+
+        const sheetId = getTileSheetName(cellTileX, cellTileY);
+        if (chunk.locked[idx] === 1 || this.heightfield.isSheetLocked(sheetId)) {
+          continue;
+        }
+
+        const oldHeight = chunk.heights[idx];
+        const oldState = chunk.states[idx] as CellState;
+        const oldConfidence = chunk.confidence[idx] as ConfidenceLevel;
+        const oldLocked = chunk.locked[idx] === 1;
+
+        if (protectWater && oldState === CellState.WATER) continue;
+
+        // Interpolação linear da altura ideal ao longo da rampa
+        const frac = Math.max(0, Math.min(1, projLong / length));
+        const targetHeight = startHeight + frac * (endHeight - startHeight);
+
+        const newHeight = Math.max(0.0, oldHeight + (targetHeight - oldHeight) * totalWeight);
+        const newState = CellState.LAND;
+        const newConfidence = oldConfidence ?? ConfidenceLevel.SPECULATIVE;
+        const newLocked = oldLocked;
+
+        if (
+          Math.abs(newHeight - oldHeight) > 0.0001 ||
+          newState !== oldState ||
+          newConfidence !== oldConfidence
+        ) {
+          chunk.heights[idx] = newHeight;
+          chunk.states[idx] = newState;
+          chunk.confidence[idx] = newConfidence;
+          chunk.isDirty = true;
+          affectedChunks.add(chunkKey);
+          this.heightfield.unmarkErased(chunkKey, idx);
+
           if (anchorPin && anchorPin.lockAltitude !== true) {
             anchorPin.z = newHeight;
           }

@@ -29,6 +29,8 @@ export type ModelingTool =
   | 'lower'    // Pincel negativo (rebaixa terreno, clamp 0)
   | 'smooth'   // Suavizar (média móvel laplaciana)
   | 'flatten'  // Nivelar a altura alvo
+  | 'ramp'     // Rampa linear suave entre 2 pontos para estradas
+  | 'noise'    // Ruído natural e textura rochosa
   | 'water'    // Pinta como água (altura estritamente zero)
   | 'eraser'   // Devolve célula para UNKNOWN
   | 'lock'     // Trancar / Destrancar relevo (Cadeado do Cartógrafo)
@@ -55,8 +57,11 @@ export interface MapRoute {
 /** Papel do usuário no trabalho colaborativo */
 export type UserRole = 'scout' | 'explorer' | 'cartographer';
 
-/** Perfil de queda do pincel */
-export type BrushFalloff = 'smooth' | 'hard';
+/** Perfil de queda e curva da ponta do pincel */
+export type BrushFalloff = 'smooth' | 'dome' | 'bowl' | 'peak' | 'hard';
+
+/** Geometria da ponta do pincel */
+export type BrushShape = 'circle' | 'ellipse';
 
 /** Tipos de marcos / pinos */
 export type PinType = 'tower' | 'pillar' | 'tree' | 'coast' | 'peak' | 'other';

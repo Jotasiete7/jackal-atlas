@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { CONFIG } from '../config';
-import { ModelingTool } from '../core/types';
+import { ModelingTool, BrushShape } from '../core/types';
 
 export class BrushCursorManager {
   private cursorMesh: THREE.LineLoop;
@@ -36,9 +36,18 @@ export class BrushCursorManager {
     this.parentGroup.add(this.cursorMesh);
   }
 
-  public updateSize(radiusTiles: number): void {
+  public updateSize(
+    radiusTiles: number,
+    shape: BrushShape = 'circle',
+    ellipseRatio = 1.0,
+    ellipseAngleDeg = 0
+  ): void {
     this.currentRadiusMeters = radiusTiles * CONFIG.TILE_METERS;
-    this.cursorMesh.scale.set(this.currentRadiusMeters, 1, this.currentRadiusMeters);
+    const ratio = shape === 'ellipse' ? Math.max(1.0, ellipseRatio) : 1.0;
+    const radX = this.currentRadiusMeters;
+    const radZ = this.currentRadiusMeters / ratio;
+    this.cursorMesh.scale.set(radX, 1, radZ);
+    this.cursorMesh.rotation.y = shape === 'ellipse' ? (ellipseAngleDeg * Math.PI) / 180 : 0;
   }
 
   public setTool(tool: ModelingTool): void {
@@ -56,11 +65,20 @@ export class BrushCursorManager {
       case 'flatten':
         mat.color.setHex(0xa855f7); // Violeta
         break;
+      case 'ramp':
+        mat.color.setHex(0xeab308); // Âmbar rampa
+        break;
+      case 'noise':
+        mat.color.setHex(0xa3e635); // Lima rocha
+        break;
       case 'water':
         mat.color.setHex(0x3b82f6); // Azul água
         break;
       case 'eraser':
         mat.color.setHex(0xf97316); // Laranja borracha
+        break;
+      case 'lock':
+        mat.color.setHex(0xd946ef); // Magenta cadeado
         break;
       case 'pin':
       case 'station':

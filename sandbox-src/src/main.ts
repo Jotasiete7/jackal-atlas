@@ -32,6 +32,7 @@ import { RouteModalUI } from './ui/route-modal';
 import { PublishModalUI } from './ui/publish-modal';
 import { buildReliefCommitName } from './core/relief-naming';
 import { RouteHUDUI } from './ui/route-hud';
+import { CompassUI } from './ui/compass';
 
 import { RouteManager } from './core/routes';
 import { RouteMeshManager } from './renderer/route-mesh';
@@ -74,6 +75,7 @@ class JackalSandboxApp {
   private routeModalUI!: RouteModalUI;
   private routeHUDUI!: RouteHUDUI;
   private publishModalUI!: PublishModalUI;
+  private compassUI!: CompassUI;
 
   // 4. Controlador de Interação
   private interactionController!: InteractionController;
@@ -477,11 +479,15 @@ class JackalSandboxApp {
         this.interactionController.triggerAutosave();
       }
     });
+
+    // 5. Mini Bússola Flutuante 3D (Canto inferior direito)
+    this.compassUI = new CompassUI(this.appContainer, this.cameraController);
   }
 
   private animate = (): void => {
     requestAnimationFrame(this.animate);
     this.cameraController.update();
+    this.compassUI.update();
     this.terrainMesh.updateDirtyChunks();
     this.placeables.atualizarAlturas();
     this.sceneManager.render(this.cameraController.getActiveCamera());

@@ -107,6 +107,17 @@ export class CameraController {
     this.updateCameraTransform();
   }
 
+  /** Retorna o azimute horizontal atual em radianos (0 rad = Norte) */
+  public getAzimuth(): number {
+    return this.mode === 'top' ? 0 : this.theta;
+  }
+
+  /** Alinha a câmera ao Norte cartográfico (0°) */
+  public resetNorth(): void {
+    this.theta = 0;
+    this.updateCameraTransform();
+  }
+
   /**
    * Define o ponto de referência / pivô da câmera com transição suave
    */
@@ -227,6 +238,8 @@ export class CameraController {
   }
 
   private bindEvents(): void {
+    if (typeof window === 'undefined') return;
+
     // Zoom via roda do mouse
     this.domElement.addEventListener('wheel', (e) => {
       e.preventDefault();

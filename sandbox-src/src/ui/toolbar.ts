@@ -77,7 +77,7 @@ export class ToolbarUI {
       const btn = wrap.querySelector('.tool-btn');
       if (!btn) return;
       const tool = btn.getAttribute('data-tool') as ModelingTool;
-      if (['raise', 'lower', 'smooth', 'flatten', 'water', 'eraser'].includes(tool)) {
+      if (['raise', 'lower', 'smooth', 'flatten', 'ramp', 'noise', 'water', 'eraser'].includes(tool)) {
         (wrap as HTMLElement).style.opacity = isScout ? '0.3' : '1.0';
         (wrap as HTMLElement).style.pointerEvents = isScout ? 'none' : 'auto';
       } else if (tool === 'lock') {
@@ -125,6 +125,20 @@ export class ToolbarUI {
           ${ICONS.minus}
         </button>
         <span class="jk-help-btn" data-help="flatten" title="${helpTip}">?</span>
+      </div>
+
+      <div class="tool-btn-wrapper">
+        <button class="tool-btn ${this.currentTool === 'ramp' ? 'active' : ''}" data-tool="ramp" title="${t('tool_ramp')}">
+          📐
+        </button>
+        <span class="jk-help-btn" data-help="ramp" title="${helpTip}">?</span>
+      </div>
+
+      <div class="tool-btn-wrapper">
+        <button class="tool-btn ${this.currentTool === 'noise' ? 'active' : ''}" data-tool="noise" title="${t('tool_noise')}">
+          ⛰️
+        </button>
+        <span class="jk-help-btn" data-help="noise" title="${helpTip}">?</span>
       </div>
 
       <div class="tool-btn-wrapper">

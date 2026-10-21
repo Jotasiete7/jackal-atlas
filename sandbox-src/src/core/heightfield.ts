@@ -19,7 +19,7 @@ import {
   MapPin,
 } from './types';
 import { HistoryManager } from './history-manager';
-import { BrushEngine, ApplyStrokeOptions, StrokeResult } from './brush-engine';
+import { BrushEngine, ApplyStrokeOptions, ApplyRampOptions, StrokeResult } from './brush-engine';
 
 export class HeightfieldManager {
   /** Chunks carregados na memória: chave "chunkX,chunkY" */
@@ -293,6 +293,18 @@ export class HeightfieldManager {
       this.historyManager.pushAction({
         id: `act-${Date.now()}`,
         tool: options.tool,
+        deltas: result.deltas,
+      });
+    }
+    return result;
+  }
+
+  public applyRamp(options: ApplyRampOptions): StrokeResult {
+    const result = this.brushEngine.applyRamp(options);
+    if (result.touchedCount > 0) {
+      this.historyManager.pushAction({
+        id: `act-${Date.now()}`,
+        tool: 'ramp',
         deltas: result.deltas,
       });
     }
