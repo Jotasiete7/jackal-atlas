@@ -6,6 +6,7 @@ import { VisitManager } from '../../core/visits';
 import { GridMeshManager } from '../../renderer/grid-mesh';
 import { t } from '../../i18n';
 import { CRYSTAL_BASES } from '../../config';
+import { tr } from '../../i18n';
 
 export class VisitSectionUI {
   private container: HTMLElement;
@@ -62,17 +63,17 @@ export class VisitSectionUI {
           ${t('btn_new_visit')}
         </button>
         <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 6px;">
-          Ancorar Base no Posto Avançado:
+          ${tr('Ancorar Base no Posto Avançado:', 'Anchor base at outpost:')}
         </div>
         <div style="display: flex; gap: 4px; margin-top: 2px;">
-          <button class="btn btn-anchor-crystal" data-crystal="north" style="flex: 1; font-size: 10px; justify-content: center; color: #38bdf8; padding: 3px 4px;" title="Ancorar no Freedom Outpost North (0, 150)">
-            🏰 Norte
+          <button class="btn btn-anchor-crystal" data-crystal="north" style="flex: 1; font-size: 10px; justify-content: center; color: #38bdf8; padding: 3px 4px;" title="${tr('Ancorar no Freedom Outpost North (0, 150)', 'Anchor at Freedom Outpost North (0, 150)')}">
+            🏰 ${tr('Norte', 'North')}
           </button>
-          <button class="btn btn-anchor-crystal" data-crystal="west" style="flex: 1; font-size: 10px; justify-content: center; color: #34d399; padding: 3px 4px;" title="Ancorar no Freedom Outpost West (-320, -250)">
-            🏰 Oeste
+          <button class="btn btn-anchor-crystal" data-crystal="west" style="flex: 1; font-size: 10px; justify-content: center; color: #34d399; padding: 3px 4px;" title="${tr('Ancorar no Freedom Outpost West (-320, -250)', 'Anchor at Freedom Outpost West (-320, -250)')}">
+            🏰 ${tr('Oeste', 'West')}
           </button>
-          <button class="btn btn-anchor-crystal" data-crystal="east" style="flex: 1; font-size: 10px; justify-content: center; color: #f87171; padding: 3px 4px;" title="Ancorar no Freedom Outpost East (60, -180)">
-            🏰 Leste
+          <button class="btn btn-anchor-crystal" data-crystal="east" style="flex: 1; font-size: 10px; justify-content: center; color: #f87171; padding: 3px 4px;" title="${tr('Ancorar no Freedom Outpost East (60, -180)', 'Anchor at Freedom Outpost East (60, -180)')}">
+            🏰 ${tr('Leste', 'East')}
           </button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import { ContourRenderer } from '../../renderer/contour-renderer';
 import { ScaleReferenceManager, ScaleReferenceMode } from '../../renderer/scale-reference';
 import { RouteMeshManager } from '../../renderer/route-mesh';
 import { t } from '../../i18n';
+import { tr } from '../../i18n';
 
 export class MapLayersSectionUI {
   private container: HTMLElement;
@@ -65,7 +66,7 @@ export class MapLayersSectionUI {
           <span>${t('layer_grid')}</span>
           <input type="checkbox" id="chk-grid" ${this.showGrid ? 'checked' : ''} />
         </label>
-        <label class="layer-toggle-row" title="Pressione [C] para ligar/desligar cotas">
+        <label class="layer-toggle-row" title="${tr('Pressione [C] para ligar/desligar cotas', 'Press [C] to toggle contour lines')}">
           <span>${t('layer_contours')}</span>
           <input type="checkbox" id="chk-contours" ${this.showContours ? 'checked' : ''} />
         </label>
@@ -90,7 +91,7 @@ export class MapLayersSectionUI {
           <input type="checkbox" id="chk-pins" ${this.showPins ? 'checked' : ''} />
         </label>
         <label class="layer-toggle-row">
-          <span>🛣️ ${t('layer_routes') || 'Rotas e Aferições'}</span>
+          <span>🛣️ ${t('layer_routes') || tr('Rotas e Aferições', 'Routes and Measurements')}</span>
           <input type="checkbox" id="chk-routes" ${this.showRoutes ? 'checked' : ''} />
         </label>
         <label class="layer-toggle-row">

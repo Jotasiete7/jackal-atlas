@@ -9,6 +9,7 @@ import { ICONS } from './icons';
 import { i18n, t } from '../i18n';
 import { HelpModalUI } from './help-modal';
 import { CRYSTAL_BASES } from '../config';
+import { tr } from '../i18n';
 
 export class CameraBarUI {
   private container: HTMLElement;
@@ -77,7 +78,7 @@ export class CameraBarUI {
 
     this.container.innerHTML = `
       <div class="brand-section">
-        <a href="../" class="btn" style="text-decoration:none; font-size:11px; padding:3px 8px; margin-right:4px;" title="Voltar ao Atlas 2D">◀ Atlas</a>
+        <a href="../" class="btn" style="text-decoration:none; font-size:11px; padding:3px 8px; margin-right:4px;" title="${tr('Voltar ao Atlas 2D', 'Back to the 2D Atlas')}">◀ Atlas</a>
         <div class="brand-title">
           <span>${t('app_title')}</span>
           <span class="badge-tag">${t('app_subtitle')}</span>
@@ -103,10 +104,10 @@ export class CameraBarUI {
 
         <!-- Rotações Cardeais em 90° -->
         <div class="btn-group" id="cardinal-group" style="display: ${this.currentCameraMode === 'isometric' || this.currentCameraMode === 'side' ? 'flex' : 'none'};">
-          <button class="btn" data-cardinal="N" title="Norte (0°)">${t('north')}</button>
-          <button class="btn" data-cardinal="L" title="Leste (90°)">${t('east')}</button>
-          <button class="btn" data-cardinal="S" title="Sul (180°)">${t('south')}</button>
-          <button class="btn" data-cardinal="O" title="Oeste (270°)">${t('west')}</button>
+          <button class="btn" data-cardinal="N" title="${tr('Norte (0°)', 'North (0°)')}">${t('north')}</button>
+          <button class="btn" data-cardinal="L" title="${tr('Leste (90°)', 'East (90°)')}">${t('east')}</button>
+          <button class="btn" data-cardinal="S" title="${tr('Sul (180°)', 'South (180°)')}">${t('south')}</button>
+          <button class="btn" data-cardinal="O" title="${tr('Oeste (270°)', 'West (270°)')}">${t('west')}</button>
         </div>
 
         <!-- Centralizar no Spawn (0,0) -->
@@ -122,13 +123,13 @@ export class CameraBarUI {
         <!-- Atalhos dos 3 Cristais Oficiais -->
         <div class="btn-group" style="margin-left: 2px;">
           <button class="btn btn-jump-crystal" data-crystal="north" style="font-size: 11px; padding: 3px 7px; color: #38bdf8;" title="Freedom Outpost North (0, 150)">
-            🏰 Norte
+            🏰 ${tr('Norte', 'North')}
           </button>
           <button class="btn btn-jump-crystal" data-crystal="west" style="font-size: 11px; padding: 3px 7px; color: #34d399;" title="Freedom Outpost West (-320, -250)">
-            🏰 Oeste
+            🏰 ${tr('Oeste', 'West')}
           </button>
           <button class="btn btn-jump-crystal" data-crystal="east" style="font-size: 11px; padding: 3px 7px; color: #f87171;" title="Freedom Outpost East (60, -180)">
-            🏰 Leste
+            🏰 ${tr('Leste', 'East')}
           </button>
         </div>
 

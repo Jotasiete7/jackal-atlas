@@ -100,7 +100,7 @@ export const TOOL_HELP_DATA: Record<string, ToolHelpItem> = {
     whatEn: 'Stamps strict sea level elevation (0m) and marks the cell state permanently as Water.',
     howPt: 'Clique nas margens, praias ou áreas oceânicas para delimitar linhas de costa oficiais confiáveis.',
     howEn: 'Click on coastlines, shores or open ocean to delimit reliable official shorelines.',
-    shortcut: 'U (ou Alt+W)'
+    shortcut: 'U / Alt+W'
   },
   eraser: {
     titlePt: 'Borracha de Relevo',

@@ -5,6 +5,7 @@
 import { MapPin, PinMethod, PinType } from '../core/types';
 import { PinManager } from '../core/pins';
 import { t } from '../i18n';
+import { tr } from '../i18n';
 
 export class PinModalUI {
   private backdrop: HTMLElement;
@@ -143,7 +144,7 @@ export class PinModalUI {
         notes,
         validated,
         lockAltitude,
-        author: pinData.author || 'Cartógrafo',
+        author: pinData.author || tr('Cartógrafo', 'Cartographer'),
       });
 
       this.close();

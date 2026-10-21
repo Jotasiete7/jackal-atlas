@@ -40,6 +40,7 @@ import { RouteMeshManager } from './renderer/route-mesh';
 import { InteractionController } from './input/interaction-controller';
 import { PlaceablesManager } from './placeables/placeables';
 import { carregarPilar, wurmDisponivel } from './wurm/models';
+import { tr } from './i18n';
 
 class JackalSandboxApp {
   private canvas: HTMLCanvasElement;
@@ -239,7 +240,7 @@ class JackalSandboxApp {
 
       // Assina publicações de relevo em tempo real (mescla não-destrutiva para não perder edição em andamento)
       this.supabaseSync.listenToCloudRelief(async (version) => {
-        const confirmUpdate = confirm(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja mesclar com seu trabalho agora?`);
+        const confirmUpdate = confirm(tr(`Uma nova versão de relevo oficial (v${version}) foi publicada na nuvem por um Oficial. Deseja mesclar com seu trabalho agora?`, `A new official relief version (v${version}) was published to the cloud by an Officer. Merge it with your work now?`));
         if (confirmUpdate) {
           const res = await this.supabaseSync.fetchCloudRelief(this.heightfield, this.pinManager, this.visitManager, true);
           if (res.success) {
@@ -291,14 +292,14 @@ class JackalSandboxApp {
             this.routeMesh.refreshHeights();
             toast.success(t('alert_cloud_loaded'));
           } else {
-            toast.error(res.message || 'Falha ao carregar relevo da nuvem.');
+            toast.error(res.message || tr('Falha ao carregar relevo da nuvem.', 'Failed to load the relief from the cloud.'));
           }
         },
         onCloudPublish: async () => {
           const currentVersion = await this.supabaseSync.getLatestReliefVersion();
           const nextVersion = currentVersion + 1;
           const profile = this.supabaseSync.getProfile();
-          const author = profile?.nick || profile?.discord_name || 'Oficial';
+          const author = profile?.nick || profile?.discord_name || tr('Oficial', 'Officer');
           const S = CONFIG.CHUNK_SIZE_CELLS;
           const chunkCount = Array.from(this.heightfield.getAllChunks()).filter((c: any) => {
             for (let i = 0; i < S * S; i++) {
@@ -453,7 +454,7 @@ class JackalSandboxApp {
 
         return true;
       } else {
-        toast.error(res.message || 'Falha ao publicar na nuvem.');
+        toast.error(res.message || tr('Falha ao publicar na nuvem.', 'Failed to publish to the cloud.'));
         return false;
       }
     });

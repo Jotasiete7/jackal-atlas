@@ -5,6 +5,7 @@
 
 import { i18n, t } from '../i18n';
 import { buildReliefCommitName, formatReliefVersion } from '../core/relief-naming';
+import { tr } from '../i18n';
 
 export interface PublishModalOptions {
   currentVersion: number;
@@ -152,7 +153,7 @@ export class PublishModalUI {
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:4px; font-size:11px;">
             <div>
               <span style="color:var(--text-dim); display:block; font-size:10px;">${t('publish_author')}:</span>
-              <strong style="color:var(--text-main); font-family:var(--font-mono);">${opts.author || 'Oficial'}</strong>
+              <strong style="color:var(--text-main); font-family:var(--font-mono);">${opts.author || tr('Oficial', 'Officer')}</strong>
             </div>
             <div>
               <span style="color:var(--text-dim); display:block; font-size:10px;">${t('publish_chunks_count')}:</span>

@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { MapPin, PinMethod, PinType } from './types';
+import { tr } from '../i18n';
 
 export class PinManager {
   private pins: Map<string, MapPin> = new Map();
@@ -25,10 +26,10 @@ export class PinManager {
       type: 'pillar',
       method: 'marco_construido',
       uncertainty_tiles: 0,
-      author: 'Cartógrafo Chefe',
+      author: tr('Cartógrafo Chefe', 'Chief Cartographer'),
       validated: true,
       lockAltitude: false, // Terreno livre para esculpir sob o ponto inicial
-      notes: 'Pilar Central de Spawn (Origem da Rede 0, 0)',
+      notes: tr('Pilar Central de Spawn (Origem da Rede 0, 0)', 'Central Spawn Pillar (grid origin 0, 0)'),
       created_at: new Date().toISOString(),
     };
     this.pins.set(spawnPin.id, spawnPin);
@@ -100,7 +101,7 @@ export class PinManager {
         type: pinData.type ?? 'pillar',
         method: pinData.method ?? 'marco_construido',
         uncertainty_tiles: pinData.uncertainty_tiles ?? 2,
-        author: pinData.author ?? 'Cartógrafo',
+        author: pinData.author ?? tr('Cartógrafo', 'Cartographer'),
         validated: pinData.validated ?? false,
         lockAltitude: pinData.lockAltitude ?? false,
         notes: pinData.notes ?? '',
@@ -120,7 +121,7 @@ export class PinManager {
       type: pinData.type ?? 'pillar',
       method: pinData.method ?? 'marco_construido',
       uncertainty_tiles: pinData.uncertainty_tiles ?? 2,
-      author: pinData.author ?? 'Cartógrafo',
+      author: pinData.author ?? tr('Cartógrafo', 'Cartographer'),
       validated: pinData.validated ?? false,
       lockAltitude: pinData.lockAltitude ?? false,
       notes: pinData.notes ?? '',

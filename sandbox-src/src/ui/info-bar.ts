@@ -1,6 +1,7 @@
 import { getTileSheetName } from '../config';
 import { CellState, ConfidenceLevel, UserRole } from '../core/types';
 import { i18n, t } from '../i18n';
+import { tr } from '../i18n';
 
 export class InfoBarUI {
   private container: HTMLElement;
@@ -66,7 +67,9 @@ export class InfoBarUI {
         sheetLockBtn.style.display = 'inline-flex';
         const isLocked = this.isCurrentSheetLockedCallback ? this.isCurrentSheetLockedCallback(sheet) : false;
         sheetLockBtn.innerText = isLocked ? '🔒' : '🔓';
-        sheetLockBtn.title = isLocked ? `Folha ${sheet} Trancada (Clique para destravar)` : `Folha ${sheet} Aberta (Clique para trancar)`;
+        sheetLockBtn.title = isLocked
+        ? tr(`Folha ${sheet} Trancada (Clique para destravar)`, `Sheet ${sheet} locked (click to unlock)`)
+        : tr(`Folha ${sheet} Aberta (Clique para trancar)`, `Sheet ${sheet} open (click to lock)`);
       } else {
         sheetLockBtn.style.display = 'none';
       }
@@ -163,7 +166,7 @@ export class InfoBarUI {
 
       <div class="info-group" style="margin-left: auto;">
         <span class="info-label">${t('status_role_label')}</span>
-        <button id="btn-toggle-role" class="badge-tag" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); cursor: pointer;" title="Alternar Papel de Trabalho">
+        <button id="btn-toggle-role" class="badge-tag" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); cursor: pointer;" title="${tr('Alternar Papel de Trabalho', 'Switch working role')}">
           ${this.getRoleText()}
         </button>
       </div>
@@ -206,7 +209,9 @@ export class InfoBarUI {
         const btn = this.container.querySelector('#btn-sheet-lock') as HTMLElement;
         if (btn) {
           btn.innerText = isNowLocked ? '🔒' : '🔓';
-          btn.title = isNowLocked ? `Folha ${sheet} Trancada (Clique para destravar)` : `Folha ${sheet} Aberta (Clique para trancar)`;
+          btn.title = isNowLocked
+        ? tr(`Folha ${sheet} Trancada (Clique para destravar)`, `Sheet ${sheet} locked (click to unlock)`)
+        : tr(`Folha ${sheet} Aberta (Clique para trancar)`, `Sheet ${sheet} open (click to lock)`);
         }
       }
     });

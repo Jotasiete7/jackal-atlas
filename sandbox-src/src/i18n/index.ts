@@ -13,13 +13,27 @@ class I18nManager {
   private listeners: Array<(lang: Language) => void> = [];
 
   constructor() {
-    const saved = localStorage.getItem('jackal_sandbox_lang') as Language;
+    // Same language as the Atlas (jackal_atlas_lang) unless the Sandbox has its own saved choice
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem('jackal_sandbox_lang') || localStorage.getItem('jackal_atlas_lang');
+    } catch { saved = null; }
     if (saved === 'en' || saved === 'pt') {
       this.currentLang = saved;
     } else {
       const browserLang = navigator.language.toLowerCase();
       this.currentLang = browserLang.startsWith('en') ? 'en' : 'pt';
     }
+    this.aplicarDocumento();
+  }
+
+  /** Page language and title follow the chosen language */
+  private aplicarDocumento(): void {
+    if (typeof document === 'undefined' || !document.documentElement) return;
+    document.documentElement.lang = this.currentLang === 'en' ? 'en' : 'pt-BR';
+    document.title = this.currentLang === 'en'
+      ? 'Jackal Sandbox — Collaborative Relief Sandbox (Round 2)'
+      : 'Jackal Sandbox — Caixa de Areia Colaborativa de Relevo (Round 2)';
   }
 
   public getLang(): Language {
@@ -29,7 +43,12 @@ class I18nManager {
   public setLang(lang: Language): void {
     if (this.currentLang === lang) return;
     this.currentLang = lang;
-    localStorage.setItem('jackal_sandbox_lang', lang);
+    try {
+      // Shared with the Atlas so EN/PT carries over between the 2D map and the Sandbox
+      localStorage.setItem('jackal_sandbox_lang', lang);
+      localStorage.setItem('jackal_atlas_lang', lang);
+    } catch { /* storage blocked: the choice lasts for this page only */ }
+    this.aplicarDocumento();
     for (const listener of this.listeners) {
       listener(this.currentLang);
     }
@@ -63,3 +82,8 @@ class I18nManager {
 
 export const i18n = new I18nManager();
 export const t = (key: TranslationKey, params?: Record<string, string | number>) => i18n.t(key, params);
+
+/** Inline PT/EN text for runtime messages: tr('Salvo', 'Saved') */
+export function tr(pt: string, en: string): string {
+  return i18n.getLang() === 'en' ? en : pt;
+}

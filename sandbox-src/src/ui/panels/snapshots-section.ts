@@ -17,6 +17,7 @@ import { SupabaseSyncManager } from '../../core/supabase-sync';
 import { ICONS } from '../icons';
 import { t } from '../../i18n';
 import { toast } from '../toast';
+import { tr } from '../../i18n';
 
 export class SnapshotsSectionUI {
   private container: HTMLElement;
@@ -112,7 +113,7 @@ export class SnapshotsSectionUI {
         <span style="font-size: 10px; color: var(--accent-gold); text-transform: uppercase; font-weight: 700;">
           ☁️ ${t('cloud_history_title')}:
         </span>
-        <button id="btn-refresh-cloud-history" class="btn" style="padding: 1px 6px; font-size: 9px;" title="Atualizar histórico">🔄</button>
+        <button id="btn-refresh-cloud-history" class="btn" style="padding: 1px 6px; font-size: 9px;" title="${tr('Atualizar histórico', 'Refresh history')}">🔄</button>
       </div>
       <div id="cloud-history-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; margin-top: 4px;">
         <div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 6px;">${t('cloud_history_loading')}</div>
@@ -154,7 +155,7 @@ export class SnapshotsSectionUI {
             <button class="btn btn-dl-snap" data-id="${m.id}" style="padding: 2px 5px; font-size: 10px; color: var(--accent-gold); background: rgba(245, 158, 11, 0.1);" title="Baixar como JSON">
               ⬇️
             </button>
-            <button class="btn btn-del-snap" data-id="${m.id}" data-name="${m.name}" style="padding: 2px 5px; font-size: 10px; color: #ef4444; background: rgba(239, 68, 68, 0.1);" title="Excluir">
+            <button class="btn btn-del-snap" data-id="${m.id}" data-name="${m.name}" style="padding: 2px 5px; font-size: 10px; color: #ef4444; background: rgba(239, 68, 68, 0.1);" title="${tr('Excluir', 'Delete')}">
               🗑️
             </button>
           </div>
@@ -244,11 +245,11 @@ export class SnapshotsSectionUI {
           const res = await this.supabaseSync!.rollbackToCommit(ver, this.heightfield, this.pinManager, this.visitManager);
           if (res.success) {
             this.syncSceneAfterRestore();
-            toast.success(`Versão v${ver} restaurada com sucesso na nuvem como v${res.newVersion}!`, 6000);
+            toast.success(tr(`Versão v${ver} restaurada com sucesso na nuvem como v${res.newVersion}!`, `Version v${ver} restored in the cloud as v${res.newVersion}!`), 6000);
             this.loadCloudHistory();
             this.loadSnapshotList();
           } else {
-            toast.error(res.message || 'Falha ao restaurar versão.');
+            toast.error(res.message || tr('Falha ao restaurar versão.', 'Failed to restore version.'));
           }
         }
       });
@@ -292,7 +293,7 @@ export class SnapshotsSectionUI {
     const inputSnap = this.container.querySelector('#input-snap-name') as HTMLInputElement;
 
     this.container.querySelector('#btn-save-snapshot')?.addEventListener('click', async () => {
-      const name = inputSnap.value.trim() || `Relevo ${new Date().toLocaleTimeString()}`;
+      const name = inputSnap.value.trim() || `${tr('Relevo', 'Relief')} ${new Date().toLocaleTimeString()}`;
       const snap = this.storageManager.serializeCurrentState(
         this.heightfield,
         this.pinManager,
@@ -355,7 +356,7 @@ export class SnapshotsSectionUI {
         this.pinMesh.rebuildPins();
         if (this.routeMesh) this.routeMesh.rebuildAllRoutes();
         this.syncSceneAfterRestore();
-        toast.info('Área de trabalho limpa.');
+        toast.info(tr('Área de trabalho limpa.', 'Workspace cleared.'));
       }
     });
   }

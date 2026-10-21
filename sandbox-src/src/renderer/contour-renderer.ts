@@ -8,6 +8,7 @@ import { CONFIG } from '../config';
 import { HeightfieldManager } from '../core/heightfield';
 import { ContourOptions } from '../core/types';
 import { ContourSegment, MarchingSquaresResponse } from '../workers/marching-squares.worker';
+import { tr } from '../i18n';
 
 export class ContourRenderer {
   private parentGroup: THREE.Group;
@@ -223,7 +224,7 @@ export class ContourRenderer {
    */
   public exportGeoJSON(): void {
     if (!this.latestGeoJson || this.latestGeoJson.features.length === 0) {
-      alert('Nenhuma curva de nível gerada para exportar ainda. Modele alguma elevação primeiro!');
+      alert(tr('Nenhuma curva de nível gerada para exportar ainda. Modele alguma elevação primeiro!', 'No contour lines to export yet. Sculpt some elevation first!'));
       return;
     }
 
@@ -242,7 +243,7 @@ export class ContourRenderer {
    */
   public exportSVG(): void {
     if (this.latestSegments.length === 0) {
-      alert('Nenhuma curva de nível gerada para exportar.');
+      alert(tr('Nenhuma curva de nível gerada para exportar.', 'No contour lines to export.'));
       return;
     }
 
@@ -271,7 +272,7 @@ export class ContourRenderer {
 
     const svgContent = `<?xml version="1.0" standalone="no"?>
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="background:#121417;">
-  <title>Jackal Round 2 — Curvas de Nível</title>
+  <title>Jackal Round 2 — ${tr('Curvas de Nível', 'Contour Lines')}</title>
   <g id="contours">
     ${pathsSvg}
   </g>
@@ -292,7 +293,7 @@ export class ContourRenderer {
   public exportCartographicPNG(): void {
     const bounds = this.heightfield.getKnownBounds();
     if (!bounds) {
-      alert('Nenhum terreno explorado para exportar.');
+      alert(tr('Nenhum terreno explorado para exportar.', 'No explored terrain to export.'));
       return;
     }
 

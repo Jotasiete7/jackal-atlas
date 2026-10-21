@@ -11,6 +11,7 @@ import { VisitManager } from './visits';
 import { StorageManager } from './storage';
 import { MapPin, PinType, PinMethod, CellState, ConfidenceLevel } from './types';
 import { CONFIG } from '../config';
+import { tr } from '../i18n';
 
 export interface UserProfile {
   id: string;
@@ -174,7 +175,7 @@ export class SupabaseSyncManager {
     visits: VisitManager,
     mergeWithLocal = false
   ): Promise<{ success: boolean; version?: number; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não inicializado' };
+    if (!this.client) return { success: false, message: tr('Supabase não inicializado', 'Supabase is not initialised') };
 
     try {
       let { data, error } = await this.client
@@ -195,13 +196,13 @@ export class SupabaseSyncManager {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          return { success: false, message: 'Nenhum relevo oficial publicado ainda' };
+          return { success: false, message: tr('Nenhum relevo oficial publicado ainda', 'No official relief has been published yet') };
         }
         throw error;
       }
 
       if (!data) {
-        return { success: false, message: 'Nenhum relevo oficial publicado ainda' };
+        return { success: false, message: tr('Nenhum relevo oficial publicado ainda', 'No official relief has been published yet') };
       }
 
       let cloudChunks: any[] = [];
@@ -220,10 +221,10 @@ export class SupabaseSyncManager {
             {
               meta: {
                 id: `cloud-${data.version || 1}`,
-                name: `Relevo Oficial v${data.version || 1}`,
+                name: tr(`Relevo Oficial v${data.version || 1}`, `Official Relief v${data.version || 1}`),
                 created_at: data.updated_at || new Date().toISOString(),
                 is_daily: false,
-                author: data.metadata?.author || 'Oficial',
+                author: data.metadata?.author || tr('Oficial', 'Officer'),
                 chunk_count: 0,
                 pin_count: pins.getAll().length,
               },
@@ -241,14 +242,14 @@ export class SupabaseSyncManager {
           await this.storage.clearAutosave();
           return { success: true, version: data.version || 1 };
         }
-        return { success: false, message: 'Estado de relevo vazio' };
+        return { success: false, message: tr('Estado de relevo vazio', 'The relief state is empty') };
       }
 
       const localSnap = this.storage.serializeCurrentState(
         heightfield,
         pins,
         visits,
-        'Backup Local (Pré-Sincronização)',
+        tr('Backup Local (Pré-Sincronização)', 'Local Backup (Pre-Sync)'),
         false
       );
 
@@ -272,10 +273,10 @@ export class SupabaseSyncManager {
         {
           meta: {
             id: `cloud-${data.version}`,
-            name: `Relevo Oficial v${data.version}`,
+            name: tr(`Relevo Oficial v${data.version}`, `Official Relief v${data.version}`),
             created_at: data.updated_at,
             is_daily: false,
-            author: data.metadata?.author || 'Oficial',
+            author: data.metadata?.author || tr('Oficial', 'Officer'),
             chunk_count: finalChunks.length,
             pin_count: pins.getAll().length,
           },
@@ -296,7 +297,7 @@ export class SupabaseSyncManager {
       return { success: true, version: data.version };
     } catch (err: any) {
       console.error('Erro ao buscar relevo da nuvem:', err);
-      return { success: false, message: err.message || 'Falha ao carregar' };
+      return { success: false, message: err.message || tr('Falha ao carregar', 'Failed to load') };
     }
   }
 
@@ -333,9 +334,9 @@ export class SupabaseSyncManager {
     visits: VisitManager,
     note?: string
   ): Promise<{ success: boolean; version?: number; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.client) return { success: false, message: tr('Supabase não conectado', 'Supabase is not connected') };
     if (!this.isOfficerOrAdmin()) {
-      return { success: false, message: 'Permissão negada. Apenas Oficiais e Admins podem publicar o relevo oficial.' };
+      return { success: false, message: tr('Permissão negada. Apenas Oficiais e Admins podem publicar o relevo oficial.', 'Permission denied. Only Officers and Admins can publish the official relief.') };
     }
 
     try {
@@ -343,7 +344,7 @@ export class SupabaseSyncManager {
         heightfield,
         pins,
         visits,
-        'Publicação Oficial',
+        tr('Publicação Oficial', 'Official Publication'),
         false
       );
 
@@ -374,7 +375,7 @@ export class SupabaseSyncManager {
       if (snapshot.chunks.length === 0) {
         return {
           success: false,
-          message: 'Proteção anti-perda: Seu relevo local não possui células esculpidas para publicar.',
+          message: tr('Proteção anti-perda: Seu relevo local não possui células esculpidas para publicar.', 'Loss protection: your local relief has no sculpted cells to publish.'),
         };
       }
 
@@ -386,7 +387,7 @@ export class SupabaseSyncManager {
             name: `Backup ${formatReliefVersion(current.version)} (pre-publish)`,
             created_at: current.updated_at || new Date().toISOString(),
             is_daily: false,
-            author: current.metadata?.author || 'Oficial',
+            author: current.metadata?.author || tr('Oficial', 'Officer'),
             chunk_count: cloudChunks.length,
             pin_count: snapshot.pins.length,
           },
@@ -422,7 +423,7 @@ export class SupabaseSyncManager {
       if (latestCheck && latestCheck.version !== (current?.version || 0)) {
         return {
           success: false,
-          message: `Conflito de publicação concorrente: Outra equipe acabou de publicar a versão v${latestCheck.version}! Recarregue os dados da nuvem para mesclar antes de reenviar.`,
+          message: tr(`Conflito de publicação concorrente: Outra equipe acabou de publicar a versão v${latestCheck.version}! Recarregue os dados da nuvem para mesclar antes de reenviar.`, `Publish conflict: someone else just published v${latestCheck.version}! Reload the cloud data and merge before publishing again.`),
         };
       }
 
@@ -444,7 +445,7 @@ export class SupabaseSyncManager {
           pins: snapshot.pins,
           stations: [visits.getCurrentVisit()],
           metadata: {
-            author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+            author: this.currentProfile?.nick || this.currentProfile?.discord_name || tr('Oficial', 'Officer'),
             commit_message: commitMessage,
             lockedSheets: mergedLockedSheets,
           },
@@ -467,7 +468,7 @@ export class SupabaseSyncManager {
         pins: snapshot.pins,
         stations: [visits.getCurrentVisit()],
         metadata: {
-          author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+          author: this.currentProfile?.nick || this.currentProfile?.discord_name || tr('Oficial', 'Officer'),
           lockedSheets: mergedLockedSheets,
         },
         author: authorId,
@@ -494,7 +495,7 @@ export class SupabaseSyncManager {
       return { success: true, version: nextVersion };
     } catch (err: any) {
       console.error('Erro ao publicar relevo na nuvem:', err);
-      return { success: false, message: err.message || 'Falha na publicação' };
+      return { success: false, message: err.message || tr('Falha na publicação', 'Publishing failed') };
     }
   }
 
@@ -553,11 +554,11 @@ export class SupabaseSyncManager {
    * Salva um marco do Sandbox 3D diretamente na tabela public.points do Atlas 2D
    */
   public async savePinToCloud(pin: MapPin): Promise<{ success: boolean; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.client) return { success: false, message: tr('Supabase não conectado', 'Supabase is not connected') };
     if (!this.isApprovedMember()) {
       return {
         success: false,
-        message: 'Apenas membros aprovados (Member, Officer ou Admin) podem enviar marcos para a nuvem.',
+        message: tr('Apenas membros aprovados (Member, Officer ou Admin) podem enviar marcos para a nuvem.', 'Only approved members (Member, Officer or Admin) can send landmarks to the cloud.'),
       };
     }
 
@@ -674,11 +675,11 @@ export class SupabaseSyncManager {
    * Salva uma rota do Sandbox 3D diretamente na tabela public.routes do Supabase
    */
   public async saveRouteToCloud(route: any): Promise<{ success: boolean; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.client) return { success: false, message: tr('Supabase não conectado', 'Supabase is not connected') };
     if (!this.isApprovedMember()) {
       return {
         success: false,
-        message: 'Apenas membros aprovados podem salvar rotas na nuvem.',
+        message: tr('Apenas membros aprovados podem salvar rotas na nuvem.', 'Only approved members can save routes to the cloud.'),
       };
     }
 
@@ -752,7 +753,7 @@ export class SupabaseSyncManager {
    * Remove uma rota da tabela public.routes do Supabase
    */
   public async deleteRouteFromCloud(id: string): Promise<{ success: boolean; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.client) return { success: false, message: tr('Supabase não conectado', 'Supabase is not connected') };
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''));
     if (!isUuid) return { success: true }; // Rota apenas local
 
@@ -791,9 +792,9 @@ export class SupabaseSyncManager {
       if (error || !data) return [];
       return data.map((d: any) => ({
         version: Number(d.version),
-        message: d.message || `Versão ${d.version}`,
+        message: d.message || tr(`Versão ${d.version}`, `Version ${d.version}`),
         created_at: d.created_at || '',
-        author: d.metadata?.author || 'Oficial',
+        author: d.metadata?.author || tr('Oficial', 'Officer'),
         chunk_count: Array.isArray(d.chunks) ? d.chunks.length : 0,
         pin_count: Array.isArray(d.pins) ? d.pins.length : 0,
       }));
@@ -811,9 +812,9 @@ export class SupabaseSyncManager {
     pins: PinManager,
     visits: VisitManager
   ): Promise<{ success: boolean; newVersion?: number; message?: string }> {
-    if (!this.client) return { success: false, message: 'Supabase não conectado' };
+    if (!this.client) return { success: false, message: tr('Supabase não conectado', 'Supabase is not connected') };
     if (!this.isOfficerOrAdmin()) {
-      return { success: false, message: 'Permissão negada. Apenas Oficiais podem restaurar versões.' };
+      return { success: false, message: tr('Permissão negada. Apenas Oficiais podem restaurar versões.', 'Permission denied. Only Officers can restore versions.') };
     }
 
     try {
@@ -825,7 +826,7 @@ export class SupabaseSyncManager {
         .maybeSingle();
 
       if (fetchError || !targetCommit) {
-        return { success: false, message: `Commit v${version} não encontrado.` };
+        return { success: false, message: tr(`Commit v${version} não encontrado.`, `Commit v${version} not found.`) };
       }
 
       // 2. Extrai os chunks do commit
@@ -848,7 +849,7 @@ export class SupabaseSyncManager {
         heightfield,
         pins,
         visits,
-        `Backup Pré-Rollback (para v${version})`,
+        tr(`Backup Pré-Rollback (para v${version})`, `Pre-Rollback Backup (to v${version})`),
         false
       );
       await this.storage.saveSnapshot(currentSnap);
@@ -856,7 +857,7 @@ export class SupabaseSyncManager {
       // 4. Cria a nova versão de publicação baseada no commit antigo restaurado
       const latestVer = await this.getLatestReliefVersion();
       const nextVersion = latestVer + 1;
-      const rollbackMsg = `Rollback oficial para v${version} · (Publicado como v${nextVersion})`;
+      const rollbackMsg = tr(`Rollback oficial para v${version} · (Publicado como v${nextVersion})`, `Official rollback to v${version} · (published as v${nextVersion})`);
       const heightmapJson = JSON.stringify({ chunks: targetChunks });
       const statemapJson = JSON.stringify({ lockedSheets: targetSheets });
       const authorId = this.currentProfile?.id || null;
@@ -880,7 +881,7 @@ export class SupabaseSyncManager {
           pins: targetCommit.pins || [],
           stations: targetCommit.stations || [visits.getCurrentVisit()],
           metadata: {
-            author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+            author: this.currentProfile?.nick || this.currentProfile?.discord_name || tr('Oficial', 'Officer'),
             commit_message: rollbackMsg,
             lockedSheets: targetSheets,
             restored_from: version,
@@ -904,7 +905,7 @@ export class SupabaseSyncManager {
         pins: targetCommit.pins || [],
         stations: targetCommit.stations || [visits.getCurrentVisit()],
         metadata: {
-          author: this.currentProfile?.nick || this.currentProfile?.discord_name || 'Oficial',
+          author: this.currentProfile?.nick || this.currentProfile?.discord_name || tr('Oficial', 'Officer'),
           lockedSheets: targetSheets,
           restored_from: version,
         },
@@ -923,7 +924,7 @@ export class SupabaseSyncManager {
             name: rollbackMsg,
             created_at: nowIso,
             is_daily: false,
-            author: 'Oficial',
+            author: tr('Oficial', 'Officer'),
             chunk_count: targetChunks.length,
             pin_count: (targetCommit.pins || []).length,
           },
@@ -942,7 +943,7 @@ export class SupabaseSyncManager {
       return { success: true, newVersion: nextVersion };
     } catch (err: any) {
       console.error('Erro no rollback:', err);
-      return { success: false, message: err.message || 'Falha ao restaurar versão' };
+      return { success: false, message: err.message || tr('Falha ao restaurar versão', 'Failed to restore version') };
     }
   }
 

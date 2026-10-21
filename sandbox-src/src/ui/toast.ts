@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 // ==============================================================================
 // JACKAL SANDBOX — SISTEMA DE NOTIFICAÇÕES TOAST
 // Notificações elegantes integradas à UI escura tática (sem alerts padrão do browser)
@@ -75,7 +76,7 @@ class ToastNotificationManager {
     toast.innerHTML = `
       <div style="font-weight:900; font-size:14px; color:${titleColor}; line-height:1.2;">${icon}</div>
       <div style="flex:1; line-height:1.45; word-break:break-word; font-family:var(--font-sans);">${formattedMsg}</div>
-      <button style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; padding:0 2px;" title="Fechar">✕</button>
+      <button style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; padding:0 2px;" title="${tr('Fechar', 'Close')}">✕</button>
     `;
 
     const btnClose = toast.querySelector('button');

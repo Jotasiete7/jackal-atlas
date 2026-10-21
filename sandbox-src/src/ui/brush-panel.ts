@@ -5,6 +5,7 @@
 import { CONFIG } from '../config';
 import { BrushFalloff, BrushShape, ModelingTool } from '../core/types';
 import { i18n, t } from '../i18n';
+import { tr } from '../i18n';
 
 export interface BrushSettings {
   sizeTiles: number; // Diâmetro em tiles
@@ -159,10 +160,10 @@ export class BrushPanelUI {
           <span id="flatten-display">${this.settings.flattenTargetZ}m</span>
         </div>
         <div class="preset-pills" style="margin-bottom: 4px;">
-          <button class="pill-btn ${this.settings.flattenTargetZ === 0 ? 'active' : ''}" data-flatten-preset="0">0m (Praia)</button>
-          <button class="pill-btn ${this.settings.flattenTargetZ === 2 ? 'active' : ''}" data-flatten-preset="2">2m (Planície 🌿)</button>
-          <button class="pill-btn ${this.settings.flattenTargetZ === 15 ? 'active' : ''}" data-flatten-preset="15">15m (Colina)</button>
-          <button class="pill-btn ${this.settings.flattenTargetZ === 30 ? 'active' : ''}" data-flatten-preset="30">30m (Platô)</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 0 ? 'active' : ''}" data-flatten-preset="0">0m (${tr('Praia', 'Beach')})</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 2 ? 'active' : ''}" data-flatten-preset="2">2m (${tr('Planície', 'Plain')} 🌿)</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 15 ? 'active' : ''}" data-flatten-preset="15">15m (${tr('Colina', 'Hill')})</button>
+          <button class="pill-btn ${this.settings.flattenTargetZ === 30 ? 'active' : ''}" data-flatten-preset="30">30m (${tr('Platô', 'Plateau')})</button>
         </div>
         <input type="range" id="input-flatten-target" min="0" max="150" step="1" value="${this.settings.flattenTargetZ}" />
       </div>

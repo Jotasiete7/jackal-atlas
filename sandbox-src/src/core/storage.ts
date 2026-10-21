@@ -9,6 +9,7 @@ import { VisitManager } from './visits';
 import { RouteManager } from './routes';
 import { SerializedSnapshot, SnapshotMeta, CellState, ConfidenceLevel } from './types';
 import { CONFIG } from '../config';
+import { tr } from '../i18n';
 
 const DB_NAME = 'JackalSandboxDB';
 const DB_VERSION = 2;
@@ -422,14 +423,14 @@ export class StorageManager {
         try {
           const parsed = JSON.parse(e.target?.result as string) as SerializedSnapshot;
           if (!parsed.chunks || !parsed.meta) {
-            throw new Error('Arquivo de relevo inválido ou corrompido.');
+            throw new Error(tr('Arquivo de relevo inválido ou corrompido.', 'Invalid or corrupted relief file.'));
           }
           resolve(parsed);
         } catch (err) {
           reject(err);
         }
       };
-      reader.onerror = () => reject(new Error('Erro na leitura do arquivo'));
+      reader.onerror = () => reject(new Error(tr('Erro na leitura do arquivo', 'Could not read the file')));
       reader.readAsText(file);
     });
   }

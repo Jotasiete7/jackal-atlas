@@ -5,6 +5,7 @@
 
 import { i18n } from '../i18n';
 import { MapRoute, RouteType, RouteStatus } from '../core/types';
+import { tr } from '../i18n';
 
 export class RouteModalUI {
   private backdrop: HTMLElement;
@@ -64,7 +65,7 @@ export class RouteModalUI {
 
     const rType: RouteType = route ? route.type : defaultType;
     const rStatus: RouteStatus = route ? route.status : 'planned';
-    const rName = route ? route.name : `${rType === 'road' ? 'Estrada' : rType === 'bridge' ? 'Ponte' : 'Túnel'} ${this.currentMeasuredDistance}t`;
+    const rName = route ? route.name : `${rType === 'road' ? tr('Estrada', 'Road') : rType === 'bridge' ? tr('Ponte', 'Bridge') : tr('Túnel', 'Tunnel')} ${this.currentMeasuredDistance}t`;
     const rWidth = route ? route.widthTiles : 2;
     const rReal = route && route.realLengthTiles ? route.realLengthTiles : '';
 
@@ -84,7 +85,7 @@ export class RouteModalUI {
             <label style="color:var(--text-muted); font-size:11px; display:block; margin-bottom:4px;">
               ${isPt ? 'Nome da Obra / Rota:' : 'Project / Route Name:'}
             </label>
-            <input type="text" id="route-name" class="form-control" value="${rName}" placeholder="Ex: Ponte do Vale Norte..." style="width:100%;" />
+            <input type="text" id="route-name" class="form-control" value="${rName}" placeholder="${tr('Ex: Ponte do Vale Norte...', 'e.g. North Valley Bridge...')}" style="width:100%;" />
           </div>
 
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">

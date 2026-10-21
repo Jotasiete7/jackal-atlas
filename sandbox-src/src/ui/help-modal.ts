@@ -279,49 +279,49 @@ export class HelpModalUI {
               </thead>
               <tbody>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">WASD / Setas</td>
+                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">${isPt ? 'WASD / Setas' : 'WASD / Arrows'}</td>
                   <td style="padding:4px 6px;">${isPt ? 'Movimentar câmera pelo mapa' : 'Pan camera across terrain'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Câmera 3D</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Câmera 3D' : '3D Camera'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">Botão Direito</td>
+                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">${isPt ? 'Botão Direito' : 'Right Mouse'}</td>
                   <td style="padding:4px 6px;">${isPt ? 'Órbita / Rotação 3D' : 'Rotate 3D orbit'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Câmera 3D</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Câmera 3D' : '3D Camera'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">Shift + Clique</td>
+                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">${isPt ? 'Shift + Clique' : 'Shift + Click'}</td>
                   <td style="padding:4px 6px;">${isPt ? 'Mover Objeto de Escala (Torre/Boneco)' : 'Move Scale Object'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Medição</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Medição' : 'Measuring'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">H</td>
-                  <td style="padding:4px 6px;">${isPt ? 'Alternar Torre (24m) / Boneco (1.8m) / Pilar (4m)' : 'Cycle Tower (24m) / Human (1.8m) / Pillar'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Escala Real</td>
+                  <td style="padding:4px 6px;">${isPt ? 'Alternar Torre (24m) / Boneco (1.8m) / Pilar (4m)' : 'Cycle Tower (24m) / Human (1.8m) / Pillar (4m)'}</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Escala Real' : 'Real Scale'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">C</td>
                   <td style="padding:4px 6px;">${isPt ? 'Ligar / Desligar Curvas de Nível' : 'Toggle Contour Lines'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Visual</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Visual' : 'View'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">1 a 5</td>
+                  <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">${isPt ? '1 a 5' : '1 to 5'}</td>
                   <td style="padding:4px 6px;">${isPt ? 'Presets de Diâmetro (5 a 100 tiles)' : 'Brush Presets (5 to 100 tiles)'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Pincel</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Pincel' : 'Brush'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">R, L, M, F, U, E, K</td>
                   <td style="padding:4px 6px;">${isPt ? 'Selecionar Ferramentas de Relevo' : 'Select Sculpting Tools'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Barra Lateral</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Barra Lateral' : 'Sidebar'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">P, T</td>
                   <td style="padding:4px 6px;">${isPt ? 'Marco Geodésico (P) e Estação (T)' : 'Geodetic Pin (P) and Station (T)'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Campo</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Campo' : 'Field'}</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                   <td style="padding:4px 6px; font-family:var(--font-mono); color:#38bdf8;">Ctrl+Z / Ctrl+Y</td>
                   <td style="padding:4px 6px;">${isPt ? 'Desfazer / Refazer Pinceladas' : 'Undo / Redo strokes'}</td>
-                  <td style="padding:4px 6px; color:var(--text-dim);">Histórico</td>
+                  <td style="padding:4px 6px; color:var(--text-dim);">${isPt ? 'Histórico' : 'History'}</td>
                 </tr>
               </tbody>
             </table>
