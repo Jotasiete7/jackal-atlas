@@ -242,6 +242,30 @@ export class GridMeshManager {
     ringMesh.position.y = 0.5;
     group.add(ringMesh);
 
+    // Círculo de Visada / Alcance de 100 tiles do Posto Oficial (400 metros de raio)
+    const rangeTiles = CONFIG.DEFAULT_VISIT_RANGE_TILES; // 100 tiles
+    const radiusMeters = rangeTiles * CONFIG.TILE_METERS; // 400.0m
+    const circleSegments = 64;
+    const circlePoints: THREE.Vector3[] = [];
+    for (let i = 0; i <= circleSegments; i++) {
+      const angle = (i / circleSegments) * Math.PI * 2;
+      circlePoints.push(new THREE.Vector3(
+        Math.cos(angle) * radiusMeters,
+        0.5,
+        Math.sin(angle) * radiusMeters
+      ));
+    }
+    const rangeGeom = new THREE.BufferGeometry().setFromPoints(circlePoints);
+    const rangeMat = new THREE.LineBasicMaterial({
+      color: base.hexColor,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false,
+    });
+    const rangeCircle = new THREE.Line(rangeGeom, rangeMat);
+    rangeCircle.name = 'RangeCircle_' + base.id;
+    group.add(rangeCircle);
+
     const sprite = this.createCrystalLabelSprite(base.icon + ' ' + base.namePt, base.color);
     sprite.position.set(0, 24.0, 0);
     group.add(sprite);

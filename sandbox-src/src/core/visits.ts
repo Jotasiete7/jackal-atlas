@@ -3,7 +3,7 @@
 // Registro de estações de observação, alcance de pincelada e logs de eventos
 // ==============================================================================
 
-import { CONFIG } from '../config';
+import { CONFIG, CRYSTAL_BASES } from '../config';
 import { FieldVisit, StrokeEvent } from './types';
 
 export class VisitManager {
@@ -13,18 +13,27 @@ export class VisitManager {
   private ghostVisible = true;
   private enforceRangeLimit = true;
 
-  constructor() {
+  constructor(initialOutpostKey?: keyof typeof CRYSTAL_BASES) {
+    const base = initialOutpostKey ? CRYSTAL_BASES[initialOutpostKey] : null;
     this.currentVisit = {
       id: `visit-${Date.now()}`,
-      station_x: 0,
-      station_y: 0,
+      station_x: base ? base.tileX : 0,
+      station_y: base ? base.tileY : 0,
       heading_deg: 0, // Olhando para o Norte
       station_method: 'marco_construido',
       station_uncertainty: 0,
-      author: 'Explorador 1',
+      author: base ? base.namePt : 'Explorador 1',
       date: new Date().toISOString().split('T')[0],
       range_tiles: CONFIG.DEFAULT_VISIT_RANGE_TILES,
     };
+  }
+
+  public anchorToOutpost(outpostKey: keyof typeof CRYSTAL_BASES, author?: string): void {
+    const base = CRYSTAL_BASES[outpostKey] || CRYSTAL_BASES.east;
+    this.updateStation(base.tileX, base.tileY);
+    if (author) {
+      this.updateVisitDetails({ author });
+    }
   }
 
   public subscribe(listener: () => void): () => void {

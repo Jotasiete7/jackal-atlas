@@ -20,6 +20,13 @@ export interface UserProfile {
   discord_name?: string;
   discord_avatar?: string;
   guild_id?: string;
+  guild?: {
+    id: string;
+    name: string;
+    tag: string;
+    color: string;
+    outpost?: 'north' | 'west' | 'east';
+  };
 }
 
 export class SupabaseSyncManager {
@@ -36,7 +43,7 @@ export class SupabaseSyncManager {
   }
 
   private initClient(): void {
-    const cfg = (window as any).JACKAL_CONFIG || {};
+    const cfg = (typeof window !== 'undefined' ? (window as any).JACKAL_CONFIG : null) || {};
     const supabaseUrl = cfg.supabaseUrl || 'https://ndeepjongrkeldzrssis.supabase.co';
     const supabaseKey = cfg.publishableKey || cfg.supabaseKey || 'sb_publishable_sX4zAXSzEqRHWSHT28Tzvw_PJOyn_mo';
 
@@ -80,7 +87,7 @@ export class SupabaseSyncManager {
 
       const { data: profile, error } = await this.client
         .from('profiles')
-        .select('*')
+        .select('*, guilds(*)')
         .eq('id', session.user.id)
         .maybeSingle(); // no row is a normal case, not an error
 
@@ -89,7 +96,10 @@ export class SupabaseSyncManager {
       }
 
       if (profile) {
-        this.currentProfile = profile as UserProfile;
+        this.currentProfile = {
+          ...profile,
+          guild: (profile as any).guilds || undefined,
+        } as UserProfile;
       } else {
         // Fallback do usuário autenticado
         this.currentProfile = {
@@ -105,6 +115,22 @@ export class SupabaseSyncManager {
       console.warn('Exceção ao buscar perfil do usuário:', e);
       return null;
     }
+  }
+
+  public getUserOutpost(): 'north' | 'west' | 'east' {
+    if (this.currentProfile?.guild?.outpost) {
+      const op = this.currentProfile.guild.outpost.toLowerCase();
+      if (op === 'north' || op === 'west' || op === 'east') {
+        return op as 'north' | 'west' | 'east';
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('jackal_sandbox_active_crystal');
+      if (saved === 'north' || saved === 'west' || saved === 'east') {
+        return saved as 'north' | 'west' | 'east';
+      }
+    }
+    return 'east';
   }
 
   public getProfile(): UserProfile | null {

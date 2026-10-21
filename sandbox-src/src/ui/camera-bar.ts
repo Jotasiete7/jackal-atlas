@@ -20,6 +20,7 @@ export class CameraBarUI {
   private onCloudPublishCallback?: () => void;
   private onSyncPinsCallback?: () => void;
   private onSyncRoutesCallback?: () => void;
+  private onSelectCrystalCallback?: (crystalId: keyof typeof CRYSTAL_BASES) => void;
   private helpModal: HelpModalUI;
   private currentExaggeration = 1.0;
   private currentCameraMode: CameraMode = 'top';
@@ -35,6 +36,7 @@ export class CameraBarUI {
       onCloudPublish?: () => void;
       onSyncPins?: () => void;
       onSyncRoutes?: () => void;
+      onSelectCrystal?: (crystalId: keyof typeof CRYSTAL_BASES) => void;
     }
   ) {
     this.cameraController = cameraController;
@@ -45,6 +47,7 @@ export class CameraBarUI {
     this.onCloudPublishCallback = cloudDeps?.onCloudPublish;
     this.onSyncPinsCallback = cloudDeps?.onSyncPins;
     this.onSyncRoutesCallback = cloudDeps?.onSyncRoutes;
+    this.onSelectCrystalCallback = cloudDeps?.onSelectCrystal;
     this.helpModal = new HelpModalUI(parent);
 
     this.container = document.createElement('div');
@@ -184,6 +187,24 @@ export class CameraBarUI {
     this.bindEvents();
   }
 
+  public setActiveCrystal(crystalId: string): void {
+    this.container.querySelectorAll('.btn-jump-crystal').forEach((btn) => {
+      const id = btn.getAttribute('data-crystal');
+      const el = btn as HTMLElement;
+      if (id === crystalId) {
+        el.classList.add('active');
+        el.style.borderColor = 'var(--accent-gold)';
+        el.style.background = 'rgba(245, 166, 35, 0.18)';
+        el.style.boxShadow = '0 0 8px rgba(245, 166, 35, 0.35)';
+      } else {
+        el.classList.remove('active');
+        el.style.borderColor = '';
+        el.style.background = '';
+        el.style.boxShadow = '';
+      }
+    });
+  }
+
   private bindEvents(): void {
     const cardinalGroup = this.container.querySelector('#cardinal-group') as HTMLElement;
 
@@ -226,7 +247,12 @@ export class CameraBarUI {
         const crystalId = btn.getAttribute('data-crystal') as keyof typeof CRYSTAL_BASES;
         const crystal = CRYSTAL_BASES[crystalId];
         if (crystal) {
-          this.cameraController.jumpToTile(crystal.tileX, crystal.tileY);
+          if (this.onSelectCrystalCallback) {
+            this.onSelectCrystalCallback(crystalId);
+          } else {
+            this.cameraController.jumpToTile(crystal.tileX, crystal.tileY);
+          }
+          this.setActiveCrystal(crystalId);
         }
       });
     });

@@ -3,7 +3,7 @@
 // ==============================================================================
 
 import './style.css';
-import { CONFIG } from './config';
+import { CONFIG, CRYSTAL_BASES } from './config';
 import { HeightfieldManager } from './core/heightfield';
 import { PinManager } from './core/pins';
 import { VisitManager } from './core/visits';
@@ -107,13 +107,35 @@ class JackalSandboxApp {
     this.contourRenderer = new ContourRenderer(this.sceneManager.overlayGroup, this.heightfield);
     this.scaleReference = new ScaleReferenceManager(this.sceneManager.overlayGroup);
 
-    // Posicionamento inicial da estação e da escala no marco zero (0, 0)
+    // Posicionamento inicial da estação e da escala no Posto Avançado Oficial designado
+    const initialOutpost = this.supabaseSync.getUserOutpost();
+    const crystal = CRYSTAL_BASES[initialOutpost] || CRYSTAL_BASES.east;
+    this.visitManager.anchorToOutpost(initialOutpost);
     this.gridMesh.updateStationRange(this.visitManager.getCurrentVisit());
-    const initialGroundZ = this.heightfield.getInterpolatedHeightAtTile(0, 0);
-    this.scaleReference.setPosition(0, 0, initialGroundZ);
+    const initialGroundZ = this.heightfield.getInterpolatedHeightAtTile(crystal.tileX, crystal.tileY);
+    this.scaleReference.setPosition(crystal.tileX, crystal.tileY, initialGroundZ);
+
+    // Câmera centrada inicialmente no posto designado do time
+    this.cameraController.jumpToTile(crystal.tileX, crystal.tileY);
 
     // Interface
     this.initUI();
+    this.cameraBarUI.setActiveCrystal(initialOutpost);
+
+    // Sincroniza com perfil do usuário quando carregar da nuvem
+    this.supabaseSync.subscribe(() => {
+      const userOutpost = this.supabaseSync.getUserOutpost();
+      const currentVisit = this.visitManager.getCurrentVisit();
+      const base = CRYSTAL_BASES[userOutpost];
+      if (base && (currentVisit.station_x !== base.tileX || currentVisit.station_y !== base.tileY) && this.visitManager.getStrokeCount() === 0) {
+        this.visitManager.anchorToOutpost(userOutpost);
+        this.cameraController.jumpToTile(base.tileX, base.tileY);
+        this.gridMesh.updateStationRange(this.visitManager.getCurrentVisit());
+        const groundZ = this.heightfield.getInterpolatedHeightAtTile(base.tileX, base.tileY);
+        this.scaleReference.setPosition(base.tileX, base.tileY, groundZ);
+        this.cameraBarUI.setActiveCrystal(userOutpost);
+      }
+    });
 
     // Objetos do Wurm (placeables): só aparecem se os modelos foram extraídos localmente (npm run extract-wurm)
     this.placeables = new PlaceablesManager(this.sceneManager, this.heightfield, this.appContainer);
